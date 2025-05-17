@@ -60,7 +60,6 @@ export default function Home() {
         const { data, error } = await supabase
           .from('stories')
           .select('*')
-          .neq('worlds.genre', 'anime')
           .limit(7);
 
         if (error) throw error;
