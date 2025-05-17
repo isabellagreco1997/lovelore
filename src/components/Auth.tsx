@@ -31,27 +31,25 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-black py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
       {/* Video Background */}
-      <div className="absolute inset-0 w-full h-full z-0">
+      <div className="absolute inset-0 w-full h-full">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.7 }}
+          className="w-full h-full object-cover"
         >
-          <source src="Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
+          <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-60"></div>
       </div>
 
-      {/* Main Content */}
-      <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative z-10">
-        {/* Auth Form */}
-        <div className="w-full max-w-md bg-[#1c1c1c]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-gray-800/50">
+      {/* Auth Container */}
+      <div className="relative z-10 w-full max-w-md mx-4">
+        <div className="bg-[#1c1c1c]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-gray-800/50">
           <div className="px-8 pt-8 pb-6">
             <h2 className="text-3xl font-bold text-white mb-2">
               Get access to 10M+ Characters
