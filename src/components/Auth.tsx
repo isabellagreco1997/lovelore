@@ -49,7 +49,7 @@ const Auth = () => {
       <div className="w-full max-w-6xl mx-auto flex items-center gap-8">
         {/* Video Section */}
         <div className="hidden lg:block w-[320px]">
-          <div className="w-[320px] h-[690px] overflow-hidden bg-indigo-900 rounded-lg">
+          <div className="w-[320px] h-[690px] overflow-hidden bg-indigo-900 rounded-lg relative">
             <video
               autoPlay
               loop
@@ -57,7 +57,7 @@ const Auth = () => {
               playsInline
               className="w-full h-full object-cover"
             >
-              <source src="/videos/your-video.mp4" type="video/mp4" />
+              <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/80 via-transparent to-indigo-900/40"></div>
