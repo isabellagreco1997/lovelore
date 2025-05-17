@@ -19,17 +19,37 @@ const StoryList = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('stories')
-          .select('*');
+          .select(`
+            id,
+            world_name,
+            story_context,
+            created_at,
+            image,
+            logo_image,
+            description,
+            chapters,
+            worlds (
+              genre
+            )
+          `);
 
         if (error) throw error;
         
-        // Transform the data to match our Story type
-        const formattedStories = data?.map(story => ({
-          ...story,
-          chapters: Array.isArray(story.chapters) ? story.chapters : []
-        })) || [];
+        // Filter out anime stories and format the data
+        const filteredStories = (data || [])
+          .filter(story => story.worlds?.genre !== 'anime')
+          .map(story => ({
+            id: story.id,
+            world_name: story.world_name,
+            story_context: story.story_context,
+            created_at: story.created_at,
+            image: story.image,
+            logo_image: story.logo_image,
+            description: story.description,
+            chapters: Array.isArray(story.chapters) ? story.chapters : []
+          }));
         
-        setStories(formattedStories);
+        setStories(filteredStories);
       } catch (error: any) {
         console.error('Error fetching stories:', error.message);
         setError('Failed to load stories');
@@ -171,4 +191,4 @@ const StoryList = () => {
   );
 };
 
-export default StoryList; 
+export default StoryList;
