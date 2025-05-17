@@ -61,8 +61,7 @@ export default function Home() {
       try {
         setCarouselLoading(true);
         const { data: worldsData, error: worldsError } = await supabase
-          .from('worlds')
-          .select('*, stories(*)')
+          .from('stories')
           .limit(7);
 
         if (worldsError) throw worldsError;
