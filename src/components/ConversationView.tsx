@@ -207,23 +207,15 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
 
   return (
     <div className="flex flex-col h-full bg-black">
-      {/* Elegant Story Header */}
-      <div className="relative bg-gradient-to-b from-[#1a0a1f] to-black border-b border-pink-900/30 p-8">
-        <div className="absolute inset-0 bg-[url('/images/chat-background.png')] opacity-5"></div>
-        <div className="max-w-4xl mx-auto relative">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-pink-900/20 border border-pink-500/20 flex items-center justify-center mb-2">
-              <span className="text-pink-400 text-2xl">♥</span>
-            </div>
-            <h1 className="text-3xl font-light text-pink-200 tracking-wider">
+      {/* Minimal Story Header */}
+      <div className="bg-gradient-to-b from-[#1a0a1f] to-black border-b border-pink-900/30 px-8 py-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col items-center text-center space-y-2">
+            <h1 className="text-2xl font-light text-pink-200 tracking-wider">
               {storyData?.world_name || 'Loading story...'}
             </h1>
-            <div className="flex items-center space-x-4 text-sm text-pink-300/60">
-              <span className="w-12 h-[1px] bg-gradient-to-r from-transparent via-pink-500/20 to-transparent"></span>
-              <span className="font-light tracking-widest uppercase">
-                {currentChapter?.chapterName || conversation?.chapter_id || 'Unknown Chapter'}
-              </span>
-              <span className="w-12 h-[1px] bg-gradient-to-r from-transparent via-pink-500/20 to-transparent"></span>
+            <div className="text-sm text-pink-300/60 font-light tracking-widest uppercase">
+              {currentChapter?.chapterName || conversation?.chapter_id || 'Unknown Chapter'}
             </div>
           </div>
         </div>
@@ -248,11 +240,8 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
             </div>
           ) : messages.length === 0 ? (
             <div className="text-center">
-              <div className="inline-block p-6 rounded-full bg-pink-900/10 border border-pink-500/20 mb-4">
-                <span className="text-2xl text-pink-400">♥</span>
-              </div>
               <p className="text-pink-300/50 italic font-light tracking-wider">
-                Begin your romantic journey...
+                Begin your journey...
               </p>
             </div>
           ) : (
@@ -272,7 +261,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                     <div className={`flex items-center space-x-2 mb-3
                       ${message.role === 'user' ? 'text-pink-300/60' : 'text-purple-300/60'}`}
                     >
-                      <span className="text-xs">♥</span>
                       <span className="font-light tracking-wider text-sm">
                         {message.role === 'user' ? 'You' : 'Storyteller'}
                       </span>
@@ -283,14 +271,12 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                     <div className={`flex items-center space-x-2 mt-4 text-xs font-light tracking-wider
                       ${message.role === 'user' ? 'text-pink-400/30' : 'text-purple-400/30'}`}
                     >
-                      <span>✦</span>
                       <time>
                         {new Date(message.timestamp).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit'
                         })}
                       </time>
-                      <span>✦</span>
                     </div>
                   </div>
                 </div>
@@ -301,7 +287,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         </div>
       </div>
 
-      {/* Romantic Input Area */}
+      {/* Input Area */}
       <div className="border-t border-pink-900/30 bg-gradient-to-t from-[#1a0a1f] to-black p-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end space-x-4">
@@ -309,7 +295,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
               <textarea 
                 className="w-full bg-transparent border-0 rounded-2xl p-6 text-pink-100 placeholder-pink-500/30 resize-none focus:ring-0 font-light tracking-wide"
                 rows={2}
-                placeholder="Share your desires..."
+                placeholder="Type your message..."
                 value={userInput}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
@@ -317,7 +303,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
               />
             </div>
             <button
-              className={`px-8 py-4 rounded-2xl font-light tracking-wider transition-all duration-300 flex items-center space-x-3
+              className={`px-8 py-4 rounded-2xl font-light tracking-wider transition-all duration-300
                 ${!userInput.trim() || loading || sendingMessage
                   ? 'bg-gray-900/50 text-gray-600 cursor-not-allowed'
                   : 'bg-gradient-to-r from-[#1a0a1f] to-[#2a0a2f] hover:from-[#2a0a2f] hover:to-[#3a0a3f] text-pink-300 border border-pink-900/30 hover:border-pink-800/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.1)]'
@@ -326,15 +312,12 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
               disabled={!userInput.trim() || loading || sendingMessage}
             >
               {sendingMessage ? (
-                <>
+                <span className="flex items-center space-x-2">
                   <span className="animate-spin rounded-full h-4 w-4 border-2 border-current"></span>
                   <span>Sending...</span>
-                </>
+                </span>
               ) : (
-                <>
-                  <span className="text-pink-400">♥</span>
-                  <span>Whisper</span>
-                </>
+                <span>Send</span>
               )}
             </button>
           </div>
