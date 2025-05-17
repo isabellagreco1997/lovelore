@@ -7,6 +7,7 @@ import Auth from '@/components/Auth';
 import ConversationView from '@/components/ConversationView';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
+import { streamAIResponse, getStoryContextFromConversation } from '@/lib/deepseek';
 
 export default function ChapterPage() {
   const { id, chapterId } = useParams();
@@ -19,10 +20,57 @@ export default function ChapterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [hasExistingMessages, setHasExistingMessages] = useState(false);
+  const [storyData, setStoryData] = useState<any>(null);
+
+  // Fetch story data first
+  useEffect(() => {
+    if (!supabase || !id) return;
+
+    const fetchStoryData = async () => {
+      try {
+        // Get the story data
+        const { data: worldData, error: worldError } = await supabase
+          .from('worlds')
+          .select('story_id')
+          .eq('id', id)
+          .single();
+
+        if (worldError) throw worldError;
+
+        const { data: storyData, error: storyError } = await supabase
+          .from('stories')
+          .select('*')
+          .eq('id', worldData.story_id)
+          .single();
+
+        if (storyError) throw storyError;
+
+        // Process chapters data
+        let chaptersArray = [];
+        if (storyData.chapters) {
+          if (storyData.chapters.chapters && Array.isArray(storyData.chapters.chapters)) {
+            chaptersArray = storyData.chapters.chapters;
+          } else if (Array.isArray(storyData.chapters)) {
+            chaptersArray = storyData.chapters;
+          }
+        }
+
+        setStoryData({
+          ...storyData,
+          chapters: chaptersArray
+        });
+      } catch (error: any) {
+        console.error('Error fetching story data:', error.message);
+        setError('Failed to load story data');
+      }
+    };
+
+    fetchStoryData();
+  }, [supabase, id]);
 
   // Fetch or create conversation data
   useEffect(() => {
-    if (!supabase || !id || !user || !chapterId) return;
+    if (!supabase || !id || !user || !chapterId || !storyData) return;
 
     const fetchConversation = async () => {
       try {
@@ -53,15 +101,46 @@ export default function ChapterPage() {
                 user_id: user.id,
                 world_id: id,
                 chapter_id: chapterId,
-                started_at: new Date().toISOString(),
-                messages: []
+                started_at: new Date().toISOString()
               }
             ])
             .select()
             .single();
             
           if (createError) throw createError;
-          existingConversation = newConversation;
+          
+          // Get the story context for the initial message
+          const storyContext = await getStoryContextFromConversation(newConversation, storyData);
+          
+          // Generate initial message using DeepSeek
+          const result = await streamAIResponse(
+            "Begin the story",
+            storyContext,
+            () => {}, // Empty callback since we're not streaming this initial message
+            []
+          );
+
+          // Save the initial message
+          const { data: savedMessage, error: messageError } = await supabase
+            .from('messages')
+            .insert([
+              {
+                conversation_id: newConversation.id,
+                role: 'assistant',
+                content: result.content,
+                timestamp: new Date().toISOString()
+              }
+            ])
+            .select()
+            .single();
+
+          if (messageError) throw messageError;
+
+          // Update the conversation with the initial message
+          existingConversation = {
+            ...newConversation,
+            messages: [savedMessage]
+          };
         }
         
         setConversation(existingConversation);
@@ -80,7 +159,7 @@ export default function ChapterPage() {
     };
 
     fetchConversation();
-  }, [supabase, id, chapterId, user]);
+  }, [supabase, id, chapterId, user, storyData]);
 
   if (userLoading) {
     return <Layout><div className="h-screen flex items-center justify-center text-white">Loading...</div></Layout>;
