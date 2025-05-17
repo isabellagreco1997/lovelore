@@ -22,6 +22,7 @@ export default function ConversationView({ conversation, initialMessage }: Conve
   const [sendingMessage, setSendingMessage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [storyData, setStoryData] = useState<any>(null);
+  const [currentChapter, setCurrentChapter] = useState<any>(null);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -61,10 +62,18 @@ export default function ConversationView({ conversation, initialMessage }: Conve
           }
         }
         
-        setStoryData({
+        const processedStoryData = {
           ...storyData,
           chapters: chaptersArray
-        });
+        };
+        
+        setStoryData(processedStoryData);
+        
+        // Find current chapter
+        const chapter = processedStoryData.chapters.find(
+          (ch: any) => ch.chapterName === conversation.chapter_id
+        );
+        setCurrentChapter(chapter);
         
         if (!initialMessage) {
           await fetchMessages();
@@ -201,6 +210,23 @@ export default function ConversationView({ conversation, initialMessage }: Conve
 
   return (
     <div className="flex flex-col h-full bg-gray-950">
+      {/* Story Header */}
+      <div className="bg-gradient-to-r from-gray-900 via-purple-900/20 to-gray-900 border-b border-purple-500/20 p-6 shadow-lg">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-col items-center text-center">
+            <h1 className="text-2xl font-semibold text-purple-200 mb-2">
+              {storyData?.world_name || 'Loading story...'}
+            </h1>
+            <div className="text-sm text-purple-300/80 flex items-center space-x-2">
+              <span>Chapter:</span>
+              <span className="px-3 py-1 rounded-full bg-purple-900/30 border border-purple-500/20">
+                {currentChapter?.chapterName || conversation?.chapter_id || 'Unknown Chapter'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         <div className="max-w-4xl mx-auto">
@@ -228,16 +254,16 @@ export default function ConversationView({ conversation, initialMessage }: Conve
                   }`}
                 >
                   <div 
-                    className={`max-w-[80%] rounded-lg px-6 py-4 shadow-lg ${
+                    className={`max-w-[80%] rounded-2xl px-6 py-4 shadow-lg backdrop-blur-sm ${
                       message.role === 'user'
-                        ? 'bg-purple-900/30 border border-purple-500/30 text-purple-50'
-                        : 'bg-gray-900/50 border border-gray-700/30 text-gray-100'
+                        ? 'bg-purple-900/20 border border-purple-500/20 text-purple-50'
+                        : 'bg-gray-900/40 border border-gray-700/20 text-gray-100'
                     }`}
                   >
                     <div className={`text-sm mb-2 ${
                       message.role === 'user' 
-                        ? 'text-purple-300' 
-                        : 'text-gray-400'
+                        ? 'text-purple-300/80' 
+                        : 'text-gray-400/80'
                     }`}>
                       {message.role === 'user' ? 'You' : 'Storyteller'}
                     </div>
@@ -246,8 +272,8 @@ export default function ConversationView({ conversation, initialMessage }: Conve
                     </div>
                     <div className={`text-xs mt-2 ${
                       message.role === 'user' 
-                        ? 'text-purple-400/60' 
-                        : 'text-gray-500'
+                        ? 'text-purple-400/40' 
+                        : 'text-gray-500/40'
                     }`}>
                       {new Date(message.timestamp).toLocaleTimeString()}
                     </div>
@@ -261,12 +287,12 @@ export default function ConversationView({ conversation, initialMessage }: Conve
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-800 bg-gray-900/80 backdrop-blur-sm p-4">
+      <div className="border-t border-purple-500/10 bg-gray-900/80 backdrop-blur-sm p-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end space-x-4">
-            <div className="flex-1 bg-gray-950 rounded-lg shadow-inner border border-gray-800">
+            <div className="flex-1 bg-gray-950 rounded-2xl shadow-inner border border-purple-500/10">
               <textarea 
-                className="w-full bg-transparent border-0 rounded-lg p-4 text-gray-100 placeholder-gray-500 resize-none focus:ring-2 focus:ring-purple-500/30 focus:border-transparent"
+                className="w-full bg-transparent border-0 rounded-2xl p-4 text-gray-100 placeholder-gray-500 resize-none focus:ring-2 focus:ring-purple-500/20 focus:border-transparent"
                 rows={2}
                 placeholder="Type your message..."
                 value={userInput}
@@ -276,10 +302,10 @@ export default function ConversationView({ conversation, initialMessage }: Conve
               />
             </div>
             <button
-              className={`px-6 py-4 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${
+              className={`px-6 py-4 rounded-2xl font-medium transition-all duration-300 flex items-center space-x-2 ${
                 !userInput.trim() || loading || sendingMessage
                   ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  : 'bg-purple-900 hover:bg-purple-800 text-purple-100 border border-purple-700/50'
+                  : 'bg-purple-900/80 hover:bg-purple-800/80 text-purple-100 border border-purple-500/20 hover:border-purple-500/40'
               }`}
               onClick={handleSendMessage}
               disabled={!userInput.trim() || loading || sendingMessage}
