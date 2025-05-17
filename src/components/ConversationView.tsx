@@ -22,7 +22,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
   const [sendingMessage, setSendingMessage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [storyData, setStoryData] = useState<any>(null);
-  const [currentChapter, setCurrentChapter] = useState<any>(null);
+  const [chapterIndex, setChapterIndex] = useState<number | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -67,10 +67,11 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         
         setStoryData(processedStoryData);
         
-        const chapter = processedStoryData.chapters.find(
+        // Find the chapter index
+        const index = processedStoryData.chapters.findIndex(
           (ch: any) => ch.chapterName === conversation.chapter_id
         );
-        setCurrentChapter(chapter);
+        setChapterIndex(index);
         
         if (!initialMessage) {
           await fetchMessages();
@@ -228,7 +229,11 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                 {storyData?.world_name || 'Loading story...'}
               </h1>
               <div className="text-sm text-pink-300/60 font-light tracking-widest uppercase">
-                {currentChapter?.chapterName || conversation?.chapter_id || 'Unknown Chapter'}
+                {chapterIndex !== null && conversation?.chapter_id ? (
+                  `Chapter ${chapterIndex + 1}: ${conversation.chapter_id}`
+                ) : (
+                  'Loading chapter...'
+                )}
               </div>
             </div>
             <div className="w-[104px]"></div> {/* Spacer to balance the header */}
