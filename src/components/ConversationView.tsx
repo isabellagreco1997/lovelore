@@ -200,21 +200,21 @@ export default function ConversationView({ conversation, initialMessage }: Conve
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-gray-900 to-black">
+    <div className="flex flex-col h-full bg-gradient-to-b from-pink-50 to-purple-50">
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         <div className="max-w-4xl mx-auto">
           {loading ? (
             <div className="flex justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pink-400"></div>
             </div>
           ) : error ? (
-            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4 text-red-200">
+            <div className="bg-red-100 border border-red-300 rounded-lg p-4 text-red-600">
               {error}
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center text-gray-400">
-              Start your story by sending a message...
+            <div className="text-center text-gray-500 italic">
+              ✨ Begin your magical story by sending a message... ✨
             </div>
           ) : (
             <div className="space-y-6">
@@ -227,20 +227,41 @@ export default function ConversationView({ conversation, initialMessage }: Conve
                       : 'justify-start'
                   }`}
                 >
-                  <div className={`max-w-[80%] ${
-                    message.role === 'user'
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-800 text-gray-100'
-                  } rounded-2xl px-6 py-4 shadow-lg relative`}>
-                    <div className="text-sm opacity-75 mb-2">
-                      {message.role === 'user' ? 'You' : 'Storyteller'}
+                  <div 
+                    className={`max-w-[80%] rounded-3xl px-6 py-4 shadow-lg relative ${
+                      message.role === 'user'
+                        ? 'bg-gradient-to-r from-pink-400 to-purple-400 text-white'
+                        : 'bg-white text-gray-800 border border-pink-100'
+                    }`}
+                  >
+                    <div className={`text-sm mb-2 ${
+                      message.role === 'user' 
+                        ? 'text-pink-100' 
+                        : 'text-pink-400'
+                    }`}>
+                      {message.role === 'user' ? '✨ You' : '🌸 Storyteller'}
                     </div>
-                    <div className="prose prose-invert max-w-none">
+                    <div className="prose max-w-none">
                       {message.content}
                     </div>
-                    <div className="text-xs opacity-50 mt-2">
+                    <div className={`text-xs mt-2 ${
+                      message.role === 'user' 
+                        ? 'text-pink-100' 
+                        : 'text-pink-300'
+                    }`}>
                       {new Date(message.timestamp).toLocaleTimeString()}
                     </div>
+                    <div 
+                      className={`absolute -bottom-2 ${
+                        message.role === 'user' 
+                          ? '-left-2 transform rotate-45' 
+                          : '-right-2 transform -rotate-45'
+                      } w-4 h-4 ${
+                        message.role === 'user'
+                          ? 'bg-purple-400'
+                          : 'bg-white border-b border-r border-pink-100'
+                      }`}
+                    />
                   </div>
                 </div>
               ))}
@@ -251,14 +272,14 @@ export default function ConversationView({ conversation, initialMessage }: Conve
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-800 bg-gray-900/80 backdrop-blur-sm p-4">
+      <div className="border-t border-pink-100 bg-white/80 backdrop-blur-sm p-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end space-x-4">
-            <div className="flex-1 bg-gray-800 rounded-xl shadow-inner">
+            <div className="flex-1 bg-white rounded-2xl shadow-inner border border-pink-100">
               <textarea 
-                className="w-full bg-transparent border-0 rounded-xl p-4 text-white placeholder-gray-400 resize-none focus:ring-2 focus:ring-purple-500"
+                className="w-full bg-transparent border-0 rounded-2xl p-4 text-gray-800 placeholder-pink-300 resize-none focus:ring-2 focus:ring-pink-300 focus:border-transparent"
                 rows={2}
-                placeholder="Type your message..."
+                placeholder="✨ Type your message..."
                 value={userInput}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
@@ -266,11 +287,11 @@ export default function ConversationView({ conversation, initialMessage }: Conve
               />
             </div>
             <button
-              className={`px-6 py-4 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2
-                ${!userInput.trim() || loading || sendingMessage
-                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                  : 'bg-purple-600 hover:bg-purple-500 text-white'
-                }`}
+              className={`px-6 py-4 rounded-2xl font-medium transition-all duration-300 flex items-center space-x-2 ${
+                !userInput.trim() || loading || sendingMessage
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white transform hover:scale-105'
+              }`}
               onClick={handleSendMessage}
               disabled={!userInput.trim() || loading || sendingMessage}
             >
@@ -282,7 +303,7 @@ export default function ConversationView({ conversation, initialMessage }: Conve
               ) : (
                 <>
                   <span>Send</span>
-                  <span className="transform rotate-90">➤</span>
+                  <span>✨</span>
                 </>
               )}
             </button>
