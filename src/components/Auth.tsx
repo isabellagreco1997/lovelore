@@ -31,40 +31,27 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-black py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-10 left-16 w-2 h-2 rounded-full bg-purple-400 opacity-40"></div>
-      <div className="absolute top-40 left-40 w-1 h-1 rounded-full bg-purple-300 opacity-30"></div>
-      <div className="absolute top-60 left-20 w-1 h-1 rounded-full bg-blue-300 opacity-30"></div>
-      <div className="absolute bottom-20 right-16 w-2 h-2 rounded-full bg-purple-400 opacity-40"></div>
-      <div className="absolute bottom-40 right-40 w-1 h-1 rounded-full bg-purple-300 opacity-30"></div>
-      <div className="absolute top-20 right-20 w-1 h-1 rounded-full bg-blue-300 opacity-30"></div>
-      <div className="absolute bottom-60 left-40 w-1 h-1 rounded-full bg-blue-300 opacity-30"></div>
-      
-      {/* Large decorative circles */}
-      <div className="absolute -top-40 -left-40 w-80 h-80 rounded-full border border-indigo-800 opacity-20"></div>
-      <div className="absolute -bottom-60 -right-40 w-96 h-96 rounded-full border border-indigo-800 opacity-20"></div>
-      
-      {/* Main content container */}
-      <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative">
-        {/* Video Section - Positioned absolutely */}
-        <div className="fixed inset-0 w-full h-full">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover opacity-40"
-          >
-            <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <div className="absolute inset-0 bg-black/60"></div>
-        </div>
+    <div className="min-h-screen flex bg-black relative overflow-hidden">
+      {/* Video Background - Fixed Position */}
+      <div className="fixed inset-0 z-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        >
+          <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <div className="absolute inset-0 bg-black/60"></div>
+      </div>
 
+      {/* Main content container */}
+      <div className="relative z-10 w-full min-h-screen flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         {/* Auth Form */}
-        <div className="w-full max-w-md relative z-10">
-          <div className="bg-indigo-900/90 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-indigo-700">
+        <div className="w-full max-w-md">
+          <div className="bg-black/80 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-indigo-700">
             <div className="bg-gradient-to-r from-purple-800 to-indigo-800 py-6 px-8 border-b border-indigo-700">
               <h2 className="text-2xl font-extrabold text-white text-center">
                 {isLogin ? 'Welcome back!' : 'Join LoveLore'}
