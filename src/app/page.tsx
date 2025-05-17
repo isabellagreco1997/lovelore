@@ -38,16 +38,14 @@ export default function Home() {
             logo_image,
             description,
             chapters,
-            worlds (
-              genre
-            )
+            genre
           `);
 
         if (storiesError) throw storiesError;
         
         // Filter out anime stories and format the data
         const filteredStories = (storiesData || [])
-          .filter(story => story.worlds?.genre !== 'anime')
+          .filter(story => story.genre !== 'anime')
           .map(story => ({
             id: story.id,
             world_name: story.world_name,
