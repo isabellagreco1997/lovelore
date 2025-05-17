@@ -57,7 +57,7 @@ const Auth = () => {
               playsInline
               className="w-full h-full object-cover"
             >
-              <source src="https://cdn.pixabay.com/vimeo/747645809/149112.mp4?width=1280&hash=f30500a5c7c7efe0c0d3f2c7c7d776e8c4f7c6c4" type="video/mp4" />
+              <source src="/videos/your-video.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
             <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/80 via-transparent to-indigo-900/40"></div>
