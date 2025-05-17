@@ -31,7 +31,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-indigo-950 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex bg-black py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute top-10 left-16 w-2 h-2 rounded-full bg-purple-400 opacity-40"></div>
       <div className="absolute top-40 left-40 w-1 h-1 rounded-full bg-purple-300 opacity-30"></div>
