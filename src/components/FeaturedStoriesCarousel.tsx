@@ -10,29 +10,38 @@ interface FeaturedStoriesCarouselProps {
 const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselProps) => {
   const router = useRouter();
   const [activeSlide, setActiveSlide] = useState(0);
-  const featuredStories = stories.slice(0, 3); // Limit to first 3 stories
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const featuredStories = stories.slice(0, 5); // Show up to 5 stories
 
-  // Auto-advance the carousel every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (featuredStories.length > 1) {
-        nextSlide();
+        handleNextSlide();
       }
-    }, 5000);
+    }, 6000); // Slightly longer interval for better readability
     
     return () => clearInterval(interval);
   }, [featuredStories, activeSlide]);
 
-  const nextSlide = () => {
+  const handleNextSlide = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     setActiveSlide((prev) => (prev === featuredStories.length - 1 ? 0 : prev + 1));
+    setTimeout(() => setIsTransitioning(false), 500);
   };
 
-  const prevSlide = () => {
+  const handlePrevSlide = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     setActiveSlide((prev) => (prev === 0 ? featuredStories.length - 1 : prev - 1));
+    setTimeout(() => setIsTransitioning(false), 500);
   };
 
   const goToSlide = (index: number) => {
+    if (isTransitioning || index === activeSlide) return;
+    setIsTransitioning(true);
     setActiveSlide(index);
+    setTimeout(() => setIsTransitioning(false), 500);
   };
 
   return (
@@ -51,127 +60,127 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
             <p className="text-gray-300 mb-6">Create your first story to see it featured in this carousel!</p>
             <button 
               onClick={() => router.push('/story/new')} 
-              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-3 rounded-lg font-medium"
+              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 py-3 rounded-lg font-medium transform hover:scale-105 transition-all duration-300"
             >
               Create a Story
             </button>
           </div>
         </div>
       ) : (
-        /* Carousel Container */
         <div className="absolute inset-0 w-full h-full">
-          {/* Carousel slides */}
           {featuredStories.map((story, index) => (
             <div 
               key={story.id}
-              className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${
-                index === activeSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              className={`absolute inset-0 w-full h-full transition-all duration-500 ease-in-out transform ${
+                index === activeSlide 
+                  ? 'opacity-100 translate-x-0 z-10' 
+                  : index < activeSlide
+                    ? 'opacity-0 -translate-x-full z-0'
+                    : 'opacity-0 translate-x-full z-0'
               }`}
             >
-              {/* Background Image */}
               <div className="absolute inset-0 z-0">
                 <div className="w-full h-full bg-gradient-to-br from-blue-900 to-indigo-900">
-                  {story.image ? (
-                    <img 
-                      src={story.image} 
-                      alt={story.world_name} 
-                      className="w-full h-full object-cover opacity-70"
-                    />
-                  ) : null}
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/70"></div>
+                  {story.image && (
+                    <div className="relative w-full h-full">
+                      <img 
+                        src={story.image} 
+                        alt={story.world_name} 
+                        className="w-full h-full object-cover opacity-70 transition-transform duration-700 scale-105 hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80"></div>
+                    </div>
+                  )}
                 </div>
               </div>
               
-              {/* Content */}
               <div className="relative z-10 flex flex-col md:flex-row w-full h-full max-w-screen-2xl mx-auto px-8 md:px-16">
-                {/* Left Content (Empty for Image Space) */}
-                <div className="w-full md:w-6/12 lg:w-7/12"></div>
+                <div className="w-full md:w-6/12 lg:w-7/12 flex items-center justify-center p-8">
+                  {story.logo_image ? (
+                    <img 
+                      src={story.logo_image} 
+                      alt={`${story.world_name} logo`}
+                      className="max-w-md w-full h-auto object-contain filter drop-shadow-2xl"
+                    />
+                  ) : null}
+                </div>
                 
-                {/* Right Content */}
-                <div className="w-full md:w-6/12 lg:w-5/12 p-8 flex flex-col justify-center space-y-6">
-                  {/* Stats */}
-                  <div className="flex items-center space-x-6 text-white">
-                    <div className="flex items-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      <span>{Math.floor(Math.random() * 20 + 5)}.{Math.floor(Math.random() * 10)}k</span>
+                <div className="w-full md:w-6/12 lg:w-5/12 p-8 flex flex-col justify-center space-y-8">
+                  <div className="space-y-6 transform transition-all duration-500 delay-200">
+                    <div className="flex items-center space-x-6 text-white/90">
+                      <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                        <span>{Math.floor(Math.random() * 20 + 5)}.{Math.floor(Math.random() * 10)}k playing</span>
+                      </div>
+                      <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span className="text-red-400">♥</span>
+                        <span>{Math.floor(Math.random() * 150 + 30)}%</span>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      <span>{Math.floor(Math.random() * 150 + 30)}</span>
+                    
+                    <h2 className="text-5xl font-bold text-white leading-tight">{story.world_name}</h2>
+                    
+                    <p className="text-gray-200 text-lg leading-relaxed line-clamp-3">
+                      {story.description}
+                    </p>
+                    
+                    <div className="flex flex-col space-y-4">
+                      <button 
+                        onClick={() => router.push(`/story/${story.id}`)} 
+                        className="group relative overflow-hidden bg-[#EC444B] hover:bg-[#d83a40] text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                      >
+                        <span className="relative z-10 flex items-center justify-center text-lg">
+                          Play Now
+                          <span className="ml-2">→</span>
+                        </span>
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700"></div>
+                      </button>
                     </div>
-                    <div className="flex items-center">
-                      <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>{Math.floor(Math.random() * 30 + 5)} min</span>
-                    </div>
-                  </div>
-                  
-                  {/* Title and Description */}
-                  <h2 className="text-4xl font-bold text-white">{story.world_name}</h2>
-                  <p className="text-gray-200 text-base line-clamp-3 md:line-clamp-4">
-                    {story.description}
-                  </p>
-                  
-                  {/* Play Button */}
-                  <div>
-                    <button 
-                      onClick={() => router.push(`/story/${story.id}`)} 
-                      className="bg-[#EC444B] hover:bg-[#d83a40] text-white px-8 py-4 rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl w-full text-lg"
-                    >
-                      Play now
-                    </button>
                   </div>
                 </div>
               </div>
             </div>
           ))}
-        </div>
-      )}
-      
-      {/* Navigation Arrows */}
-      {featuredStories.length > 1 && (
-        <>
-          <button 
-            onClick={prevSlide}
-            className="absolute left-8 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-3 z-20"
-          >
-            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button 
-            onClick={nextSlide}
-            className="absolute right-8 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-3 z-20"
-          >
-            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </>
-      )}
-      
-      {/* Indicator Dots */}
-      {featuredStories.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-20">
-          {featuredStories.map((_, index) => (
-            <button 
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index === activeSlide ? 'bg-white scale-110' : 'bg-white/40 hover:bg-white/60'
-              }`}
-            ></button>
-          ))}
+          
+          {featuredStories.length > 1 && (
+            <>
+              <button 
+                onClick={handlePrevSlide}
+                className="absolute left-8 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-4 z-20 backdrop-blur-sm transition-all duration-300 transform hover:scale-110"
+              >
+                <span className="sr-only">Previous</span>
+                <span className="block w-6 h-6 border-l-2 border-b-2 transform -rotate-45"></span>
+              </button>
+              <button 
+                onClick={handleNextSlide}
+                className="absolute right-8 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-4 z-20 backdrop-blur-sm transition-all duration-300 transform hover:scale-110"
+              >
+                <span className="sr-only">Next</span>
+                <span className="block w-6 h-6 border-r-2 border-t-2 transform rotate-45"></span>
+              </button>
+            </>
+          )}
+          
+          {featuredStories.length > 1 && (
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-4 z-20">
+              {featuredStories.map((_, index) => (
+                <button 
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-12 h-1 rounded-full transition-all duration-300 transform hover:scale-110 ${
+                    index === activeSlide 
+                      ? 'bg-white scale-110' 
+                      : 'bg-white/40 hover:bg-white/60'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                ></button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default FeaturedStoriesCarousel; 
+export default FeaturedStoriesCarousel;

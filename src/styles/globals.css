@@ -3,11 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 248, 250, 252;
-  --background-end-rgb: 248, 250, 252;
-  --purple-primary: 124, 58, 237;
-  --indigo-primary: 79, 70, 229;
+  --foreground-rgb: 255, 255, 255;
+  --background-rgb: 17, 24, 39;
+  --accent-primary: 236, 68, 75;
+  --accent-secondary: 124, 58, 237;
 }
 
 @layer base {
@@ -17,13 +16,8 @@
   
   body {
     color: rgb(var(--foreground-rgb));
-    background: linear-gradient(
-        to bottom,
-        transparent,
-        rgb(var(--background-end-rgb))
-      )
-      rgb(var(--background-start-rgb));
-    @apply antialiased text-gray-800;
+    background: rgb(var(--background-rgb));
+    @apply antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -33,19 +27,34 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-indigo-600 hover:to-purple-600 text-white px-5 py-3 rounded-lg text-sm font-medium transition-all duration-300 shadow-md hover:shadow-lg;
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white transition-all duration-200 
+           bg-[#EC444B] hover:bg-[#d83a40] rounded-lg shadow-sm hover:shadow-md 
+           focus:outline-none focus:ring-2 focus:ring-[#EC444B] focus:ring-offset-2 focus:ring-offset-gray-900;
   }
   
   .btn-secondary {
-    @apply inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-5 py-3 rounded-lg text-sm font-medium transition-all duration-300 shadow-sm hover:shadow;
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-medium transition-all duration-200
+           border border-gray-600 text-gray-300 hover:text-white hover:border-gray-500 rounded-lg 
+           focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900;
   }
   
   .card {
-    @apply bg-white rounded-xl overflow-hidden shadow-md border border-gray-100 transition-all duration-300;
+    @apply bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl 
+           transition-all duration-300 hover:border-gray-600/50;
   }
   
-  .card-hover {
-    @apply hover:shadow-xl transform hover:-translate-y-1;
+  .input-field {
+    @apply block w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg
+           text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#EC444B]
+           focus:border-transparent transition-all duration-200;
+  }
+
+  .nav-link {
+    @apply text-gray-300 hover:text-white transition-colors duration-200 flex items-center space-x-2;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#EC444B] to-purple-500;
   }
 }
 
@@ -83,4 +92,31 @@
 .animate-stagger > *:nth-child(3) { animation-delay: 0.3s; }
 .animate-stagger > *:nth-child(4) { animation-delay: 0.4s; }
 .animate-stagger > *:nth-child(5) { animation-delay: 0.5s; }
-.animate-stagger > *:nth-child(6) { animation-delay: 0.6s; } 
+.animate-stagger > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* Glass morphism effects */
+.glass {
+  @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl;
+}
+
+.glass-dark {
+  @apply bg-gray-900/50 backdrop-blur-lg border border-gray-700/50 shadow-xl;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-600;
+}
