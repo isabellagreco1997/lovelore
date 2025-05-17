@@ -32,21 +32,20 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
-      {/* Video Background */}
       <video
         autoPlay
         loop
         muted
         playsInline
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover z-0"
       >
         <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
-      <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+      <div className="absolute inset-0 bg-black/60 z-10"></div>
 
       {/* Auth Container */}
-      <div className="relative z-10 w-full max-w-md mx-4">
+      <div className="relative z-20 w-full max-w-md mx-4">
         <div className="bg-[#1c1c1c]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-gray-800/50">
           <div className="px-8 pt-8 pb-6">
             <h2 className="text-3xl font-bold text-white mb-2">
