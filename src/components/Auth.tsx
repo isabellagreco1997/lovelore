@@ -137,9 +137,9 @@ const Auth = () => {
                   onClick={() => setIsLogin(!isLogin)}
                   className="text-sm text-purple-300 hover:text-purple-200 font-medium focus:outline-none flex items-center justify-center"
                 >
-                  <img src="/images/favicon.svg" alt="" className="w-4 h-4 mr-2" />
+                
                   {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
-                  <img src="/images/favicon.svg" alt="" className="w-4 h-4 ml-2" />
+                
                 </button>
               </div>
             </div>
