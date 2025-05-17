@@ -51,6 +51,15 @@ const Auth = () => {
 
         {/* Auth form */}
         <div className="w-full md:w-[430px] p-6 md:p-8 relative z-10">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <img 
+              src="/images/logo.png" 
+              alt="LoveLore Logo" 
+              className="h-12 w-auto object-contain"
+            />
+          </div>
+
           <div className="mb-6 md:mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
               Make Your Fantasies True
