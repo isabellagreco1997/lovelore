@@ -27,18 +27,36 @@ export default function Home() {
     const fetchShowcaseStories = async () => {
       try {
         setStoriesLoading(true);
-        const { data: worldsData, error: worldsError } = await supabase
+        const { data: storiesData, error: storiesError } = await supabase
           .from('stories')
-          .select('*');
+          .select(`
+            id,
+            world_name,
+            story_context,
+            created_at,
+            image,
+            logo_image,
+            description,
+            chapters,
+            worlds (
+              genre
+            )
+          `);
 
-        if (worldsError) throw worldsError;
+        if (storiesError) throw storiesError;
         
         // Filter out anime stories and format the data
-        const filteredStories = worldsData
-          .filter(world => world.genre !== 'anime')
-          .map(world => ({
-            ...world.stories,
-            chapters: Array.isArray(world.stories?.chapters) ? world.stories.chapters : []
+        const filteredStories = (storiesData || [])
+          .filter(story => story.worlds?.genre !== 'anime')
+          .map(story => ({
+            id: story.id,
+            world_name: story.world_name,
+            story_context: story.story_context,
+            created_at: story.created_at,
+            image: story.image,
+            logo_image: story.logo_image,
+            description: story.description,
+            chapters: Array.isArray(story.chapters) ? story.chapters : []
           }))
           .slice(0, 3);
         
@@ -60,18 +78,37 @@ export default function Home() {
     const fetchStories = async () => {
       try {
         setCarouselLoading(true);
-        const { data: worldsData, error: worldsError } = await supabase
+        const { data: storiesData, error: storiesError } = await supabase
           .from('stories')
+          .select(`
+            id,
+            world_name,
+            story_context,
+            created_at,
+            image,
+            logo_image,
+            description,
+            chapters,
+            worlds (
+              genre
+            )
+          `)
           .limit(7);
 
-        if (worldsError) throw worldsError;
+        if (storiesError) throw storiesError;
         
         // Filter out anime stories and format the data
-        const filteredStories = worldsData
-          .filter(world => world.genre !== 'anime')
-          .map(world => ({
-            ...world.stories,
-            chapters: Array.isArray(world.stories?.chapters) ? world.stories.chapters : []
+        const filteredStories = (storiesData || [])
+          .filter(story => story.worlds?.genre !== 'anime')
+          .map(story => ({
+            id: story.id,
+            world_name: story.world_name,
+            story_context: story.story_context,
+            created_at: story.created_at,
+            image: story.image,
+            logo_image: story.logo_image,
+            description: story.description,
+            chapters: Array.isArray(story.chapters) ? story.chapters : []
           }));
         
         setStories(filteredStories);
