@@ -33,7 +33,7 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
       {/* Video Background */}
-      <div className="absolute inset-0 w-full h-full">
+      <div className="absolute inset-0 w-full h-full bg-red-600">
         <video
           autoPlay
           loop
