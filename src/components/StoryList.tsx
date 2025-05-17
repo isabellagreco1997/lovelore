@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useSupabase from '@/hooks/useSupabase';
@@ -171,4 +173,4 @@ const StoryList = () => {
   );
 };
 
-export default StoryList; 
+export default StoryList;
