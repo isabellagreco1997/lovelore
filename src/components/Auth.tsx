@@ -31,10 +31,10 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-black">
-      {/* Left side - Auth form */}
-      <div className="w-full md:w-[480px] flex items-center justify-center p-8 relative z-10">
-        <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-black p-4">
+      <div className="flex w-full max-w-[880px] bg-gray-900/20 rounded-2xl overflow-hidden backdrop-blur-sm">
+        {/* Left side - Auth form */}
+        <div className="w-full md:w-[480px] p-8 relative z-10">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">
               Make Your Fantasies True
@@ -70,7 +70,7 @@ const Auth = () => {
                 <div className="w-full border-t border-gray-800"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-black text-gray-500">OR</span>
+                <span className="px-2 bg-gray-900/20 text-gray-500">OR</span>
               </div>
             </div>
 
@@ -119,21 +119,22 @@ const Auth = () => {
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Right side - Video */}
-      <div className="hidden md:block md:w-[400px] relative overflow-hidden rounded-l-[2rem]">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          preload="auto"
-        >
-          <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
+        {/* Right side - Video */}
+        <div className="hidden md:block md:w-[400px] relative overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+            preload="auto"
+          >
+            <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/20 to-transparent"></div>
+        </div>
       </div>
     </div>
   );
