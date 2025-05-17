@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import StoryList from '@/components/StoryList';
-import Auth from '@/components/Auth';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
 import { Story } from '@/types/database';
@@ -31,14 +30,12 @@ export default function Home() {
 
         if (error) throw error;
         
-        // Transform the data to match our Story type
         const formattedStories = data?.map(story => ({
           ...story,
           chapters: Array.isArray(story.chapters) ? story.chapters : []
         })) || [];
         
         setStories(formattedStories);
-        // Use the first few stories for the carousel
         setFeaturedStories(formattedStories.slice(0, Math.min(7, formattedStories.length)));
       } catch (error: any) {
         console.error('Error fetching stories for carousel:', error.message);
@@ -56,7 +53,7 @@ export default function Home() {
         <div className="flex justify-center items-center h-64">
           <div className="flex flex-col items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
-            <p className="mt-4 text-gray-600 animate-pulse">Logging you in...</p>
+            <p className="mt-4 text-gray-600 animate-pulse">Loading...</p>
           </div>
         </div>
       </Layout>
@@ -64,12 +61,137 @@ export default function Home() {
   }
 
   if (!user) {
-    return <Auth />;
+    return (
+      <Layout>
+        {/* Hero Section */}
+        <div className="relative min-h-screen flex flex-col">
+          <div className="absolute inset-0">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            >
+              <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
+          </div>
+
+          {/* Hero Content */}
+          <div className="relative flex-1 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-16 text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+              Define your world
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl">
+              Pick a character, a world, or a story from thousands of community-made scenarios, or create your own!
+            </p>
+            <button
+              onClick={() => router.push('/login')}
+              className="bg-[#EC444B] text-white px-8 py-4 rounded-xl text-lg font-medium hover:bg-[#d83a40] transition-all duration-300 transform hover:scale-105"
+            >
+              Start Your Adventure
+            </button>
+          </div>
+
+          {/* Features Grid */}
+          <div className="relative py-24 px-4 sm:px-6 lg:px-8 bg-black/80 backdrop-blur-sm">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                {/* Feature 1 */}
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-[#EC444B] rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-2xl">1</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">Define your world</h3>
+                  <p className="text-gray-400">
+                    Pick a character, a world, or a story from thousands of community-made scenarios, or create your own! The AI will fill in the details for your unique adventure.
+                  </p>
+                </div>
+
+                {/* Feature 2 */}
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-[#EC444B] rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-2xl">2</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">Take actions</h3>
+                  <p className="text-gray-400">
+                    You can decide what your character says or does. The AI will produce responses from other characters or world events for you to respond to.
+                  </p>
+                </div>
+
+                {/* Feature 3 */}
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-[#EC444B] rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-2xl">3</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">Make it yours</h3>
+                  <p className="text-gray-400">
+                    Customize your adventure with custom theme combinations and advanced AI tweaks. Create cards for characters, locations, and more!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Featured Scenarios */}
+          <div className="relative py-24 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+                Try out one of these scenarios
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Scenario 1 */}
+                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
+                  <h3 className="text-xl font-bold text-white mb-4">Faerûn</h3>
+                  <p className="text-gray-400 mb-6">
+                    Land of intrigue, adventure, magic and mysticism. Faerûn is a primeval wilderness populated by beasts, monsters, fey creatures and extraplanar beings.
+                  </p>
+                  <button 
+                    onClick={() => router.push('/login')}
+                    className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
+                  >
+                    Play Now
+                  </button>
+                </div>
+
+                {/* Scenario 2 */}
+                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
+                  <h3 className="text-xl font-bold text-white mb-4">Android Rule</h3>
+                  <p className="text-gray-400 mb-6">
+                    In the age of technology, androids have proven superior ages ago and taken over the world. Will you attempt to overthrow the androids or try to keep your android companion safe?
+                  </p>
+                  <button 
+                    onClick={() => router.push('/login')}
+                    className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
+                  >
+                    Play Now
+                  </button>
+                </div>
+
+                {/* Scenario 3 */}
+                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
+                  <h3 className="text-xl font-bold text-white mb-4">Supervillain RPG</h3>
+                  <p className="text-gray-400 mb-6">
+                    You play as a supervillain in anyplace you want. Choose your powers, your archenemy, and exactly how you want your suit made.
+                  </p>
+                  <button 
+                    onClick={() => router.push('/login')}
+                    className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
+                  >
+                    Play Now
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
   return (
     <Layout>
-      {/* Full width carousel outside the main container */}
       <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-10">
         <FeaturedStoriesCarousel stories={featuredStories} loading={carouselLoading} />
       </div>
@@ -84,11 +206,10 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </span>
-             Stories
+              Stories
             </h2>
             <div className="flex items-center justify-between">
               <p className="text-gray-400 text-sm max-w-md">Create, explore our interactive stories</p>
-          
             </div>
           </div>
         </div>
@@ -97,4 +218,4 @@ export default function Home() {
       </div>
     </Layout>
   );
-} 
+}
