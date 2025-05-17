@@ -29,6 +29,7 @@ export default function Home() {
         setStoriesLoading(true);
         const { data: worldsData, error: worldsError } = await supabase
           .from('stories')
+          .select('*');
 
         if (worldsError) throw worldsError;
         
