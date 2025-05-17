@@ -21,11 +21,11 @@ const StoryList = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('stories')
-          .select('*');
+          .select('*')
+          .filter('story_context->genre', 'neq', 'anime');
 
         if (error) throw error;
         
-        // Transform the data to match our Story type
         const formattedStories = data?.map(story => ({
           ...story,
           chapters: Array.isArray(story.chapters) ? story.chapters : []
