@@ -22,7 +22,7 @@ const StoryList = () => {
         const { data, error } = await supabase
           .from('stories')
           .select('*')
-          .filter('story_context->genre', 'neq', 'anime');
+          .neq('genre', 'anime');
 
         if (error) throw error;
         
@@ -174,3 +174,5 @@ const StoryList = () => {
 };
 
 export default StoryList;
+
+export default StoryList
