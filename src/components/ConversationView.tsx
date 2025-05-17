@@ -209,32 +209,27 @@ export default function ConversationView({ conversation, initialMessage }: Conve
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#1a1a2e]">
+    <div className="flex flex-col h-full bg-black">
       {/* Story Header */}
-      <div className="bg-gradient-to-r from-[#1a1a2e] via-[#4a154b] to-[#1a1a2e] p-6 border-b border-pink-900/20">
+      <div className="bg-black border-b border-pink-900/20 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col items-center text-center space-y-2">
             <h1 className="text-3xl font-light text-pink-200 tracking-wide">
               {storyData?.world_name || 'Loading story...'}
             </h1>
-            <div className="text-sm text-pink-300/80 flex items-center space-x-3">
-              <span className="text-pink-400/60">♥</span>
+            <div className="text-sm text-pink-300/60 flex items-center space-x-3">
+              <span className="text-pink-400/40">♥</span>
               <span className="font-light tracking-wider">
                 {currentChapter?.chapterName || conversation?.chapter_id || 'Unknown Chapter'}
               </span>
-              <span className="text-pink-400/60">♥</span>
+              <span className="text-pink-400/40">♥</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-8" style={{
-        backgroundImage: "url('/images/chat-background.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundBlend: 'overlay'
-      }}>
+      <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-black">
         <div className="max-w-4xl mx-auto">
           {loading ? (
             <div className="flex justify-center items-center h-full">
@@ -256,27 +251,22 @@ export default function ConversationView({ conversation, initialMessage }: Conve
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div 
-                    className={`max-w-[80%] rounded-3xl px-8 py-6 shadow-lg backdrop-blur-sm 
+                    className={`max-w-[80%] rounded-3xl px-8 py-6 
                       ${message.role === 'user'
-                        ? 'bg-gradient-to-br from-pink-900/30 to-purple-900/30 border border-pink-500/20'
-                        : 'bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border border-purple-500/20'
+                        ? 'bg-[#1a0a1f] border border-pink-900/30'
+                        : 'bg-[#0a0a1f] border border-purple-900/30'
                       }`}
-                    style={{
-                      boxShadow: message.role === 'user' 
-                        ? '0 4px 20px rgba(236, 72, 153, 0.1)' 
-                        : '0 4px 20px rgba(167, 139, 250, 0.1)'
-                    }}
                   >
                     <div className={`text-sm mb-2 font-light tracking-wide
-                      ${message.role === 'user' ? 'text-pink-300/80' : 'text-purple-300/80'}`}
+                      ${message.role === 'user' ? 'text-pink-300/60' : 'text-purple-300/60'}`}
                     >
                       {message.role === 'user' ? 'You' : 'Storyteller'}
                     </div>
                     <div className="prose prose-invert max-w-none">
-                      <p className="text-gray-100 leading-relaxed">{message.content}</p>
+                      <p className="text-gray-200 leading-relaxed">{message.content}</p>
                     </div>
                     <div className={`text-xs mt-3 font-light tracking-wider
-                      ${message.role === 'user' ? 'text-pink-400/40' : 'text-purple-400/40'}`}
+                      ${message.role === 'user' ? 'text-pink-400/30' : 'text-purple-400/30'}`}
                     >
                       {new Date(message.timestamp).toLocaleTimeString([], {
                         hour: '2-digit',
@@ -293,34 +283,28 @@ export default function ConversationView({ conversation, initialMessage }: Conve
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-pink-900/20 bg-gradient-to-r from-[#1a1a2e] via-[#4a154b] to-[#1a1a2e] p-6">
+      <div className="border-t border-pink-900/20 bg-black p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end space-x-4">
-            <div className="flex-1 bg-[#1a1a2e]/80 rounded-2xl shadow-inner border border-pink-500/20">
+            <div className="flex-1 bg-[#0a0a1f] rounded-2xl border border-pink-900/30">
               <textarea 
-                className="w-full bg-transparent border-0 rounded-2xl p-4 text-pink-100 placeholder-pink-500/40 resize-none focus:ring-2 focus:ring-pink-500/20 focus:border-transparent font-light"
+                className="w-full bg-transparent border-0 rounded-2xl p-4 text-pink-100 placeholder-pink-500/30 resize-none focus:ring-2 focus:ring-pink-500/20 focus:border-transparent font-light"
                 rows={2}
                 placeholder="Share your desires..."
                 value={userInput}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 disabled={loading || sendingMessage}
-                style={{ boxShadow: 'inset 0 2px 10px rgba(236, 72, 153, 0.1)' }}
               />
             </div>
             <button
               className={`px-8 py-4 rounded-2xl font-light tracking-wider transition-all duration-300 flex items-center space-x-2
                 ${!userInput.trim() || loading || sendingMessage
-                  ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-pink-900/80 to-purple-900/80 hover:from-pink-800/80 hover:to-purple-800/80 text-pink-100 border border-pink-500/20'
+                  ? 'bg-gray-900 text-gray-600 cursor-not-allowed'
+                  : 'bg-[#1a0a1f] hover:bg-[#2a0a2f] text-pink-300 border border-pink-900/30'
                 }`}
               onClick={handleSendMessage}
               disabled={!userInput.trim() || loading || sendingMessage}
-              style={{
-                boxShadow: !userInput.trim() || loading || sendingMessage
-                  ? 'none'
-                  : '0 4px 20px rgba(236, 72, 153, 0.15)'
-              }}
             >
               {sendingMessage ? (
                 <>
