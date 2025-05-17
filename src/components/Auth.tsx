@@ -46,27 +46,27 @@ const Auth = () => {
       <div className="absolute -bottom-60 -right-40 w-96 h-96 rounded-full border border-indigo-800 opacity-20"></div>
       
       {/* Main content container with video */}
-      <div className="w-full max-w-6xl mx-auto flex items-center gap-8">
-        {/* Video Section */}
-        <div className="hidden lg:block w-[320px] -mr-24 z-10">
-          <div className="w-[320px] h-[690px] overflow-hidden bg-indigo-900/40 rounded-lg relative">
+      <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative">
+        {/* Video Section - Positioned absolutely behind the form */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 hidden lg:block w-[600px] h-[690px] z-0">
+          <div className="w-full h-full overflow-hidden bg-indigo-900/40 rounded-lg">
             <video
               autoPlay
               loop
               muted
               playsInline
-              className="w-full h-full object-cover opacity-80"
+              className="w-full h-full object-cover opacity-60"
             >
               <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
-            <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/80 via-transparent to-indigo-900/40"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-transparent to-indigo-900/80"></div>
           </div>
         </div>
 
         {/* Auth Form */}
-        <div className="w-full lg:w-1/2 max-w-md">
-          <div className="bg-indigo-900/80 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-indigo-700">
+        <div className="w-full max-w-md relative z-10">
+          <div className="bg-indigo-900/90 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-indigo-700">
             <div className="bg-gradient-to-r from-purple-800 to-indigo-800 py-6 px-8 border-b border-indigo-700">
               <div className="flex justify-center mb-2">
                 <div className="h-12 w-12 rounded-full bg-indigo-700 border border-purple-400 flex items-center justify-center">
