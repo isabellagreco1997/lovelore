@@ -8,20 +8,32 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'purple': {
-          50: '#f5f3ff',
-          100: '#ede9fe',
-          200: '#ddd6fe',
-          300: '#c4b5fd',
-          400: '#a78bfa',
-          500: '#8b5cf6',
-          600: '#7c3aed',
-          700: '#6d28d9',
-          800: '#5b21b6',
-          900: '#4c1d95',
+        primary: '#EC444B',
+        secondary: '#7C3AED',
+        dark: {
+          DEFAULT: '#111827',
+          50: '#F9FAFB',
+          100: '#F3F4F6',
+          200: '#E5E7EB',
+          300: '#D1D5DB',
+          400: '#9CA3AF',
+          500: '#6B7280',
+          600: '#4B5563',
+          700: '#374151',
+          800: '#1F2937',
+          900: '#111827',
         },
+      },
+      fontFamily: {
+        sans: ['Inter var', 'sans-serif'],
+      },
+      boxShadow: {
+        'glow': '0 0 20px rgba(236, 68, 75, 0.3)',
       },
     },
   },
-  plugins: [],
-}; 
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+  ],
+};
