@@ -27,19 +27,22 @@ export default function Home() {
     const fetchShowcaseStories = async () => {
       try {
         setStoriesLoading(true);
-        const { data, error } = await supabase
-          .from('stories')
-          .select('*')
-          .limit(3);
+        const { data: worldsData, error: worldsError } = await supabase
+          .from('worlds')
+          .select('*, stories(*)');
 
-        if (error) throw error;
+        if (worldsError) throw worldsError;
         
-        const formattedStories = data?.map(story => ({
-          ...story,
-          chapters: Array.isArray(story.chapters) ? story.chapters : []
-        })) || [];
+        // Filter out anime stories and format the data
+        const filteredStories = worldsData
+          .filter(world => world.genre !== 'anime')
+          .map(world => ({
+            ...world.stories,
+            chapters: Array.isArray(world.stories?.chapters) ? world.stories.chapters : []
+          }))
+          .slice(0, 3);
         
-        setShowcaseStories(formattedStories);
+        setShowcaseStories(filteredStories);
       } catch (error: any) {
         console.error('Error fetching showcase stories:', error.message);
       } finally {
@@ -57,20 +60,23 @@ export default function Home() {
     const fetchStories = async () => {
       try {
         setCarouselLoading(true);
-        const { data, error } = await supabase
-          .from('stories')
-          .select('*')
+        const { data: worldsData, error: worldsError } = await supabase
+          .from('worlds')
+          .select('*, stories(*)')
           .limit(7);
 
-        if (error) throw error;
+        if (worldsError) throw worldsError;
         
-        const formattedStories = data?.map(story => ({
-          ...story,
-          chapters: Array.isArray(story.chapters) ? story.chapters : []
-        })) || [];
+        // Filter out anime stories and format the data
+        const filteredStories = worldsData
+          .filter(world => world.genre !== 'anime')
+          .map(world => ({
+            ...world.stories,
+            chapters: Array.isArray(world.stories?.chapters) ? world.stories.chapters : []
+          }));
         
-        setStories(formattedStories);
-        setFeaturedStories(formattedStories.slice(0, Math.min(7, formattedStories.length)));
+        setStories(filteredStories);
+        setFeaturedStories(filteredStories.slice(0, Math.min(7, filteredStories.length)));
       } catch (error: any) {
         console.error('Error fetching stories for carousel:', error.message);
       } finally {
