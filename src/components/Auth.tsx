@@ -33,24 +33,24 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex bg-black py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Video Background */}
-      <div className="absolute inset-0">
+      <div className="fixed inset-0 w-full h-full">
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="w-full h-full object-cover opacity-40"
+          className="w-full h-full object-cover opacity-60"
         >
           <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        <div className="absolute inset-0 bg-black/60"></div>
+        <div className="absolute inset-0 bg-black/40"></div>
       </div>
 
       {/* Main Content */}
       <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative z-10">
         {/* Auth Form */}
-        <div className="w-full max-w-md bg-[#1c1c1c]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl">
+        <div className="w-full max-w-md bg-[#1c1c1c]/80 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-gray-800/50">
           <div className="px-8 pt-8 pb-6">
             <h2 className="text-3xl font-bold text-white mb-2">
               Get access to 10M+ Characters
@@ -77,16 +77,14 @@ const Auth = () => {
                 required
               />
 
-              {!isLogin && (
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password"
-                  className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                />
-              )}
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={isLogin ? "Enter your password" : "Create a password"}
+                className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                required
+              />
 
               <button
                 type="submit"
