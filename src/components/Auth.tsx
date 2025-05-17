@@ -45,15 +45,27 @@ const Auth = () => {
       <div className="absolute -top-40 -left-40 w-80 h-80 rounded-full border border-indigo-800 opacity-20"></div>
       <div className="absolute -bottom-60 -right-40 w-96 h-96 rounded-full border border-indigo-800 opacity-20"></div>
       
-      {/* Main content container with video */}
+      {/* Main content container */}
       <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative">
+        {/* Video Section - Positioned absolutely */}
+        <div className="fixed inset-0 w-full h-full">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover opacity-40"
+          >
+            <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <div className="absolute inset-0 bg-black/60"></div>
+        </div>
+
         {/* Auth Form */}
-        <div className="w-full max-w-md relative z-10 translate-x-[-100px]">
+        <div className="w-full max-w-md relative z-10">
           <div className="bg-indigo-900/90 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-indigo-700">
             <div className="bg-gradient-to-r from-purple-800 to-indigo-800 py-6 px-8 border-b border-indigo-700">
-              <div className="flex justify-center mb-2">
-           
-              </div>
               <h2 className="text-2xl font-extrabold text-white text-center">
                 {isLogin ? 'Welcome back!' : 'Join LoveLore'}
               </h2>
@@ -129,31 +141,12 @@ const Auth = () => {
                 <button
                   type="button"
                   onClick={() => setIsLogin(!isLogin)}
-                  className="text-sm text-purple-300 hover:text-purple-200 font-medium focus:outline-none flex items-center justify-center"
+                  className="text-sm text-purple-300 hover:text-purple-200 font-medium focus:outline-none"
                 >
-                
                   {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
-                
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Video Section - Positioned absolutely behind the form */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden lg:block w-[600px] h-[690px] z-0">
-          <div className="w-full h-full overflow-hidden bg-indigo-900/40 rounded-lg">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover opacity-60"
-            >
-              <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-transparent to-transparent"></div>
           </div>
         </div>
       </div>
