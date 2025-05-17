@@ -37,10 +37,10 @@ const Auth = () => {
         <div className="w-full max-w-md">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">
-              Experience Immersive Love Stories
+              Make Your Fantasies True
             </h2>
             <p className="text-gray-400">
-              Begin your romantic journey in seconds
+              Dive into interactive stories that come alive
             </p>
           </div>
 
