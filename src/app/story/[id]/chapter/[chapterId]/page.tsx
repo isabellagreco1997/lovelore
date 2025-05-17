@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import Auth from '@/components/Auth';
@@ -21,30 +21,20 @@ export default function ChapterPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [hasExistingMessages, setHasExistingMessages] = useState(false);
   const [storyData, setStoryData] = useState<any>(null);
+  const [worldId, setWorldId] = useState<string | null>(null);
 
-  // Fetch story data first
+  // First fetch story data and find the corresponding world
   useEffect(() => {
     if (!supabase || !id) return;
 
     const fetchStoryData = async () => {
       try {
-        // Get the story data
-        const { data: worldData, error: worldError } = await supabase
-          .from('worlds')
-          .select('story_id')
-          .eq('id', id)
-          .maybeSingle();
-
-        if (worldError) throw worldError;
-        if (!worldData) {
-          throw new Error('World not found');
-        }
-
+        // First get the story data
         const { data: storyData, error: storyError } = await supabase
           .from('stories')
           .select('*')
-          .eq('id', worldData.story_id)
-          .maybeSingle();
+          .eq('id', id)
+          .single();
 
         if (storyError) throw storyError;
         if (!storyData) {
@@ -61,10 +51,26 @@ export default function ChapterPage() {
           }
         }
 
-        setStoryData({
+        const processedStoryData = {
           ...storyData,
           chapters: chaptersArray
-        });
+        };
+
+        setStoryData(processedStoryData);
+
+        // Now find the corresponding world
+        const { data: worldData, error: worldError } = await supabase
+          .from('worlds')
+          .select('id')
+          .eq('story_id', id)
+          .single();
+
+        if (worldError) throw worldError;
+        if (!worldData) {
+          throw new Error('World not found');
+        }
+
+        setWorldId(worldData.id);
       } catch (error: any) {
         console.error('Error fetching story data:', error.message);
         setError(error.message || 'Failed to load story data');
@@ -76,7 +82,7 @@ export default function ChapterPage() {
 
   // Fetch or create conversation data
   useEffect(() => {
-    if (!supabase || !id || !user || !chapterId || !storyData) return;
+    if (!supabase || !worldId || !user || !chapterId || !storyData) return;
 
     const fetchConversation = async () => {
       try {
@@ -91,7 +97,7 @@ export default function ChapterPage() {
               *
             )
           `)
-          .eq('world_id', id)
+          .eq('world_id', worldId)
           .eq('chapter_id', chapterId)
           .eq('user_id', user.id)
           .maybeSingle();
@@ -105,7 +111,7 @@ export default function ChapterPage() {
             .insert([
               {
                 user_id: user.id,
-                world_id: id,
+                world_id: worldId,
                 chapter_id: chapterId,
                 started_at: new Date().toISOString()
               }
@@ -165,7 +171,7 @@ export default function ChapterPage() {
     };
 
     fetchConversation();
-  }, [supabase, id, chapterId, user, storyData]);
+  }, [supabase, worldId, chapterId, user, storyData]);
 
   if (userLoading) {
     return <Layout><div className="h-screen flex items-center justify-center text-white">Loading...</div></Layout>;
