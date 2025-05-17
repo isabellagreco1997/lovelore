@@ -34,7 +34,7 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
       {/* Auth Container */}
-      <div className="relative z-20 w-full max-w-md ml-8 mr-auto">
+      <div className="relative z-20 w-full max-w-md ml-8">
         <div className="bg-[#1c1c1c]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl border border-gray-800/50">
           <div className="px-8 pt-8 pb-6">
             <h2 className="text-3xl font-bold text-white mb-2">

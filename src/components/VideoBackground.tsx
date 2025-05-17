@@ -14,10 +14,10 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ className = '' }) => 
         playsInline
         className={`absolute inset-0 w-full h-full ${className}`}
       >
-        <source src="/videos/background.mp4" type="video/mp4" />
+        <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-gradient-to-l from-black/80 to-transparent"></div>
     </>
   );
 };
