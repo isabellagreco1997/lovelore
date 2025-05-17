@@ -48,14 +48,14 @@ const Auth = () => {
       {/* Main content container with video */}
       <div className="w-full max-w-6xl mx-auto flex items-center gap-8">
         {/* Video Section */}
-        <div className="hidden lg:block w-[320px]">
-          <div className="w-[320px] h-[690px] overflow-hidden bg-indigo-900 rounded-lg relative">
+        <div className="hidden lg:block w-[320px] -mr-24 z-10">
+          <div className="w-[320px] h-[690px] overflow-hidden bg-indigo-900/40 rounded-lg relative">
             <video
               autoPlay
               loop
               muted
               playsInline
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover opacity-80"
             >
               <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
               Your browser does not support the video tag.
@@ -66,7 +66,7 @@ const Auth = () => {
 
         {/* Auth Form */}
         <div className="w-full lg:w-1/2 max-w-md">
-          <div className="bg-indigo-900 rounded-xl shadow-xl overflow-hidden border border-indigo-700">
+          <div className="bg-indigo-900/80 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-indigo-700">
             <div className="bg-gradient-to-r from-purple-800 to-indigo-800 py-6 px-8 border-b border-indigo-700">
               <div className="flex justify-center mb-2">
                 <div className="h-12 w-12 rounded-full bg-indigo-700 border border-purple-400 flex items-center justify-center">
