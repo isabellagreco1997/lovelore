@@ -159,7 +159,7 @@ const Auth = () => {
               <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
               Your browser does not support the video tag.
             </video>
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-transparent to-indigo-900/80"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-transparent to-transparent"></div>
           </div>
         </div>
       </div>
