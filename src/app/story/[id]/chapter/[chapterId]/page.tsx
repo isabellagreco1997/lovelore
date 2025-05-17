@@ -33,17 +33,23 @@ export default function ChapterPage() {
           .from('worlds')
           .select('story_id')
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         if (worldError) throw worldError;
+        if (!worldData) {
+          throw new Error('World not found');
+        }
 
         const { data: storyData, error: storyError } = await supabase
           .from('stories')
           .select('*')
           .eq('id', worldData.story_id)
-          .single();
+          .maybeSingle();
 
         if (storyError) throw storyError;
+        if (!storyData) {
+          throw new Error('Story not found');
+        }
 
         // Process chapters data
         let chaptersArray = [];
@@ -61,7 +67,7 @@ export default function ChapterPage() {
         });
       } catch (error: any) {
         console.error('Error fetching story data:', error.message);
-        setError('Failed to load story data');
+        setError(error.message || 'Failed to load story data');
       }
     };
 
