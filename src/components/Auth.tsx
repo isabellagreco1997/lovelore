@@ -52,13 +52,7 @@ const Auth = () => {
           <div className="bg-indigo-900/90 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-indigo-700">
             <div className="bg-gradient-to-r from-purple-800 to-indigo-800 py-6 px-8 border-b border-indigo-700">
               <div className="flex justify-center mb-2">
-                <div className="h-12 w-12 rounded-full bg-indigo-700 border border-purple-400 flex items-center justify-center">
-                  <img 
-                    src="/images/logo.svg" 
-                    alt="LoveLore Logo" 
-                    className="h-8 w-8"
-                  />
-                </div>
+           
               </div>
               <h2 className="text-2xl font-extrabold text-white text-center">
                 {isLogin ? 'Welcome back!' : 'Join LoveLore'}
