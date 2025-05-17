@@ -10,6 +10,149 @@ import useSupabase from '@/hooks/useSupabase';
 import { Story } from '@/types/database';
 import FeaturedStoriesCarousel from '@/components/FeaturedStoriesCarousel';
 
+// Features Grid Component
+const FeaturesGrid = () => (
+  <div className="relative py-24 px-4 sm:px-6 lg:px-8 bg-black/80 backdrop-blur-sm">
+    <div className="max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <FeatureCard 
+          number={1}
+          title="Define your world"
+          description="Pick a character, a world, or a story from thousands of community-made scenarios, or create your own! The AI will fill in the details for your unique adventure."
+        />
+        <FeatureCard 
+          number={2}
+          title="Take actions"
+          description="You can decide what your character says or does. The AI will produce responses from other characters or world events for you to respond to."
+        />
+        <FeatureCard 
+          number={3}
+          title="Make it yours"
+          description="Customize your adventure with custom theme combinations and advanced AI tweaks. Create cards for characters, locations, and more!"
+        />
+      </div>
+    </div>
+  </div>
+);
+
+// Feature Card Component
+const FeatureCard = ({ number, title, description }: { number: number; title: string; description: string }) => (
+  <div className="text-center">
+    <div className="w-12 h-12 bg-[#EC444B] rounded-full flex items-center justify-center mx-auto mb-6">
+      <span className="text-2xl">{number}</span>
+    </div>
+    <h3 className="text-2xl font-bold text-white mb-4">{title}</h3>
+    <p className="text-gray-400">{description}</p>
+  </div>
+);
+
+// Featured Scenarios Component
+const FeaturedScenarios = ({ stories, loading }: { stories: Story[]; loading: boolean }) => (
+  <div className="relative py-24 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto">
+      <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+        Try out one of these scenarios
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {loading ? (
+          [...Array(3)].map((_, index) => <ScenarioLoadingCard key={index} />)
+        ) : stories.length > 0 ? (
+          stories.map((story) => <ScenarioCard key={story.id} story={story} />)
+        ) : (
+          <div className="col-span-3 text-center text-gray-400">
+            No scenarios available at the moment.
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+// Scenario Loading Card Component
+const ScenarioLoadingCard = () => (
+  <div className="bg-gray-900/50 rounded-xl overflow-hidden backdrop-blur-sm border border-gray-800 animate-pulse">
+    <div className="h-48 bg-gray-800"></div>
+    <div className="p-6">
+      <div className="h-6 w-3/4 bg-gray-800 rounded mb-4"></div>
+      <div className="h-24 bg-gray-800 rounded mb-6"></div>
+      <div className="h-10 bg-gray-800 rounded"></div>
+    </div>
+  </div>
+);
+
+// Scenario Card Component
+const ScenarioCard = ({ story }: { story: Story }) => {
+  const router = useRouter();
+  
+  return (
+    <div className="bg-gray-900/50 rounded-xl overflow-hidden backdrop-blur-sm border border-gray-800 group">
+      {story.image && (
+        <div className="relative h-48 overflow-hidden">
+          <img 
+            src={story.image} 
+            alt={story.world_name}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+        </div>
+      )}
+      <div className="p-6">
+        <h3 className="text-xl font-bold text-white mb-4">{story.world_name}</h3>
+        <p className="text-gray-400 mb-6 line-clamp-3">
+          {story.description}
+        </p>
+        <button 
+          onClick={() => router.push('/login')}
+          className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
+        >
+          Play Now
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// FAQ Section Component
+const FAQSection = () => (
+  <div className="relative py-24 px-4 sm:px-6 lg:px-8 bg-black/80 backdrop-blur-sm">
+    <div className="max-w-4xl mx-auto">
+      <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+        Frequently Asked Questions
+      </h2>
+      <div className="space-y-8">
+        <FAQItem 
+          question="What is LoveLore?"
+          answer="LoveLore is an interactive storytelling platform where you can experience and create unique romantic narratives. Our AI-powered system adapts to your choices, creating personalized story experiences."
+        />
+        <FAQItem 
+          question="Is it free to use?"
+          answer="LoveLore offers both free and premium content. You can start with free scenarios and upgrade to access exclusive stories, advanced customization options, and more features."
+        />
+        <FAQItem 
+          question="How does the AI storytelling work?"
+          answer="Our advanced AI understands context and creates dynamic responses to your choices. It remembers your previous decisions and adapts the story accordingly, ensuring each playthrough is unique and personalized."
+        />
+        <FAQItem 
+          question="Can I create my own stories?"
+          answer="Yes! LoveLore provides tools for creating and sharing your own interactive stories. You can customize characters, settings, and plot points, then share them with the community."
+        />
+        <FAQItem 
+          question="Is my data secure?"
+          answer="We take privacy seriously. Your personal information and story progress are protected with industry-standard encryption. You can enjoy our platform knowing your data is safe and secure."
+        />
+      </div>
+    </div>
+  </div>
+);
+
+// FAQ Item Component
+const FAQItem = ({ question, answer }: { question: string; answer: string }) => (
+  <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
+    <h3 className="text-xl font-bold text-white mb-3">{question}</h3>
+    <p className="text-gray-400">{answer}</p>
+  </div>
+);
+
 export default function Home() {
   const { user, loading } = useUser();
   const router = useRouter();
@@ -43,7 +186,6 @@ export default function Home() {
 
         if (storiesError) throw storiesError;
         
-        // Filter out anime stories and format the data
         const filteredStories = (storiesData || [])
           .filter(story => story.genre !== 'anime')
           .map(story => ({
@@ -88,13 +230,11 @@ export default function Home() {
             description,
             chapters,
             genre
-            
           `)
           .limit(7);
 
         if (storiesError) throw storiesError;
         
-        // Filter out anime stories and format the data
         const filteredStories = (storiesData || [])
           .filter(story => story.genre !== 'anime')
           .map(story => ({
@@ -137,157 +277,12 @@ export default function Home() {
     return (
       <Layout>
         <div className="relative min-h-screen flex flex-col">
-          {/* Auth Section */}
           <div className="w-full">
             <Auth />
           </div>
-
-          {/* Features Grid */}
-          <div className="relative py-24 px-4 sm:px-6 lg:px-8 bg-black/80 backdrop-blur-sm">
-            <div className="max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                {/* Feature 1 */}
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-[#EC444B] rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-2xl">1</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Define your world</h3>
-                  <p className="text-gray-400">
-                    Pick a character, a world, or a story from thousands of community-made scenarios, or create your own! The AI will fill in the details for your unique adventure.
-                  </p>
-                </div>
-
-                {/* Feature 2 */}
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-[#EC444B] rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-2xl">2</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Take actions</h3>
-                  <p className="text-gray-400">
-                    You can decide what your character says or does. The AI will produce responses from other characters or world events for you to respond to.
-                  </p>
-                </div>
-
-                {/* Feature 3 */}
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-[#EC444B] rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-2xl">3</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Make it yours</h3>
-                  <p className="text-gray-400">
-                    Customize your adventure with custom theme combinations and advanced AI tweaks. Create cards for characters, locations, and more!
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Featured Scenarios */}
-          <div className="relative py-24 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
-                Try out one of these scenarios
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {storiesLoading ? (
-                  // Loading states for stories
-                  [...Array(3)].map((_, index) => (
-                    <div key={index} className="bg-gray-900/50 rounded-xl overflow-hidden backdrop-blur-sm border border-gray-800 animate-pulse">
-                      <div className="h-48 bg-gray-800"></div>
-                      <div className="p-6">
-                        <div className="h-6 w-3/4 bg-gray-800 rounded mb-4"></div>
-                        <div className="h-24 bg-gray-800 rounded mb-6"></div>
-                        <div className="h-10 bg-gray-800 rounded"></div>
-                      </div>
-                    </div>
-                  ))
-                ) : showcaseStories.length > 0 ? (
-                  // Display actual stories
-                  showcaseStories.map((story) => (
-                    <div key={story.id} className="bg-gray-900/50 rounded-xl overflow-hidden backdrop-blur-sm border border-gray-800 group">
-                      {story.image && (
-                        <div className="relative h-48 overflow-hidden">
-                          <img 
-                            src={story.image} 
-                            alt={story.world_name}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-                        </div>
-                      )}
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold text-white mb-4">{story.world_name}</h3>
-                        <p className="text-gray-400 mb-6 line-clamp-3">
-                          {story.description}
-                        </p>
-                        <button 
-                          onClick={() => router.push('/login')}
-                          className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
-                        >
-                          Play Now
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  // Fallback message if no stories
-                  <div className="col-span-3 text-center text-gray-400">
-                    No scenarios available at the moment.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* FAQ Section */}
-          <div className="relative py-24 px-4 sm:px-6 lg:px-8 bg-black/80 backdrop-blur-sm">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
-                Frequently Asked Questions
-              </h2>
-              <div className="space-y-8">
-                {/* FAQ Item 1 */}
-                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                  <h3 className="text-xl font-bold text-white mb-3">What is LoveLore?</h3>
-                  <p className="text-gray-400">
-                    LoveLore is an interactive storytelling platform where you can experience and create unique romantic narratives. Our AI-powered system adapts to your choices, creating personalized story experiences.
-                  </p>
-                </div>
-
-                {/* FAQ Item 2 */}
-                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                  <h3 className="text-xl font-bold text-white mb-3">Is it free to use?</h3>
-                  <p className="text-gray-400">
-                    LoveLore offers both free and premium content. You can start with free scenarios and upgrade to access exclusive stories, advanced customization options, and more features.
-                  </p>
-                </div>
-
-                {/* FAQ Item 3 */}
-                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                  <h3 className="text-xl font-bold text-white mb-3">How does the AI storytelling work?</h3>
-                  <p className="text-gray-400">
-                    Our advanced AI understands context and creates dynamic responses to your choices. It remembers your previous decisions and adapts the story accordingly, ensuring each playthrough is unique and personalized.
-                  </p>
-                </div>
-
-                {/* FAQ Item 4 */}
-                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                  <h3 className="text-xl font-bold text-white mb-3">Can I create my own stories?</h3>
-                  <p className="text-gray-400">
-                    Yes! LoveLore provides tools for creating and sharing your own interactive stories. You can customize characters, settings, and plot points, then share them with the community.
-                  </p>
-                </div>
-
-                {/* FAQ Item 5 */}
-                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                  <h3 className="text-xl font-bold text-white mb-3">Is my data secure?</h3>
-                  <p className="text-gray-400">
-                    We take privacy seriously. Your personal information and story progress are protected with industry-standard encryption. You can enjoy our platform knowing your data is safe and secure.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <FeaturesGrid />
+          <FeaturedScenarios stories={showcaseStories} loading={storiesLoading} />
+          <FAQSection />
         </div>
       </Layout>
     );
