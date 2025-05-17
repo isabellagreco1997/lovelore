@@ -41,6 +41,7 @@ const Auth = () => {
           playsInline
           className="w-full h-full object-cover"
           src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4"
+          type="video/mp4"
         />
         <div className="absolute inset-0 bg-black bg-opacity-60"></div>
       </div>
