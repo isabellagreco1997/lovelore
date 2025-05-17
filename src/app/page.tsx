@@ -7,7 +7,7 @@ import StoryList from '@/components/StoryList';
 import Auth from '@/components/Auth';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
-import { Story, World } from '@/types/database';
+import { Story } from '@/types/database';
 import FeaturedStoriesCarousel from '@/components/FeaturedStoriesCarousel';
 
 export default function Home() {
@@ -16,33 +16,38 @@ export default function Home() {
   const supabase = useSupabase();
   const [stories, setStories] = useState<Story[]>([]);
   const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
-  const [prebuiltWorlds, setPrebuiltWorlds] = useState<World[]>([]);
+  const [showcaseStories, setShowcaseStories] = useState<Story[]>([]);
   const [carouselLoading, setCarouselLoading] = useState(true);
-  const [worldsLoading, setWorldsLoading] = useState(true);
+  const [storiesLoading, setStoriesLoading] = useState(true);
 
-  // Fetch prebuilt worlds
+  // Fetch stories for showcase
   useEffect(() => {
     if (!supabase) return;
 
-    const fetchPrebuiltWorlds = async () => {
+    const fetchShowcaseStories = async () => {
       try {
-        setWorldsLoading(true);
+        setStoriesLoading(true);
         const { data, error } = await supabase
-          .from('worlds')
+          .from('stories')
           .select('*')
-          .eq('is_prebuilt', true)
           .limit(3);
 
         if (error) throw error;
-        setPrebuiltWorlds(data || []);
+        
+        const formattedStories = data?.map(story => ({
+          ...story,
+          chapters: Array.isArray(story.chapters) ? story.chapters : []
+        })) || [];
+        
+        setShowcaseStories(formattedStories);
       } catch (error: any) {
-        console.error('Error fetching prebuilt worlds:', error.message);
+        console.error('Error fetching showcase stories:', error.message);
       } finally {
-        setWorldsLoading(false);
+        setStoriesLoading(false);
       }
     };
 
-    fetchPrebuiltWorlds();
+    fetchShowcaseStories();
   }, [supabase]);
 
   // Fetch stories for logged-in users
@@ -145,8 +150,8 @@ export default function Home() {
                 Try out one of these scenarios
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {worldsLoading ? (
-                  // Loading states for worlds
+                {storiesLoading ? (
+                  // Loading states for stories
                   [...Array(3)].map((_, index) => (
                     <div key={index} className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800 animate-pulse">
                       <div className="h-6 w-3/4 bg-gray-800 rounded mb-4"></div>
@@ -154,13 +159,13 @@ export default function Home() {
                       <div className="h-10 bg-gray-800 rounded"></div>
                     </div>
                   ))
-                ) : prebuiltWorlds.length > 0 ? (
-                  // Display actual prebuilt worlds
-                  prebuiltWorlds.map((world) => (
-                    <div key={world.id} className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                      <h3 className="text-xl font-bold text-white mb-4">{world.name}</h3>
+                ) : showcaseStories.length > 0 ? (
+                  // Display actual stories
+                  showcaseStories.map((story) => (
+                    <div key={story.id} className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
+                      <h3 className="text-xl font-bold text-white mb-4">{story.world_name}</h3>
                       <p className="text-gray-400 mb-6">
-                        {world.description}
+                        {story.description}
                       </p>
                       <button 
                         onClick={() => router.push('/login')}
@@ -171,7 +176,7 @@ export default function Home() {
                     </div>
                   ))
                 ) : (
-                  // Fallback message if no prebuilt worlds
+                  // Fallback message if no stories
                   <div className="col-span-3 text-center text-gray-400">
                     No scenarios available at the moment.
                   </div>
