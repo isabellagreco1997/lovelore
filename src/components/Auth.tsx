@@ -47,19 +47,30 @@ const Auth = () => {
       
       {/* Main content container with video */}
       <div className="w-full max-w-6xl mx-auto flex items-center gap-8">
-        {/* Video Section */}
-        <div className="hidden lg:block w-1/2 relative rounded-2xl overflow-hidden shadow-2xl border border-indigo-700/30">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover"
-          >
-            <source src="https://cdn.pixabay.com/vimeo/747645809/149112.mp4?width=1280&hash=f30500a5c7c7efe0c0d3f2c7c7d776e8c4f7c6c4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 to-transparent"></div>
+        {/* Mobile-shaped Video Section */}
+        <div className="hidden lg:block w-[320px] relative">
+          <div className="relative w-[320px] h-[690px] rounded-[3rem] overflow-hidden border-[14px] border-indigo-800 bg-indigo-900 shadow-2xl">
+            {/* Notch */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-indigo-800 rounded-b-2xl z-20"></div>
+            
+            {/* Video Container */}
+            <div className="w-full h-full overflow-hidden rounded-[2.3rem]">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              >
+                <source src="https://cdn.pixabay.com/vimeo/747645809/149112.mp4?width=1280&hash=f30500a5c7c7efe0c0d3f2c7c7d776e8c4f7c6c4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+              <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/80 via-transparent to-indigo-900/40"></div>
+            </div>
+            
+            {/* Home Indicator */}
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-indigo-700 rounded-full"></div>
+          </div>
         </div>
 
         {/* Auth Form */}
