@@ -42,8 +42,8 @@ const Auth = () => {
           className="w-full h-full object-cover"
           preload="auto"
         >
-          <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
-          <source src="/Standard_Mode_Man_smirking__looking_deep_into_.webm" type="video/webm" />
+          <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
+          <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.webm" type="video/webm" />
           Your browser does not support the video tag.
         </video>
         <div className="absolute inset-0 bg-black bg-opacity-60"></div>
