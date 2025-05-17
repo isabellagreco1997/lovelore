@@ -122,7 +122,7 @@ const Auth = () => {
       </div>
 
       {/* Right side - Video */}
-      <div className="hidden md:block flex-1 relative overflow-hidden rounded-l-[2rem]">
+      <div className="hidden md:block md:w-[400px] relative overflow-hidden rounded-l-[2rem]">
         <video
           autoPlay
           loop
@@ -132,7 +132,6 @@ const Auth = () => {
           preload="auto"
         >
           <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
-          <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.webm" type="video/webm" />
           Your browser does not support the video tag.
         </video>
       </div>
