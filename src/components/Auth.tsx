@@ -49,8 +49,8 @@ const Auth = () => {
       <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative">
         {/* Auth Form */}
         <div className="w-full max-w-md relative z-10 translate-x-[-100px]">
-          <div className="bg-indigo-900/60 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-indigo-700">
-            <div className="bg-gradient-to-r from-purple-800/80 to-indigo-800/80 py-6 px-8 border-b border-indigo-700">
+          <div className="bg-indigo-900/90 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-indigo-700">
+            <div className="bg-gradient-to-r from-purple-800 to-indigo-800 py-6 px-8 border-b border-indigo-700">
               <div className="flex justify-center mb-2">
            
               </div>
@@ -82,7 +82,7 @@ const Auth = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none block w-full px-3 py-3 border border-indigo-600 bg-indigo-800/60 text-white rounded-lg shadow-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="appearance-none block w-full px-3 py-3 border border-indigo-600 bg-indigo-800 text-white rounded-lg shadow-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="you@example.com"
                     required
                   />
@@ -102,7 +102,7 @@ const Auth = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none block w-full px-3 py-3 border border-indigo-600 bg-indigo-800/60 text-white rounded-lg shadow-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="appearance-none block w-full px-3 py-3 border border-indigo-600 bg-indigo-800 text-white rounded-lg shadow-sm placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder={isLogin ? "Enter your password" : "Create a strong password"}
                     required
                   />
@@ -112,7 +112,7 @@ const Auth = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="group relative w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-white bg-gradient-to-r from-purple-600/90 to-indigo-600/90 hover:from-purple-500/90 hover:to-indigo-500/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-sm transition-all duration-300 font-medium"
+                    className="group relative w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 shadow-sm transition-all duration-300 font-medium"
                   >
                     {loading ? (
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
