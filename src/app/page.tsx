@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import StoryList from '@/components/StoryList';
+import Auth from '@/components/Auth';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
 import { Story } from '@/types/database';
@@ -63,35 +64,10 @@ export default function Home() {
   if (!user) {
     return (
       <Layout>
-        {/* Hero Section */}
         <div className="relative min-h-screen flex flex-col">
-          <div className="absolute inset-0">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover"
-            >
-              <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
-          </div>
-
-          {/* Hero Content */}
-          <div className="relative flex-1 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-16 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              Define your world
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl">
-              Pick a character, a world, or a story from thousands of community-made scenarios, or create your own!
-            </p>
-            <button
-              onClick={() => router.push('/login')}
-              className="bg-[#EC444B] text-white px-8 py-4 rounded-xl text-lg font-medium hover:bg-[#d83a40] transition-all duration-300 transform hover:scale-105"
-            >
-              Start Your Adventure
-            </button>
+          {/* Auth Section */}
+          <div className="w-full">
+            <Auth />
           </div>
 
           {/* Features Grid */}
