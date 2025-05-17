@@ -205,18 +205,33 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
     }
   };
 
+  const handleBackToChapters = () => {
+    if (storyData?.id) {
+      router.push(`/story/${storyData.id}`);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-black">
       {/* Minimal Story Header */}
       <div className="bg-gradient-to-b from-[#1a0a1f] to-black border-b border-pink-900/30 px-8 py-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col items-center text-center space-y-2">
-            <h1 className="text-2xl font-light text-pink-200 tracking-wider">
-              {storyData?.world_name || 'Loading story...'}
-            </h1>
-            <div className="text-sm text-pink-300/60 font-light tracking-widest uppercase">
-              {currentChapter?.chapterName || conversation?.chapter_id || 'Unknown Chapter'}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handleBackToChapters}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#1a0a1f] to-[#2a0a2f] hover:from-[#2a0a2f] hover:to-[#3a0a3f] text-pink-300 border border-pink-900/30 hover:border-pink-800/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.1)] transition-all duration-300"
+            >
+              ← Back to Chapters
+            </button>
+            <div className="flex flex-col items-center text-center space-y-2">
+              <h1 className="text-2xl font-light text-pink-200 tracking-wider">
+                {storyData?.world_name || 'Loading story...'}
+              </h1>
+              <div className="text-sm text-pink-300/60 font-light tracking-widest uppercase">
+                {currentChapter?.chapterName || conversation?.chapter_id || 'Unknown Chapter'}
+              </div>
             </div>
+            <div className="w-[104px]"></div> {/* Spacer to balance the header */}
           </div>
         </div>
       </div>
