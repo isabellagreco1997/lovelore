@@ -24,12 +24,10 @@ export default function ConversationView({ conversation, initialMessage }: Conve
   const [storyData, setStoryData] = useState<any>(null);
   const [currentChapter, setCurrentChapter] = useState<any>(null);
 
-  // Scroll to bottom whenever messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Fetch story data and messages when conversation changes
   useEffect(() => {
     if (!conversation || !supabase) return;
 
@@ -69,7 +67,6 @@ export default function ConversationView({ conversation, initialMessage }: Conve
         
         setStoryData(processedStoryData);
         
-        // Find current chapter
         const chapter = processedStoryData.chapters.find(
           (ch: any) => ch.chapterName === conversation.chapter_id
         );
@@ -210,68 +207,90 @@ export default function ConversationView({ conversation, initialMessage }: Conve
 
   return (
     <div className="flex flex-col h-full bg-black">
-      {/* Story Header */}
-      <div className="bg-black border-b border-pink-900/20 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col items-center text-center space-y-2">
-            <h1 className="text-3xl font-light text-pink-200 tracking-wide">
+      {/* Elegant Story Header */}
+      <div className="relative bg-gradient-to-b from-[#1a0a1f] to-black border-b border-pink-900/30 p-8">
+        <div className="absolute inset-0 bg-[url('/images/chat-background.png')] opacity-5"></div>
+        <div className="max-w-4xl mx-auto relative">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-pink-900/20 border border-pink-500/20 flex items-center justify-center mb-2">
+              <span className="text-pink-400 text-2xl">♥</span>
+            </div>
+            <h1 className="text-3xl font-light text-pink-200 tracking-wider">
               {storyData?.world_name || 'Loading story...'}
             </h1>
-            <div className="text-sm text-pink-300/60 flex items-center space-x-3">
-              <span className="text-pink-400/40">♥</span>
-              <span className="font-light tracking-wider">
+            <div className="flex items-center space-x-4 text-sm text-pink-300/60">
+              <span className="w-12 h-[1px] bg-gradient-to-r from-transparent via-pink-500/20 to-transparent"></span>
+              <span className="font-light tracking-widest uppercase">
                 {currentChapter?.chapterName || conversation?.chapter_id || 'Unknown Chapter'}
               </span>
-              <span className="text-pink-400/40">♥</span>
+              <span className="w-12 h-[1px] bg-gradient-to-r from-transparent via-pink-500/20 to-transparent"></span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-black">
+      {/* Enhanced Chat Messages */}
+      <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-black">
         <div className="max-w-4xl mx-auto">
           {loading ? (
             <div className="flex justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pink-400"></div>
+              <div className="relative">
+                <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border-2 border-pink-500/20"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-400"></div>
+              </div>
             </div>
           ) : error ? (
-            <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-4 text-red-400">
-              {error}
+            <div className="bg-red-900/10 border border-red-500/20 rounded-2xl p-6 backdrop-blur-sm">
+              <div className="flex items-center space-x-3 text-red-400">
+                <span>⚠</span>
+                <p>{error}</p>
+              </div>
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center text-pink-300/50 italic font-light">
-              Begin your romantic journey...
+            <div className="text-center">
+              <div className="inline-block p-6 rounded-full bg-pink-900/10 border border-pink-500/20 mb-4">
+                <span className="text-2xl text-pink-400">♥</span>
+              </div>
+              <p className="text-pink-300/50 italic font-light tracking-wider">
+                Begin your romantic journey...
+              </p>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-12">
               {messages.map((message) => (
                 <div 
                   key={message.id} 
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
                 >
                   <div 
-                    className={`max-w-[80%] rounded-3xl px-8 py-6 
+                    className={`max-w-[80%] rounded-3xl p-6 backdrop-blur-sm transition-all duration-300
                       ${message.role === 'user'
-                        ? 'bg-[#1a0a1f] border border-pink-900/30'
-                        : 'bg-[#0a0a1f] border border-purple-900/30'
+                        ? 'bg-gradient-to-br from-[#1a0a1f] to-[#0a0a1f] border border-pink-900/30 hover:border-pink-800/30'
+                        : 'bg-gradient-to-br from-[#0a0a1f] to-[#0a0a2f] border border-purple-900/30 hover:border-purple-800/30'
                       }`}
                   >
-                    <div className={`text-sm mb-2 font-light tracking-wide
+                    <div className={`flex items-center space-x-2 mb-3
                       ${message.role === 'user' ? 'text-pink-300/60' : 'text-purple-300/60'}`}
                     >
-                      {message.role === 'user' ? 'You' : 'Storyteller'}
+                      <span className="text-xs">♥</span>
+                      <span className="font-light tracking-wider text-sm">
+                        {message.role === 'user' ? 'You' : 'Storyteller'}
+                      </span>
                     </div>
                     <div className="prose prose-invert max-w-none">
-                      <p className="text-gray-200 leading-relaxed">{message.content}</p>
+                      <p className="text-gray-200 leading-relaxed font-light">{message.content}</p>
                     </div>
-                    <div className={`text-xs mt-3 font-light tracking-wider
+                    <div className={`flex items-center space-x-2 mt-4 text-xs font-light tracking-wider
                       ${message.role === 'user' ? 'text-pink-400/30' : 'text-purple-400/30'}`}
                     >
-                      {new Date(message.timestamp).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      <span>✦</span>
+                      <time>
+                        {new Date(message.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </time>
+                      <span>✦</span>
                     </div>
                   </div>
                 </div>
@@ -282,13 +301,13 @@ export default function ConversationView({ conversation, initialMessage }: Conve
         </div>
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-pink-900/20 bg-black p-6">
+      {/* Romantic Input Area */}
+      <div className="border-t border-pink-900/30 bg-gradient-to-t from-[#1a0a1f] to-black p-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end space-x-4">
-            <div className="flex-1 bg-[#0a0a1f] rounded-2xl border border-pink-900/30">
+            <div className="flex-1 bg-gradient-to-r from-[#0a0a1f] to-[#0a0a2f] rounded-2xl border border-pink-900/30 transition-all duration-300 focus-within:border-pink-800/50 focus-within:shadow-[0_0_30px_rgba(236,72,153,0.1)]">
               <textarea 
-                className="w-full bg-transparent border-0 rounded-2xl p-4 text-pink-100 placeholder-pink-500/30 resize-none focus:ring-2 focus:ring-pink-500/20 focus:border-transparent font-light"
+                className="w-full bg-transparent border-0 rounded-2xl p-6 text-pink-100 placeholder-pink-500/30 resize-none focus:ring-0 font-light tracking-wide"
                 rows={2}
                 placeholder="Share your desires..."
                 value={userInput}
@@ -298,21 +317,24 @@ export default function ConversationView({ conversation, initialMessage }: Conve
               />
             </div>
             <button
-              className={`px-8 py-4 rounded-2xl font-light tracking-wider transition-all duration-300 flex items-center space-x-2
+              className={`px-8 py-4 rounded-2xl font-light tracking-wider transition-all duration-300 flex items-center space-x-3
                 ${!userInput.trim() || loading || sendingMessage
-                  ? 'bg-gray-900 text-gray-600 cursor-not-allowed'
-                  : 'bg-[#1a0a1f] hover:bg-[#2a0a2f] text-pink-300 border border-pink-900/30'
+                  ? 'bg-gray-900/50 text-gray-600 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-[#1a0a1f] to-[#2a0a2f] hover:from-[#2a0a2f] hover:to-[#3a0a3f] text-pink-300 border border-pink-900/30 hover:border-pink-800/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.1)]'
                 }`}
               onClick={handleSendMessage}
               disabled={!userInput.trim() || loading || sendingMessage}
             >
               {sendingMessage ? (
                 <>
-                  <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-current"></span>
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-current"></span>
                   <span>Sending...</span>
                 </>
               ) : (
-                <span>Whisper</span>
+                <>
+                  <span className="text-pink-400">♥</span>
+                  <span>Whisper</span>
+                </>
               )}
             </button>
           </div>
@@ -321,3 +343,5 @@ export default function ConversationView({ conversation, initialMessage }: Conve
     </div>
   );
 }
+
+export default ConversationView
