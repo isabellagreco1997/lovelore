@@ -113,7 +113,7 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
                         <span>{Math.floor(Math.random() * 20 + 5)}.{Math.floor(Math.random() * 10)}k playing</span>
                       </div>
                       <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <span className="text-green-400">★</span>
+                        <span className="text-red-400">♥</span>
                         <span>{Math.floor(Math.random() * 150 + 30)}%</span>
                       </div>
                     </div>
