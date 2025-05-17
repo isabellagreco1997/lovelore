@@ -209,73 +209,79 @@ export default function ConversationView({ conversation, initialMessage }: Conve
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-950">
+    <div className="flex flex-col h-full bg-[#1a1a2e]">
       {/* Story Header */}
-      <div className="bg-gradient-to-r from-gray-900 via-purple-900/20 to-gray-900 border-b border-purple-500/20 p-6 shadow-lg">
+      <div className="bg-gradient-to-r from-[#1a1a2e] via-[#4a154b] to-[#1a1a2e] p-6 border-b border-pink-900/20">
         <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col items-center text-center">
-            <h1 className="text-2xl font-semibold text-purple-200 mb-2">
+          <div className="flex flex-col items-center text-center space-y-2">
+            <h1 className="text-3xl font-light text-pink-200 tracking-wide">
               {storyData?.world_name || 'Loading story...'}
             </h1>
-            <div className="text-sm text-purple-300/80 flex items-center space-x-2">
-              <span>Chapter:</span>
-              <span className="px-3 py-1 rounded-full bg-purple-900/30 border border-purple-500/20">
+            <div className="text-sm text-pink-300/80 flex items-center space-x-3">
+              <span className="text-pink-400/60">♥</span>
+              <span className="font-light tracking-wider">
                 {currentChapter?.chapterName || conversation?.chapter_id || 'Unknown Chapter'}
               </span>
+              <span className="text-pink-400/60">♥</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 space-y-8" style={{
+        backgroundImage: "url('/images/chat-background.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundBlend: 'overlay'
+      }}>
         <div className="max-w-4xl mx-auto">
           {loading ? (
             <div className="flex justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-400"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-pink-400"></div>
             </div>
           ) : error ? (
-            <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 text-red-400">
+            <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-4 text-red-400">
               {error}
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center text-gray-400 italic">
-              Begin your journey...
+            <div className="text-center text-pink-300/50 italic font-light">
+              Begin your romantic journey...
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {messages.map((message) => (
                 <div 
                   key={message.id} 
-                  className={`flex ${
-                    message.role === 'user' 
-                      ? 'justify-end' 
-                      : 'justify-start'
-                  }`}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div 
-                    className={`max-w-[80%] rounded-2xl px-6 py-4 shadow-lg backdrop-blur-sm ${
-                      message.role === 'user'
-                        ? 'bg-purple-900/20 border border-purple-500/20 text-purple-50'
-                        : 'bg-gray-900/40 border border-gray-700/20 text-gray-100'
-                    }`}
+                    className={`max-w-[80%] rounded-3xl px-8 py-6 shadow-lg backdrop-blur-sm 
+                      ${message.role === 'user'
+                        ? 'bg-gradient-to-br from-pink-900/30 to-purple-900/30 border border-pink-500/20'
+                        : 'bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border border-purple-500/20'
+                      }`}
+                    style={{
+                      boxShadow: message.role === 'user' 
+                        ? '0 4px 20px rgba(236, 72, 153, 0.1)' 
+                        : '0 4px 20px rgba(167, 139, 250, 0.1)'
+                    }}
                   >
-                    <div className={`text-sm mb-2 ${
-                      message.role === 'user' 
-                        ? 'text-purple-300/80' 
-                        : 'text-gray-400/80'
-                    }`}>
+                    <div className={`text-sm mb-2 font-light tracking-wide
+                      ${message.role === 'user' ? 'text-pink-300/80' : 'text-purple-300/80'}`}
+                    >
                       {message.role === 'user' ? 'You' : 'Storyteller'}
                     </div>
                     <div className="prose prose-invert max-w-none">
-                      {message.content}
+                      <p className="text-gray-100 leading-relaxed">{message.content}</p>
                     </div>
-                    <div className={`text-xs mt-2 ${
-                      message.role === 'user' 
-                        ? 'text-purple-400/40' 
-                        : 'text-gray-500/40'
-                    }`}>
-                      {new Date(message.timestamp).toLocaleTimeString()}
+                    <div className={`text-xs mt-3 font-light tracking-wider
+                      ${message.role === 'user' ? 'text-pink-400/40' : 'text-purple-400/40'}`}
+                    >
+                      {new Date(message.timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </div>
                   </div>
                 </div>
@@ -287,28 +293,34 @@ export default function ConversationView({ conversation, initialMessage }: Conve
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-purple-500/10 bg-gray-900/80 backdrop-blur-sm p-4">
+      <div className="border-t border-pink-900/20 bg-gradient-to-r from-[#1a1a2e] via-[#4a154b] to-[#1a1a2e] p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end space-x-4">
-            <div className="flex-1 bg-gray-950 rounded-2xl shadow-inner border border-purple-500/10">
+            <div className="flex-1 bg-[#1a1a2e]/80 rounded-2xl shadow-inner border border-pink-500/20">
               <textarea 
-                className="w-full bg-transparent border-0 rounded-2xl p-4 text-gray-100 placeholder-gray-500 resize-none focus:ring-2 focus:ring-purple-500/20 focus:border-transparent"
+                className="w-full bg-transparent border-0 rounded-2xl p-4 text-pink-100 placeholder-pink-500/40 resize-none focus:ring-2 focus:ring-pink-500/20 focus:border-transparent font-light"
                 rows={2}
-                placeholder="Type your message..."
+                placeholder="Share your desires..."
                 value={userInput}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 disabled={loading || sendingMessage}
+                style={{ boxShadow: 'inset 0 2px 10px rgba(236, 72, 153, 0.1)' }}
               />
             </div>
             <button
-              className={`px-6 py-4 rounded-2xl font-medium transition-all duration-300 flex items-center space-x-2 ${
-                !userInput.trim() || loading || sendingMessage
-                  ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  : 'bg-purple-900/80 hover:bg-purple-800/80 text-purple-100 border border-purple-500/20 hover:border-purple-500/40'
-              }`}
+              className={`px-8 py-4 rounded-2xl font-light tracking-wider transition-all duration-300 flex items-center space-x-2
+                ${!userInput.trim() || loading || sendingMessage
+                  ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-pink-900/80 to-purple-900/80 hover:from-pink-800/80 hover:to-purple-800/80 text-pink-100 border border-pink-500/20'
+                }`}
               onClick={handleSendMessage}
               disabled={!userInput.trim() || loading || sendingMessage}
+              style={{
+                boxShadow: !userInput.trim() || loading || sendingMessage
+                  ? 'none'
+                  : '0 4px 20px rgba(236, 72, 153, 0.15)'
+              }}
             >
               {sendingMessage ? (
                 <>
@@ -316,7 +328,7 @@ export default function ConversationView({ conversation, initialMessage }: Conve
                   <span>Sending...</span>
                 </>
               ) : (
-                <span>Send</span>
+                <span>Whisper</span>
               )}
             </button>
           </div>
