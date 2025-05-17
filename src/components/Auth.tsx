@@ -34,7 +34,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-black p-4">
       <div className="flex flex-col md:flex-row w-full max-w-[880px] bg-gray-900/20 rounded-2xl overflow-hidden backdrop-blur-sm">
         {/* Video section - Shown on both mobile and desktop */}
-        <div className="w-full h-[200px] md:h-auto md:w-[400px] relative overflow-hidden">
+        <div className="w-full h-[250px] md:h-auto md:w-[400px] relative overflow-hidden">
           <video
             autoPlay
             loop
@@ -50,18 +50,18 @@ const Auth = () => {
         </div>
 
         {/* Auth form */}
-        <div className="w-full md:w-[480px] p-8 relative z-10">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-white mb-2">
+        <div className="w-full md:w-[480px] p-6 md:p-8 relative z-10">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
               Make Your Fantasies True
             </h2>
-            <p className="text-gray-400">
+            <p className="text-sm md:text-base text-gray-400">
               Dive into interactive stories that come alive
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-900/20 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6">
+            <div className="bg-red-900/20 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6 text-sm">
               {error}
             </div>
           )}
@@ -70,7 +70,7 @@ const Auth = () => {
             <div>
               <button
                 type="button"
-                className="w-full bg-white text-black rounded-xl p-3 font-medium flex items-center justify-center space-x-2 hover:bg-gray-100 transition-colors"
+                className="w-full bg-white text-black rounded-xl p-3 font-medium flex items-center justify-center space-x-2 hover:bg-gray-100 transition-colors text-sm md:text-base"
               >
                 <img 
                   src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
@@ -85,7 +85,7 @@ const Auth = () => {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-800"></div>
               </div>
-              <div className="relative flex justify-center text-sm">
+              <div className="relative flex justify-center text-xs md:text-sm">
                 <span className="px-2 bg-gray-900/20 text-gray-500">OR</span>
               </div>
             </div>
@@ -95,7 +95,7 @@ const Auth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email address"
-              className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm md:text-base"
               required
             />
 
@@ -104,21 +104,21 @@ const Auth = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={isLogin ? "Enter your password" : "Create a password"}
-              className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm md:text-base"
               required
             />
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-white text-black rounded-xl px-4 py-3 font-medium hover:bg-gray-100 transition-colors"
+              className="w-full bg-white text-black rounded-xl px-4 py-3 font-medium hover:bg-gray-100 transition-colors text-sm md:text-base"
             >
               {loading ? 'Processing...' : 'Continue'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-xs md:text-sm text-gray-500">
               By continuing, you agree with the{' '}
               <a href="#" className="text-gray-400 hover:text-white">Terms</a>
               {' '}and{' '}
@@ -126,10 +126,10 @@ const Auth = () => {
             </p>
           </div>
 
-          <div className="mt-6 text-center">
+          <div className="mt-4 md:mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-gray-400 hover:text-white text-sm"
+              className="text-gray-400 hover:text-white text-xs md:text-sm"
             >
               {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
             </button>
