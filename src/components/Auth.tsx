@@ -31,9 +31,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black relative overflow-hidden">
+    <div className="min-h-screen flex bg-black py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Video Background */}
-      <div className="absolute inset-0 w-full h-full">
+      <div className="absolute inset-0">
         <video
           autoPlay
           loop
@@ -47,11 +47,11 @@ const Auth = () => {
         <div className="absolute inset-0 bg-black/60"></div>
       </div>
 
-      {/* Auth Container */}
-      <div className="relative z-10 w-full max-w-md mx-4">
-        <div className="bg-[#1c1c1c]/80 backdrop-blur-xl rounded-2xl overflow-hidden">
-          {/* Header */}
-          <div className="px-8 pt-8 pb-6 text-center">
+      {/* Main Content */}
+      <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative z-10">
+        {/* Auth Form */}
+        <div className="w-full max-w-md bg-[#1c1c1c]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl">
+          <div className="px-8 pt-8 pb-6">
             <h2 className="text-3xl font-bold text-white mb-2">
               Get access to 10M+ Characters
             </h2>
@@ -60,7 +60,6 @@ const Auth = () => {
             </p>
           </div>
 
-          {/* Form */}
           <div className="px-8 pb-8">
             {error && (
               <div className="bg-red-900/20 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6">
