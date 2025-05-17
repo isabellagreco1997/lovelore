@@ -56,7 +56,11 @@ const Auth = () => {
                 type="button"
                 className="w-full bg-white text-black rounded-xl p-3 font-medium flex items-center justify-center space-x-2 hover:bg-gray-100 transition-colors mb-3"
               >
-                <img src="/images/google.svg" alt="Google" className="w-5 h-5" />
+                <img 
+                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+                  alt="Google" 
+                  className="w-5 h-5" 
+                />
                 <span>Continue with Google</span>
               </button>
 
@@ -64,7 +68,11 @@ const Auth = () => {
                 type="button"
                 className="w-full bg-white text-black rounded-xl p-3 font-medium flex items-center justify-center space-x-2 hover:bg-gray-100 transition-colors"
               >
-                <img src="/images/apple.svg" alt="Apple" className="w-5 h-5" />
+                <img 
+                  src="https://appleid.cdn-apple.com/appleid/button/images/logo_dark@2x.png" 
+                  alt="Apple" 
+                  className="w-5 h-5" 
+                />
                 <span>Continue with Apple</span>
               </button>
             </div>
