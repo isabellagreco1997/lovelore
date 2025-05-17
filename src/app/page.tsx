@@ -61,7 +61,7 @@ export default function Home() {
         const { data, error } = await supabase
           .from('stories')
           .select('*')
-          .filter('story_context->genre', 'neq', 'anime')
+          .filter('genre', 'neq', 'anime')
           .limit(7);
 
         if (error) throw error;
