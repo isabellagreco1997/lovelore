@@ -23,6 +23,7 @@ export default function ChapterPage() {
   const [storyData, setStoryData] = useState<any>(null);
   const [worldId, setWorldId] = useState<string | null>(null);
   const [dataFetched, setDataFetched] = useState(false);
+  const [generatingInitialMessage, setGeneratingInitialMessage] = useState(false);
 
   // Fetch story and world data once
   useEffect(() => {
@@ -78,6 +79,8 @@ export default function ChapterPage() {
 
     const initializeConversation = async () => {
       try {
+        setGeneratingInitialMessage(true);
+        
         // Check for existing conversation
         const { data: existingConvo, error: fetchError } = await supabase
           .from('conversations')
@@ -113,8 +116,18 @@ export default function ChapterPage() {
 
         if (createError) throw createError;
 
+        // Get the chapter context
+        const currentChapter = storyData.chapters[parseInt(chapterId)];
+        if (!currentChapter) throw new Error('Chapter not found');
+
         // Generate initial message
-        const storyContext = await getStoryContextFromConversation(newConvo, storyData);
+        const storyContext = {
+          storyName: storyData.world_name,
+          chapterName: currentChapter.chapterName,
+          chapterContext: currentChapter.chapterContext,
+          chapterObjective: currentChapter.objective
+        };
+
         const result = await streamAIResponse(
           "Begin the story",
           storyContext,
@@ -147,6 +160,8 @@ export default function ChapterPage() {
         console.error('Error initializing conversation:', error.message);
         setError('Failed to initialize conversation');
         setIsInitialLoad(false);
+      } finally {
+        setGeneratingInitialMessage(false);
       }
     };
 
@@ -176,8 +191,14 @@ export default function ChapterPage() {
           </div>
           
           <div className="mt-8 space-y-3">
-            <h2 className="text-2xl font-bold text-white">Generating Your Story</h2>
-            <p className="text-purple-300">Please wait while we craft your unique narrative experience...</p>
+            <h2 className="text-2xl font-bold text-white">
+              {generatingInitialMessage ? 'Generating Your Story' : 'Loading Your Story'}
+            </h2>
+            <p className="text-purple-300">
+              {generatingInitialMessage 
+                ? 'Please wait while we craft your unique narrative experience...'
+                : 'Loading story data...'}
+            </p>
           </div>
           
           <div className="mt-4 flex justify-center space-x-2">
