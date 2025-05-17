@@ -28,7 +28,7 @@ export default function ChapterPage() {
       try {
         setLoading(true);
         
-        // Get the conversation by story ID and chapter ID
+        // Get the conversation by world ID and chapter ID
         let { data: existingConversation, error: fetchError } = await supabase
           .from('conversations')
           .select(`
@@ -37,7 +37,7 @@ export default function ChapterPage() {
               *
             )
           `)
-          .eq('story_id', id)
+          .eq('world_id', id)
           .eq('chapter_id', chapterId)
           .eq('user_id', user.id)
           .maybeSingle();
@@ -51,9 +51,9 @@ export default function ChapterPage() {
             .insert([
               {
                 user_id: user.id,
-                story_id: id,
+                world_id: id,
                 chapter_id: chapterId,
-                created_at: new Date().toISOString(),
+                started_at: new Date().toISOString(),
                 messages: []
               }
             ])
