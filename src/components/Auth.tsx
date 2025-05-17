@@ -32,8 +32,24 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black p-4">
-      <div className="flex w-full max-w-[880px] bg-gray-900/20 rounded-2xl overflow-hidden backdrop-blur-sm">
-        {/* Left side - Auth form */}
+      <div className="flex flex-col md:flex-row w-full max-w-[880px] bg-gray-900/20 rounded-2xl overflow-hidden backdrop-blur-sm">
+        {/* Video section - Shown on both mobile and desktop */}
+        <div className="w-full h-[200px] md:h-auto md:w-[400px] relative overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+            preload="auto"
+          >
+            <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-gray-900/20 to-transparent"></div>
+        </div>
+
+        {/* Auth form */}
         <div className="w-full md:w-[480px] p-8 relative z-10">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-white mb-2">
@@ -118,22 +134,6 @@ const Auth = () => {
               {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
             </button>
           </div>
-        </div>
-
-        {/* Right side - Video */}
-        <div className="hidden md:block md:w-[400px] relative overflow-hidden">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            preload="auto"
-          >
-            <source src="/images/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/20 to-transparent"></div>
         </div>
       </div>
     </div>
