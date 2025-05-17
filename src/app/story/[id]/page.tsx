@@ -34,9 +34,13 @@ export default function StoryPage() {
           .from('stories')
           .select('*')
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
+        
+        if (!data) {
+          throw new Error('Story not found');
+        }
         
         let chaptersArray = [];
         if (data.chapters) {
@@ -61,11 +65,11 @@ export default function StoryPage() {
           .from('worlds')
           .select('id')
           .eq('story_id', id)
-          .single();
+          .maybeSingle();
         
         if (worldError) {
           console.error('Error fetching world:', worldError);
-        } else {
+        } else if (worldData) {
           setWorld(worldData);
         }
       } catch (error: any) {

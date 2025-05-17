@@ -38,9 +38,13 @@ export default function ChapterPage() {
             )
           `)
           .eq('id', id)
-          .single();
+          .maybeSingle();
           
         if (error) throw error;
+        
+        if (!data) {
+          throw new Error('Conversation not found');
+        }
         
         // Verify this conversation belongs to the current user
         if (data.user_id !== user.id) {
