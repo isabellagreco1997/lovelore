@@ -7,7 +7,7 @@ import StoryList from '@/components/StoryList';
 import Auth from '@/components/Auth';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
-import { Story } from '@/types/database';
+import { Story, World } from '@/types/database';
 import FeaturedStoriesCarousel from '@/components/FeaturedStoriesCarousel';
 
 export default function Home() {
@@ -16,8 +16,36 @@ export default function Home() {
   const supabase = useSupabase();
   const [stories, setStories] = useState<Story[]>([]);
   const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
+  const [prebuiltWorlds, setPrebuiltWorlds] = useState<World[]>([]);
   const [carouselLoading, setCarouselLoading] = useState(true);
+  const [worldsLoading, setWorldsLoading] = useState(true);
 
+  // Fetch prebuilt worlds
+  useEffect(() => {
+    if (!supabase) return;
+
+    const fetchPrebuiltWorlds = async () => {
+      try {
+        setWorldsLoading(true);
+        const { data, error } = await supabase
+          .from('worlds')
+          .select('*')
+          .eq('is_prebuilt', true)
+          .limit(3);
+
+        if (error) throw error;
+        setPrebuiltWorlds(data || []);
+      } catch (error: any) {
+        console.error('Error fetching prebuilt worlds:', error.message);
+      } finally {
+        setWorldsLoading(false);
+      }
+    };
+
+    fetchPrebuiltWorlds();
+  }, [supabase]);
+
+  // Fetch stories for logged-in users
   useEffect(() => {
     if (!supabase || !user) return;
 
@@ -117,47 +145,37 @@ export default function Home() {
                 Try out one of these scenarios
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Scenario 1 */}
-                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                  <h3 className="text-xl font-bold text-white mb-4">Faerûn</h3>
-                  <p className="text-gray-400 mb-6">
-                    Land of intrigue, adventure, magic and mysticism. Faerûn is a primeval wilderness populated by beasts, monsters, fey creatures and extraplanar beings.
-                  </p>
-                  <button 
-                    onClick={() => router.push('/login')}
-                    className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
-                  >
-                    Play Now
-                  </button>
-                </div>
-
-                {/* Scenario 2 */}
-                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                  <h3 className="text-xl font-bold text-white mb-4">Android Rule</h3>
-                  <p className="text-gray-400 mb-6">
-                    In the age of technology, androids have proven superior ages ago and taken over the world. Will you attempt to overthrow the androids or try to keep your android companion safe?
-                  </p>
-                  <button 
-                    onClick={() => router.push('/login')}
-                    className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
-                  >
-                    Play Now
-                  </button>
-                </div>
-
-                {/* Scenario 3 */}
-                <div className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                  <h3 className="text-xl font-bold text-white mb-4">Supervillain RPG</h3>
-                  <p className="text-gray-400 mb-6">
-                    You play as a supervillain in anyplace you want. Choose your powers, your archenemy, and exactly how you want your suit made.
-                  </p>
-                  <button 
-                    onClick={() => router.push('/login')}
-                    className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
-                  >
-                    Play Now
-                  </button>
-                </div>
+                {worldsLoading ? (
+                  // Loading states for worlds
+                  [...Array(3)].map((_, index) => (
+                    <div key={index} className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800 animate-pulse">
+                      <div className="h-6 w-3/4 bg-gray-800 rounded mb-4"></div>
+                      <div className="h-24 bg-gray-800 rounded mb-6"></div>
+                      <div className="h-10 bg-gray-800 rounded"></div>
+                    </div>
+                  ))
+                ) : prebuiltWorlds.length > 0 ? (
+                  // Display actual prebuilt worlds
+                  prebuiltWorlds.map((world) => (
+                    <div key={world.id} className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
+                      <h3 className="text-xl font-bold text-white mb-4">{world.name}</h3>
+                      <p className="text-gray-400 mb-6">
+                        {world.description}
+                      </p>
+                      <button 
+                        onClick={() => router.push('/login')}
+                        className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
+                      >
+                        Play Now
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  // Fallback message if no prebuilt worlds
+                  <div className="col-span-3 text-center text-gray-400">
+                    No scenarios available at the moment.
+                  </div>
+                )}
               </div>
             </div>
           </div>
