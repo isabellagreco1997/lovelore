@@ -10,7 +10,7 @@ interface ConversationViewProps {
   initialMessage?: Message;
 }
 
-export default function ConversationView({ conversation, initialMessage }: ConversationViewProps) {
+function ConversationView({ conversation, initialMessage }: ConversationViewProps) {
   const router = useRouter();
   const { user } = useUser();
   const supabase = useSupabase();
@@ -344,4 +344,4 @@ export default function ConversationView({ conversation, initialMessage }: Conve
   );
 }
 
-export default ConversationView
+export default ConversationView;
