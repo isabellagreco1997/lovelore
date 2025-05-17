@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useUser from '@/hooks/useUser';
+import VideoBackground from './VideoBackground';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -32,20 +33,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
-      {/* Video Background */}
-      <div className="absolute inset-0 w-full h-full">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-        >
-          <source src="Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-        <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-      </div>
+      <VideoBackground className="z-0" />
 
       {/* Auth Container */}
       <div className="relative z-20 w-full max-w-md mx-4">
