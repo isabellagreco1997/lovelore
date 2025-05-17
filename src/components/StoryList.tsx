@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useSupabase from '@/hooks/useSupabase';
@@ -21,11 +19,11 @@ const StoryList = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('stories')
-          .select('*')
-          .filter('story_context->genre', 'neq', 'anime');
+          .select('*');
 
         if (error) throw error;
         
+        // Transform the data to match our Story type
         const formattedStories = data?.map(story => ({
           ...story,
           chapters: Array.isArray(story.chapters) ? story.chapters : []
@@ -173,4 +171,4 @@ const StoryList = () => {
   );
 };
 
-export default StoryList;
+export default StoryList; 

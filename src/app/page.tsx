@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -30,7 +30,6 @@ export default function Home() {
         const { data, error } = await supabase
           .from('stories')
           .select('*')
-          .filter('story_context->genre', 'neq', 'anime')
           .limit(3);
 
         if (error) throw error;
@@ -61,7 +60,6 @@ export default function Home() {
         const { data, error } = await supabase
           .from('stories')
           .select('*')
-          .filter('genre', 'neq', 'anime')
           .limit(7);
 
         if (error) throw error;
