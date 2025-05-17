@@ -153,26 +153,41 @@ export default function Home() {
                 {storiesLoading ? (
                   // Loading states for stories
                   [...Array(3)].map((_, index) => (
-                    <div key={index} className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800 animate-pulse">
-                      <div className="h-6 w-3/4 bg-gray-800 rounded mb-4"></div>
-                      <div className="h-24 bg-gray-800 rounded mb-6"></div>
-                      <div className="h-10 bg-gray-800 rounded"></div>
+                    <div key={index} className="bg-gray-900/50 rounded-xl overflow-hidden backdrop-blur-sm border border-gray-800 animate-pulse">
+                      <div className="h-48 bg-gray-800"></div>
+                      <div className="p-6">
+                        <div className="h-6 w-3/4 bg-gray-800 rounded mb-4"></div>
+                        <div className="h-24 bg-gray-800 rounded mb-6"></div>
+                        <div className="h-10 bg-gray-800 rounded"></div>
+                      </div>
                     </div>
                   ))
                 ) : showcaseStories.length > 0 ? (
                   // Display actual stories
                   showcaseStories.map((story) => (
-                    <div key={story.id} className="bg-gray-900/50 rounded-xl p-6 backdrop-blur-sm border border-gray-800">
-                      <h3 className="text-xl font-bold text-white mb-4">{story.world_name}</h3>
-                      <p className="text-gray-400 mb-6">
-                        {story.description}
-                      </p>
-                      <button 
-                        onClick={() => router.push('/login')}
-                        className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
-                      >
-                        Play Now
-                      </button>
+                    <div key={story.id} className="bg-gray-900/50 rounded-xl overflow-hidden backdrop-blur-sm border border-gray-800 group">
+                      {story.image && (
+                        <div className="relative h-48 overflow-hidden">
+                          <img 
+                            src={story.image} 
+                            alt={story.world_name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-white mb-4">{story.world_name}</h3>
+                        <p className="text-gray-400 mb-6 line-clamp-3">
+                          {story.description}
+                        </p>
+                        <button 
+                          onClick={() => router.push('/login')}
+                          className="w-full bg-[#EC444B]/10 text-[#EC444B] border border-[#EC444B]/20 rounded-lg px-4 py-2 hover:bg-[#EC444B]/20 transition-colors"
+                        >
+                          Play Now
+                        </button>
+                      </div>
                     </div>
                   ))
                 ) : (
