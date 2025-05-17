@@ -34,7 +34,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-black p-4">
       <div className="flex flex-col md:flex-row w-full max-w-[880px] bg-gray-900/20 rounded-2xl overflow-hidden backdrop-blur-sm">
         {/* Video section - Shown on both mobile and desktop */}
-        <div className="w-full h-[250px] md:h-auto md:w-[400px] relative overflow-hidden">
+        <div className="w-full h-[300px] md:h-auto md:w-[450px] relative overflow-hidden">
           <video
             autoPlay
             loop
@@ -50,7 +50,7 @@ const Auth = () => {
         </div>
 
         {/* Auth form */}
-        <div className="w-full md:w-[480px] p-6 md:p-8 relative z-10">
+        <div className="w-full md:w-[430px] p-6 md:p-8 relative z-10">
           <div className="mb-6 md:mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
               Make Your Fantasies True
