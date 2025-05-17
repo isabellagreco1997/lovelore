@@ -168,6 +168,8 @@ export default function ChapterChatPage() {
   const [hasTriedFallback, setHasTriedFallback] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [world, setWorld] = useState<{ id: string } | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [hasExistingMessages, setHasExistingMessages] = useState(false);
 
   // Add system introduction message at beginning of conversation
   const addSystemIntroMessage = useCallback(async (convoId: string, chapterName: string) => {
@@ -526,8 +528,11 @@ export default function ChapterChatPage() {
       if (error) throw error;
       
       setMessages(data || []);
+      setHasExistingMessages(data && data.length > 0);
+      setIsInitialLoad(false);
     } catch (error: any) {
       console.error('Error fetching messages:', error.message);
+      setIsInitialLoad(false);
     }
   }, [supabase]);
 
@@ -861,6 +866,7 @@ export default function ChapterChatPage() {
       return;
     }
     
+    
     try {
       setLoading(true);
       
@@ -996,6 +1002,57 @@ export default function ChapterChatPage() {
   const handleContinueWithoutMarking = () => {
     setShowCompletionModal(false);
   };
+
+  if (isInitialLoad && !hasExistingMessages) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
+        <div className="text-center">
+          <div className="relative">
+            {/* Main loading circle */}
+            <div className="w-24 h-24 border-t-4 border-b-4 border-purple-500 rounded-full animate-spin"></div>
+            
+            {/* Inner loading circle */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="w-16 h-16 border-t-4 border-b-4 border-purple-300 rounded-full animate-spin animation-delay-150"></div>
+            </div>
+            
+            {/* Center dot */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="w-4 h-4 bg-purple-400 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          
+          <div className="mt-8 space-y-3">
+            <h2 className="text-2xl font-bold text-white">Generating Your Story</h2>
+            <p className="text-purple-300">Please wait while we craft your unique narrative experience...</p>
+          </div>
+          
+          {/* Animated dots */}
+          <div className="mt-4 flex justify-center space-x-2">
+            <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"></div>
+            <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce animation-delay-200"></div>
+            <div className="w-3 h-3 bg-purple-300 rounded-full animate-bounce animation-delay-400"></div>
+          </div>
+        </div>
+        
+        <style jsx>{`
+          @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+          }
+          .animation-delay-150 {
+            animation-delay: 150ms;
+          }
+          .animation-delay-200 {
+            animation-delay: 200ms;
+          }
+          .animation-delay-400 {
+            animation-delay: 400ms;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   if (userLoading || loading) {
     return (
@@ -1267,4 +1324,4 @@ export default function ChapterChatPage() {
       </div>
     </Layout>
   );
-} 
+}
