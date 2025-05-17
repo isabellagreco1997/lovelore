@@ -9,7 +9,7 @@ import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
 
 export default function ChapterPage() {
-  const { id } = useParams();
+  const { id, chapterId } = useParams();
   const router = useRouter();
   const { user, loading: userLoading } = useUser();
   const supabase = useSupabase();
@@ -20,16 +20,16 @@ export default function ChapterPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [hasExistingMessages, setHasExistingMessages] = useState(false);
 
-  // Fetch conversation data
+  // Fetch or create conversation data
   useEffect(() => {
-    if (!supabase || !id || !user) return;
+    if (!supabase || !id || !user || !chapterId) return;
 
     const fetchConversation = async () => {
       try {
         setLoading(true);
         
-        // Get the conversation by ID
-        const { data, error } = await supabase
+        // Get the conversation by story ID and chapter ID
+        let { data: existingConversation, error: fetchError } = await supabase
           .from('conversations')
           .select(`
             *,
@@ -37,23 +37,36 @@ export default function ChapterPage() {
               *
             )
           `)
-          .eq('id', id)
+          .eq('story_id', id)
+          .eq('chapter_id', chapterId)
+          .eq('user_id', user.id)
           .maybeSingle();
           
-        if (error) throw error;
+        if (fetchError) throw fetchError;
         
-        if (!data) {
-          throw new Error('Conversation not found');
+        // If no conversation exists, create a new one
+        if (!existingConversation) {
+          const { data: newConversation, error: createError } = await supabase
+            .from('conversations')
+            .insert([
+              {
+                user_id: user.id,
+                story_id: id,
+                chapter_id: chapterId,
+                created_at: new Date().toISOString(),
+                messages: []
+              }
+            ])
+            .select()
+            .single();
+            
+          if (createError) throw createError;
+          existingConversation = newConversation;
         }
         
-        // Verify this conversation belongs to the current user
-        if (data.user_id !== user.id) {
-          throw new Error('You do not have permission to view this conversation');
-        }
-        
-        setConversation(data);
+        setConversation(existingConversation);
         // Check if there are any existing messages
-        setHasExistingMessages(data.messages && data.messages.length > 0);
+        setHasExistingMessages(existingConversation.messages && existingConversation.messages.length > 0);
         // Set initial load to false once we have data
         setIsInitialLoad(false);
       } catch (error: any) {
@@ -67,7 +80,7 @@ export default function ChapterPage() {
     };
 
     fetchConversation();
-  }, [supabase, id, user]);
+  }, [supabase, id, chapterId, user]);
 
   if (userLoading) {
     return <Layout><div className="h-screen flex items-center justify-center text-white">Loading...</div></Layout>;
