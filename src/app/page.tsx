@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
@@ -29,7 +27,8 @@ export default function Home() {
         setStoriesLoading(true);
         const { data, error } = await supabase
           .from('stories')
-          .select('*')
+          .select('*, worlds!inner(*)')
+          .neq('worlds.genre', 'anime')
           .limit(3);
 
         if (error) throw error;
@@ -59,7 +58,8 @@ export default function Home() {
         setCarouselLoading(true);
         const { data, error } = await supabase
           .from('stories')
-          .select('*')
+          .select('*, worlds!inner(*)')
+          .neq('worlds.genre', 'anime')
           .limit(7);
 
         if (error) throw error;
