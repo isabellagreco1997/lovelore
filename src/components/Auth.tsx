@@ -31,9 +31,9 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-black relative overflow-hidden">
+    <div className="min-h-screen relative bg-black overflow-hidden">
       {/* Video Background - Full Screen */}
-      <div className="flex-1 relative">
+      <div className="absolute inset-0">
         <video
           autoPlay
           loop
@@ -46,8 +46,8 @@ const Auth = () => {
         </video>
       </div>
 
-      {/* Auth Form - Bottom Position */}
-      <div className="w-full bg-black/80 backdrop-blur-xl border-t border-indigo-700">
+      {/* Auth Form - Overlapping Position */}
+      <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-indigo-700">
         <div className="max-w-md mx-auto px-4 py-8">
           <div className="bg-gradient-to-r from-purple-800 to-indigo-800 py-6 px-8 rounded-t-xl">
             <h2 className="text-2xl font-extrabold text-white text-center">
