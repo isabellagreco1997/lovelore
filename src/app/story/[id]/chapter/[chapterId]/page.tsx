@@ -22,10 +22,11 @@ export default function ChapterPage() {
   const [hasExistingMessages, setHasExistingMessages] = useState(false);
   const [storyData, setStoryData] = useState<any>(null);
   const [worldId, setWorldId] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // First fetch story data and find the corresponding world
   useEffect(() => {
-    if (!supabase || !id) return;
+    if (!supabase || !id || isInitialized) return;
 
     const fetchStoryData = async () => {
       try {
@@ -71,18 +72,20 @@ export default function ChapterPage() {
         }
 
         setWorldId(worldData.id);
+        setIsInitialized(true);
       } catch (error: any) {
         console.error('Error fetching story data:', error.message);
         setError(error.message || 'Failed to load story data');
+        setIsInitialized(true);
       }
     };
 
     fetchStoryData();
-  }, [supabase, id]);
+  }, [supabase, id, isInitialized]);
 
   // Fetch or create conversation data
   useEffect(() => {
-    if (!supabase || !worldId || !user || !chapterId || !storyData) return;
+    if (!supabase || !worldId || !user || !chapterId || !storyData || !isInitialized) return;
 
     const fetchConversation = async () => {
       try {
@@ -171,7 +174,7 @@ export default function ChapterPage() {
     };
 
     fetchConversation();
-  }, [supabase, worldId, chapterId, user, storyData]);
+  }, [supabase, worldId, chapterId, user, storyData, isInitialized]);
 
   if (userLoading) {
     return <Layout><div className="h-screen flex items-center justify-center text-white">Loading...</div></Layout>;
