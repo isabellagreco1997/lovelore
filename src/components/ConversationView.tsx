@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import useSupabase from '@/hooks/useSupabase';
 import useUser from '@/hooks/useUser';
 import { Message } from '@/types/database';
-import { getStoryContextFromConversation, streamAIResponse, checkObjectiveCompletion } from '@/lib/deepseek';
+import { getStoryContextFromConversation, streamAIResponse } from '@/lib/deepseek';
 
 interface ConversationViewProps {
   conversation: any;
@@ -36,7 +36,6 @@ export default function ConversationView({ conversation, initialMessage }: Conve
       try {
         setLoading(true);
         
-        // Fetch the story data using world_id from the conversation
         const { data: worldData, error: worldError } = await supabase
           .from('worlds')
           .select('story_id')
@@ -45,7 +44,6 @@ export default function ConversationView({ conversation, initialMessage }: Conve
           
         if (worldError) throw worldError;
         
-        // Now fetch the story with its chapters
         const { data: storyData, error: storyError } = await supabase
           .from('stories')
           .select('*')
@@ -54,7 +52,6 @@ export default function ConversationView({ conversation, initialMessage }: Conve
           
         if (storyError) throw storyError;
         
-        // Handle nested chapters structure
         let chaptersArray = [];
         if (storyData.chapters) {
           if (storyData.chapters.chapters && Array.isArray(storyData.chapters.chapters)) {
@@ -64,14 +61,11 @@ export default function ConversationView({ conversation, initialMessage }: Conve
           }
         }
         
-        const processedStoryData = {
+        setStoryData({
           ...storyData,
           chapters: chaptersArray
-        };
+        });
         
-        setStoryData(processedStoryData);
-        
-        // Fetch messages if not provided as initialMessage
         if (!initialMessage) {
           await fetchMessages();
         }
@@ -86,7 +80,6 @@ export default function ConversationView({ conversation, initialMessage }: Conve
     fetchStoryAndMessages();
   }, [conversation, supabase, initialMessage]);
 
-  // Fetch messages for the conversation
   const fetchMessages = async () => {
     if (!supabase || !conversation) return;
     
@@ -106,17 +99,13 @@ export default function ConversationView({ conversation, initialMessage }: Conve
     }
   };
 
-  // Handle sending a new message
   const handleSendMessage = async () => {
     if (!userInput.trim() || !conversation || sendingMessage || !supabase || !user) return;
     
     try {
       setSendingMessage(true);
-      
-      // Store the user input before clearing it
       const userInputText = userInput.trim();
       
-      // Add user message to database
       const userMessage = {
         conversation_id: conversation.id,
         role: 'user',
@@ -132,15 +121,12 @@ export default function ConversationView({ conversation, initialMessage }: Conve
         
       if (userMessageError) throw userMessageError;
       
-      // Update UI with user message
       const updatedMessages = [...messages, savedUserMessage];
       setMessages(updatedMessages);
       setUserInput('');
       
-      // Get story context from conversation and story data
       const storyContext = await getStoryContextFromConversation(conversation, storyData);
       
-      // Create a temporary message for streaming
       const tempAiMessage: Message = {
         id: `temp-streaming-${Date.now()}`,
         conversation_id: conversation.id,
@@ -149,19 +135,15 @@ export default function ConversationView({ conversation, initialMessage }: Conve
         timestamp: new Date().toISOString()
       };
       
-      // Add temporary message to UI
       setMessages([...updatedMessages, tempAiMessage]);
       
-      // Buffer to collect the streamed content
       let streamedContent = '';
       
-      // Prepare conversation history for the API
       const conversationHistory = messages.map(msg => ({
         role: msg.role,
         content: msg.content
       }));
       
-      // Stream the AI response
       const result = await streamAIResponse(
         userInputText,
         storyContext,
@@ -176,15 +158,10 @@ export default function ConversationView({ conversation, initialMessage }: Conve
         conversationHistory
       );
       
-      // Get content and objective completion status
-      const finalContent = result.content;
-      const objectiveCompleted = result.objectiveCompleted;
-      
-      // Add assistant message to database
       const assistantMessage = {
         conversation_id: conversation.id,
         role: 'assistant',
-        content: finalContent,
+        content: result.content,
         timestamp: new Date().toISOString()
       };
       
@@ -196,7 +173,6 @@ export default function ConversationView({ conversation, initialMessage }: Conve
         
       if (assistantMessageError) throw assistantMessageError;
       
-      // Update UI with final assistant message
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === tempAiMessage.id 
@@ -212,12 +188,10 @@ export default function ConversationView({ conversation, initialMessage }: Conve
     }
   };
 
-  // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUserInput(e.target.value);
   };
 
-  // Handle pressing Enter to send
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -226,70 +200,95 @@ export default function ConversationView({ conversation, initialMessage }: Conve
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-gradient-to-b from-gray-900 to-black">
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-950 text-white">
-        <div className="max-w-3xl mx-auto">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <div className="max-w-4xl mx-auto">
           {loading ? (
-            <div className="text-center py-4">Loading conversation...</div>
+            <div className="flex justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
           ) : error ? (
-            <div className="text-center text-red-500 py-4">{error}</div>
+            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-4 text-red-200">
+              {error}
+            </div>
           ) : messages.length === 0 ? (
-            <div className="text-center py-4">No messages yet</div>
+            <div className="text-center text-gray-400">
+              Start your story by sending a message...
+            </div>
           ) : (
-            <>
+            <div className="space-y-6">
               {messages.map((message) => (
                 <div 
                   key={message.id} 
-                  className={`mb-6 ${
+                  className={`flex ${
                     message.role === 'user' 
-                      ? 'flex justify-end' 
-                      : 'flex justify-start'
+                      ? 'justify-end' 
+                      : 'justify-start'
                   }`}
                 >
-                  <div className={`max-w-[70%]`}>
-                    <div className="text-sm text-gray-400 mb-1 ml-2">
+                  <div className={`max-w-[80%] ${
+                    message.role === 'user'
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-gray-800 text-gray-100'
+                  } rounded-2xl px-6 py-4 shadow-lg relative`}>
+                    <div className="text-sm opacity-75 mb-2">
                       {message.role === 'user' ? 'You' : 'Storyteller'}
                     </div>
-                    <div 
-                      className={`p-4 rounded-2xl whitespace-pre-wrap ${
-                        message.role === 'user' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-800 text-white'
-                      }`}
-                    >
+                    <div className="prose prose-invert max-w-none">
                       {message.content}
+                    </div>
+                    <div className="text-xs opacity-50 mt-2">
+                      {new Date(message.timestamp).toLocaleTimeString()}
                     </div>
                   </div>
                 </div>
               ))}
               <div ref={messagesEndRef} />
-            </>
+            </div>
           )}
         </div>
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-800 p-4 bg-gray-900">
-        <div className="max-w-3xl mx-auto flex items-start">
-          <textarea 
-            className="flex-1 border border-gray-700 rounded-xl p-3 resize-none bg-gray-800 text-white focus:outline-none focus:border-blue-500"
-            rows={2}
-            placeholder="Type your response..."
-            value={userInput}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            disabled={loading || sendingMessage}
-          />
-          <button
-            className="ml-2 px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-400"
-            onClick={handleSendMessage}
-            disabled={!userInput.trim() || loading || sendingMessage}
-          >
-            {sendingMessage ? 'Sending...' : 'Send'}
-          </button>
+      <div className="border-t border-gray-800 bg-gray-900/80 backdrop-blur-sm p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-end space-x-4">
+            <div className="flex-1 bg-gray-800 rounded-xl shadow-inner">
+              <textarea 
+                className="w-full bg-transparent border-0 rounded-xl p-4 text-white placeholder-gray-400 resize-none focus:ring-2 focus:ring-purple-500"
+                rows={2}
+                placeholder="Type your message..."
+                value={userInput}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                disabled={loading || sendingMessage}
+              />
+            </div>
+            <button
+              className={`px-6 py-4 rounded-xl font-medium transition-all duration-300 flex items-center space-x-2
+                ${!userInput.trim() || loading || sendingMessage
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-purple-600 hover:bg-purple-500 text-white'
+                }`}
+              onClick={handleSendMessage}
+              disabled={!userInput.trim() || loading || sendingMessage}
+            >
+              {sendingMessage ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <span>Send</span>
+                  <span className="transform rotate-90">➤</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
-} 
+}
