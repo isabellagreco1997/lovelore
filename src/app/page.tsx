@@ -29,8 +29,7 @@ export default function Home() {
         setStoriesLoading(true);
         const { data, error } = await supabase
           .from('stories')
-          .select('*, worlds!inner(*)')
-          .neq('worlds.genre', 'anime')
+          .select('*')
           .limit(3);
 
         if (error) throw error;
@@ -60,7 +59,7 @@ export default function Home() {
         setCarouselLoading(true);
         const { data, error } = await supabase
           .from('stories')
-          .select('*, worlds!inner(*)')
+          .select('*')
           .neq('worlds.genre', 'anime')
           .limit(7);
 
