@@ -89,9 +89,8 @@ export default function Home() {
             logo_image,
             description,
             chapters,
-            worlds (
-              genre
-            )
+            genre
+            
           `)
           .limit(7);
 
