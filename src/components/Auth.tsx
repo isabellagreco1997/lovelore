@@ -149,17 +149,18 @@ const Auth = () => {
         {/* Video Section - Positioned absolutely behind the form */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden lg:block w-[600px] h-[690px] z-0">
           <div className="w-full h-full overflow-hidden bg-indigo-900/40 rounded-lg">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover opacity-60"
-            >
-              <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-transparent to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-900/80 via-transparent to-transparent">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover opacity-60"
+              >
+                <source src="/Standard_Mode_Man_smirking__looking_deep_into_.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
           </div>
         </div>
       </div>
