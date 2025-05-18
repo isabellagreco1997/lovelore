@@ -23,6 +23,19 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-medium leading-tight tracking-tight;
   }
+
+  /* Add smooth image loading */
+  img {
+    @apply transition-all duration-700 ease-in-out;
+  }
+
+  img.loading {
+    @apply scale-105 blur-lg opacity-0;
+  }
+
+  img.loaded {
+    @apply scale-100 blur-0 opacity-100;
+  }
 }
 
 @layer components {
@@ -56,6 +69,11 @@
   .gradient-text {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-[#EC444B] to-purple-500;
   }
+
+  /* Image loading placeholder */
+  .image-placeholder {
+    @apply bg-gray-800/50 animate-pulse;
+  }
 }
 
 /* Custom Animations */
@@ -82,7 +100,7 @@
   animation: slideUp 0.5s ease-out forwards;
 }
 
-.animate-stagger > * {
+.animate-stagger {
   opacity: 0;
   animation: slideUp 0.5s ease-out forwards;
 }

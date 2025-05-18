@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Story } from '@/types/database';
+import ImageWithLoading from './ImageWithLoading';
 
 interface FeaturedStoriesCarouselProps {
   stories: Story[];
@@ -96,10 +97,10 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
                 <div className="w-full h-1/2 md:w-1/2 md:h-full relative overflow-hidden">
                   {story.image && (
                     <div className="absolute inset-0">
-                      <img 
+                      <ImageWithLoading 
                         src={story.image} 
                         alt={story.world_name} 
-                        className="w-full h-full object-cover transition-transform duration-700 scale-105 hover:scale-110"
+                        className="w-full h-full object-cover"
                       />
                       {/* Multi-layer gradient */}
                       <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-transparent via-black/40 to-black/90"></div>
@@ -125,7 +126,7 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
                       </div>
 
                       {story.logo_image ? (
-                        <img 
+                        <ImageWithLoading 
                           src={story.logo_image} 
                           alt={`${story.world_name} logo`}
                           className="h-16 md:h-24 object-contain mb-4 md:mb-6"
