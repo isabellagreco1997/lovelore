@@ -43,7 +43,7 @@ const ContactPage = () => {
           <div className="mb-12">
             <p className="text-gray-300">
               Have a question, suggestion, or found an issue? We'd love to hear from you! Fill out the form below
-              or email us directly at <a href="mailto:lovelore.contact@gmail.com" className="text-purple-400 hover:text-purple-300">
+              or email us directly at <a href="mailto:lovelore.contact@gmail.com" className="text-[#EC444B] hover:text-[#d83a40]">
               lovelore.contact@gmail.com</a>
             </p>
           </div>
@@ -61,7 +61,7 @@ const ContactPage = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#EC444B] focus:border-transparent"
                   placeholder="John Doe"
                 />
               </div>
@@ -77,7 +77,7 @@ const ContactPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#EC444B] focus:border-transparent"
                   placeholder="john@example.com"
                 />
               </div>
@@ -93,7 +93,7 @@ const ContactPage = () => {
                   value={formData.subject}
                   onChange={handleChange}
                   required
-                  className="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#EC444B] focus:border-transparent"
                   placeholder="What's this about?"
                 />
               </div>
@@ -109,7 +109,7 @@ const ContactPage = () => {
                   onChange={handleChange}
                   required
                   rows={6}
-                  className="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  className="w-full bg-black/40 border border-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#EC444B] focus:border-transparent resize-none"
                   placeholder="Tell us what's on your mind..."
                 />
               </div>
@@ -121,7 +121,7 @@ const ContactPage = () => {
                   className={`w-full py-4 px-6 rounded-xl font-medium text-lg transition-all duration-300 ${
                     status === 'sending'
                       ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                      : 'bg-purple-600 text-white hover:bg-purple-500 transform hover:scale-105'
+                      : 'bg-[#EC444B] text-white hover:bg-[#d83a40] transform hover:scale-105'
                   }`}
                 >
                   {status === 'sending' ? 'Sending...' : 'Send Message'}
