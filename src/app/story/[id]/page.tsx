@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -217,9 +217,22 @@ export default function StoryPage() {
     <Layout>
       <div className="min-h-screen bg-black">
         {/* Mobile Hero */}
-        <div className="md:hidden relative h-[200px] bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
-          <div className="text-center px-4">
-            <h1 className="text-4xl font-bold text-white">{story.world_name}</h1>
+        <div className="md:hidden relative h-[300px] bg-gradient-to-b from-gray-900 to-black">
+          {story.image && (
+            <div className="absolute inset-0">
+              <img 
+                src={story.image} 
+                alt={story.world_name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black"></div>
+            </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center px-4">
+              <h1 className="text-4xl font-bold text-white mb-2">{story.world_name}</h1>
+              <p className="text-gray-300 text-sm line-clamp-2">{story.description}</p>
+            </div>
           </div>
         </div>
 
