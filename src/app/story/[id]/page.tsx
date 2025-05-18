@@ -22,7 +22,7 @@ export default function StoryPage() {
   const [world, setWorld] = useState<{ id: string } | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
-  const [expandedDescription, setExpandedDescription] = useState(false);
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
 
   useEffect(() => {
     if (!supabase || !id) return;
@@ -243,10 +243,7 @@ export default function StoryPage() {
     );
   }
 
-  if (!user) {
-    return <Auth />;
-  }
-
+  if (!user) return <Auth />;
   if (error) {
     return (
       <Layout>
@@ -277,300 +274,247 @@ export default function StoryPage() {
 
   return (
     <Layout>
-      <div className="relative min-h-screen">
-        {/* Hero Section with Parallax Effect */}
-        <div className="relative h-[50vh] overflow-hidden -mt-8">
-          <div 
-            className="absolute inset-0 bg-cover bg-center transform scale-110 transition-transform duration-1000"
-            style={{ 
-              backgroundImage: `url(${story.image})`,
-              transform: 'translateZ(0)'
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black"></div>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center p-8">
-            <div className="text-center">
-              <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-                {story.world_name}
-              </h1>
-              <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
-                {story.description?.substring(0, 120)}{story.description?.length > 120 ? '...' : ''}
-              </p>
+      <div className="min-h-screen bg-black">
+        {/* Mobile Hero */}
+        <div className="md:hidden relative h-[300px] bg-gradient-to-b from-gray-900 to-black">
+          {story.image && (
+            <div className="absolute inset-0">
+              <img 
+                src={story.image} 
+                alt={story.world_name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black"></div>
             </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center px-4">
+              <h1 className="text-4xl font-bold text-white mb-2">{story.world_name}</h1>
+              <p className="text-gray-300 text-sm line-clamp-2">
+                {story.description}
+              </p>
+              <button
+                onClick={() => setShowDescriptionModal(true)}
+                className="text-purple-400 text-sm mt-2 hover:text-purple-300 transition-colors"
+              >
+                Read More
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Hero */}
+        <div className="hidden md:block relative h-[400px]">
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${story.image})` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black"></div>
+          </div>
+          <div className="relative h-full flex items-center justify-center">
+            <h1 className="text-7xl font-bold text-white">{story.world_name}</h1>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="relative z-10 -mt-32">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              
-              {/* Story Info Card */}
-              <div className="lg:col-span-1">
-                <div className="bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-800/50 overflow-hidden transition-all duration-300 hover:border-gray-700/50">
-                  {story.image && (
-                    <div className="relative h-64 overflow-hidden">
-                      <img 
-                        src={story.image} 
-                        alt={story.world_name} 
-                        className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-                    </div>
-                  )}
-                  
-                  <div className="p-6">
-                    <h2 className="text-2xl font-bold text-white mb-4">{story.world_name}</h2>
-                    
-                    <div className={`prose prose-invert max-w-none ${!expandedDescription && 'line-clamp-3'}`}>
-                      <p className="text-gray-300">{story.description}</p>
-                    </div>
-                    
-                    {story.description && story.description.length > 150 && (
-                      <button
-                        onClick={() => setExpandedDescription(!expandedDescription)}
-                        className="mt-2 text-purple-400 hover:text-purple-300 transition-colors"
-                      >
-                        {expandedDescription ? 'Show less' : 'Read more'}
-                      </button>
-                    )}
-                    
-                    <div className="mt-6 flex items-center justify-between text-sm">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-900/50 text-purple-200 border border-purple-700/50">
-                        {story.chapters.length} chapters
-                      </span>
-                      <span className="text-gray-400">
-                        Created {new Date(story.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                    
-                    {/* Reset Story Button */}
-                    <div className="mt-6 pt-6 border-t border-gray-800">
-                      <button
-                        onClick={() => setShowResetConfirm(true)}
-                        className="w-full bg-red-900/20 text-red-300 hover:bg-red-900/30 hover:text-red-200 py-2 px-4 rounded-xl transition-colors border border-red-900/50 hover:border-red-800"
-                      >
-                        Reset Story Progress
-                      </button>
-                      <p className="mt-2 text-xs text-gray-500">
-                        This will delete all your conversations and progress for this story.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Chapters Section */}
-              <div className="lg:col-span-2">
-                <div className="bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-800/50 overflow-hidden">
-                  <div className="p-6">
-                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                      <span className="w-8 h-8 rounded-full bg-purple-900/50 flex items-center justify-center mr-3 text-purple-300">
-                        📖
-                      </span>
-                      Chapters
-                    </h2>
-                    
-                    <div className="mb-6">
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Select a chapter to begin:
-                      </label>
-                      <select 
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent p-3"
-                        value={selectedChapter?.chapterName || ''}
-                        onChange={(e) => {
-                          const chapter = story.chapters.find(ch => ch.chapterName === e.target.value);
-                          setSelectedChapter(chapter || null);
-                        }}
-                      >
-                        {story.chapters.map((chapter, index) => {
-                          // Use the updated helper functions instead of inline logic
-                          const isCompleted = isChapterCompleted(chapter.chapterName);
-                          const isLocked = isChapterLocked(index);
-                          
-                          return (
-                            <option 
-                              key={index} 
-                              value={chapter.chapterName}
-                              disabled={isLocked}
-                            >
-                              {chapter.chapterName}
-                              {isCompleted ? ' (Completed)' : ''}
-                              {isLocked ? ' (Locked)' : ''}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
-                    
-                    {/* Chapter Progress Timeline */}
-                    <div className="space-y-4">
-                      {story.chapters.map((chapter, index) => {
-                        // Use the updated helper functions instead of inline logic
-                        const isCompleted = isChapterCompleted(chapter.chapterName);
-                        const isLocked = isChapterLocked(index);
-                        const isSelected = selectedChapter?.chapterName === chapter.chapterName;
-                        
-                        console.log(`Chapter timeline item ${index} (${chapter.chapterName}) status: completed=${isCompleted}, locked=${isLocked}`);
-                        
-                        return (
-                          <div 
-                            key={index}
-                            onClick={() => !isLocked && setSelectedChapter(chapter)}
-                            className={`
-                              relative rounded-xl p-4 transition-all duration-300 cursor-pointer
-                              ${isLocked ? 'bg-gray-800/30 cursor-not-allowed' : 'hover:bg-gray-800/50'}
-                              ${isSelected ? 'bg-purple-900/20 border-l-4 border-purple-500' : 'border-l-4 border-transparent'}
-                            `}
-                          >
-                            <div className="flex items-center">
-                              <div className="mr-4">
-                                {isCompleted ? (
-                                  <div className="w-10 h-10 rounded-full bg-green-900/30 border border-green-500/50 flex items-center justify-center text-green-400">
-                                    ✓
-                                  </div>
-                                ) : isLocked ? (
-                                  <div className="w-10 h-10 rounded-full bg-gray-800/30 border border-gray-700/50 flex items-center justify-center text-gray-500">
-                                    🔒
-                                  </div>
-                                ) : (
-                                  <div className="w-10 h-10 rounded-full bg-purple-900/30 border border-purple-500/50 flex items-center justify-center text-purple-400">
-                                    {index + 1}
-                                  </div>
-                                )}
-                              </div>
-                              
-                              <div className="flex-1">
-                                <h3 className={`font-medium mb-1 ${isLocked ? 'text-gray-500' : 'text-white'}`}>
-                                  {chapter.chapterName}
-                                </h3>
-                                <p className={`text-sm line-clamp-2 ${isLocked ? 'text-gray-600' : 'text-gray-400'}`}>
-                                  {chapter.objective}
-                                </p>
-                              </div>
-                              
-                              <div className="ml-4">
-                                {isCompleted ? (
-                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-900/30 text-green-300 border border-green-700/50">
-                                    Completed
-                                  </span>
-                                ) : isLocked ? (
-                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-800/30 text-gray-500 border border-gray-700/50">
-                                    Locked
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-900/30 text-purple-300 border border-purple-700/50">
-                                    Available
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Selected Chapter Preview */}
-                    {selectedChapter && (
-                      <div className="mt-8 p-6 rounded-xl bg-gray-800/30 border border-gray-700/50">
-                        <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                          <span className="w-8 h-8 rounded-full bg-purple-900/50 flex items-center justify-center mr-3 text-purple-300">
-                            📝
-                          </span>
-                          Chapter Preview
-                        </h3>
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="text-purple-300 text-sm font-medium mb-1">Objective</h4>
-                            <p className="text-white">{selectedChapter.objective}</p>
-                          </div>
-                          <div>
-                            <h4 className="text-purple-300 text-sm font-medium mb-1">Context</h4>
-                            <p className="text-gray-300 italic">
-                              "{selectedChapter.chapterContext.substring(0, 150)}..."
-                            </p>
-                          </div>
-                          {isChapterCompleted(selectedChapter.chapterName) && (
-                            <div className="text-green-400 flex items-center">
-                              <span className="mr-2">✓</span>
-                              You've completed this chapter!
-                            </div>
-                          )}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 -mt-10 md:-mt-32">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Mobile Chapter Selection */}
+            <div className="lg:col-span-8 lg:order-2">
+              <div className="bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-800/50 overflow-hidden">
+                <div className="p-4 md:p-6">
+                  {/* Chapter Preview - Mobile Optimized */}
+                  {selectedChapter && (
+                    <div className="mb-6 p-4 md:p-6 rounded-xl bg-gray-800/30 border border-gray-700/50">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-white">Current Chapter</h3>
+                        <span className="text-sm text-gray-400">
+                          {story.chapters.indexOf(selectedChapter) + 1} of {story.chapters.length}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-purple-300 text-sm font-medium">Objective</h4>
+                          <p className="text-white text-sm">{selectedChapter.objective}</p>
                         </div>
                       </div>
-                    )}
-                    
-                    {/* Start Chapter Button */}
-                    <div className="mt-8">
+
                       <button
                         onClick={handleStartChapter}
-                        disabled={!selectedChapter || (selectedChapter && isChapterLocked(story.chapters.findIndex(ch => ch.chapterName === selectedChapter.chapterName)))}
+                        disabled={isChapterLocked(story.chapters.indexOf(selectedChapter))}
                         className={`
-                          w-full py-4 px-6 rounded-xl font-medium text-lg transition-all duration-300 transform
-                          ${!selectedChapter || (selectedChapter && isChapterLocked(story.chapters.findIndex(ch => ch.chapterName === selectedChapter.chapterName)))
-                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white hover:scale-105 hover:shadow-xl'
+                          w-full mt-4 py-3 px-4 rounded-xl font-medium text-sm transition-all
+                          ${isChapterLocked(story.chapters.indexOf(selectedChapter))
+                            ? 'bg-gray-800 text-gray-500'
+                            : 'bg-[#EC444B] text-white active:scale-95'
                           }
                         `}
                       >
-                        {!selectedChapter
-                          ? 'Select a Chapter'
-                          : isChapterLocked(story.chapters.findIndex(ch => ch.chapterName === selectedChapter.chapterName))
-                            ? 'Complete Previous Chapter to Unlock'
-                            : isChapterCompleted(selectedChapter.chapterName)
-                              ? 'Play Chapter Again'
-                              : 'Start Chapter'}
+                        {isChapterLocked(story.chapters.indexOf(selectedChapter))
+                          ? 'Complete Previous Chapter'
+                          : isChapterCompleted(selectedChapter.chapterName)
+                            ? 'Play Again'
+                            : 'Start Chapter'}
                       </button>
                     </div>
+                  )}
+
+                  {/* Chapter List - Mobile Optimized */}
+                  <div className="space-y-3">
+                    {story.chapters.map((chapter, index) => {
+                      const isCompleted = isChapterCompleted(chapter.chapterName);
+                      const isLocked = isChapterLocked(index);
+                      const isSelected = selectedChapter?.chapterName === chapter.chapterName;
+                      
+                      return (
+                        <button 
+                          key={index}
+                          onClick={() => !isLocked && setSelectedChapter(chapter)}
+                          className={`
+                            w-full text-left p-3 rounded-xl transition-all
+                            ${isLocked ? 'bg-gray-800/30' : 'active:scale-98'}
+                            ${isSelected ? 'bg-purple-900/20 border-l-4 border-purple-500' : 'border-l-4 border-transparent'}
+                          `}
+                          disabled={isLocked}
+                        >
+                          <div className="flex items-center">
+                            <div className="mr-3">
+                              {isCompleted ? (
+                                <div className="w-8 h-8 rounded-full bg-green-900/30 border border-green-500/50 flex items-center justify-center text-green-400 text-sm">
+                                  ✓
+                                </div>
+                              ) : isLocked ? (
+                                <div className="w-8 h-8 rounded-full bg-gray-800/30 border border-gray-700/50 flex items-center justify-center text-gray-500 text-sm">
+                                  🔒
+                                </div>
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-purple-900/30 border border-purple-500/50 flex items-center justify-center text-purple-400 text-sm">
+                                  {index + 1}
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <h3 className={`font-medium text-sm truncate ${isLocked ? 'text-gray-500' : 'text-white'}`}>
+                                {chapter.chapterName}
+                              </h3>
+                            </div>
+                            
+                            <div className="ml-2">
+                              {isCompleted ? (
+                                <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-900/30 text-green-300 border border-green-700/50">
+                                  Done
+                                </span>
+                              ) : isLocked ? (
+                                <span className="inline-block px-2 py-1 rounded-full text-xs bg-gray-800/30 text-gray-500 border border-gray-700/50">
+                                  Locked
+                                </span>
+                              ) : (
+                                <span className="inline-block px-2 py-1 rounded-full text-xs bg-purple-900/30 text-purple-300 border border-purple-700/50">
+                                  Ready
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Story Info - Hidden on Mobile */}
+            <div className="hidden lg:block lg:col-span-4 lg:order-1">
+              <div className="bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-800/50 overflow-hidden">
+                {story.image && (
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={story.image} 
+                      alt={story.world_name} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+                  </div>
+                )}
+                
+                <div className="p-6">
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-white mb-3">{story.world_name}</h2>
+                    <p className="text-gray-300 text-sm leading-relaxed">{story.description}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-900/50 text-purple-200 border border-purple-700/50">
+                      {story.chapters.length} chapters
+                    </span>
+                  </div>
+
+                  {/* Reset Story Button */}
+                  <div className="mt-6 pt-6 border-t border-gray-800">
+                    <button
+                      onClick={() => setShowResetConfirm(true)}
+                      className="w-full bg-red-900/20 text-red-300 hover:bg-red-900/30 hover:text-red-200 py-2 px-4 rounded-xl transition-colors border border-red-900/50 hover:border-red-800"
+                    >
+                      Reset Progress
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Reset Confirmation Modal */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/80 backdrop-blur-sm">
-          <div className="bg-gray-900 rounded-2xl p-8 max-w-md w-full m-4 border border-gray-800 shadow-2xl">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-900/30 border border-red-500/50 mx-auto mb-6">
-              <span className="text-2xl text-red-400">!</span>
-            </div>
-            
-            <h2 className="text-2xl font-bold text-white mb-4 text-center">Reset Story Progress</h2>
-            <p className="text-gray-300 mb-6 text-center">
-              Are you sure you want to reset your progress? This will delete all your conversations
-              and chapter progress. This action cannot be undone.
-            </p>
-            
-            <div className="flex justify-end space-x-4">
+        {/* Description Modal for Mobile */}
+        {showDescriptionModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm md:hidden">
+            <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold text-white mb-4">{story.world_name}</h2>
+              <p className="text-gray-300 text-sm leading-relaxed mb-6">{story.description}</p>
               <button
-                onClick={() => setShowResetConfirm(false)}
-                className="px-6 py-3 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors"
-                disabled={resetLoading}
+                onClick={() => setShowDescriptionModal(false)}
+                className="w-full bg-purple-600 text-white py-3 rounded-xl font-medium"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleResetStory}
-                className="px-6 py-3 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors relative overflow-hidden"
-                disabled={resetLoading}
-              >
-                {resetLoading ? (
-                  <span className="flex items-center">
-                    <span className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin mr-2"></span>
-                    Resetting...
-                  </span>
-                ) : (
-                  'Reset Story'
-                )}
+                Close
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Reset Confirmation Modal */}
+        {showResetConfirm && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full border border-gray-800 shadow-2xl">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-900/30 border border-red-500/50 mx-auto mb-4">
+                <span className="text-xl text-red-400">!</span>
+              </div>
+              
+              <h2 className="text-xl font-bold text-white mb-3 text-center">Reset Story Progress?</h2>
+              <p className="text-gray-300 mb-6 text-center text-sm">
+                This will delete all your conversations and progress. This cannot be undone.
+              </p>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="px-4 py-2 rounded-xl border border-gray-700 text-gray-300 text-sm"
+                  disabled={resetLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleResetStory}
+                  className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm"
+                  disabled={resetLoading}
+                >
+                  {resetLoading ? 'Resetting...' : 'Reset'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </Layout>
   );
 }

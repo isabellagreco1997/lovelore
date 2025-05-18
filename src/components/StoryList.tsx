@@ -4,9 +4,13 @@ import useSupabase from '@/hooks/useSupabase';
 import { Story } from '@/types/database';
 import Link from 'next/link';
 
+interface StoryWithGenre extends Story {
+  genre: string;
+}
+
 const StoryList = () => {
   const supabase = useSupabase();
-  const [stories, setStories] = useState<Story[]>([]);
+  const [stories, setStories] = useState<StoryWithGenre[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -19,17 +23,36 @@ const StoryList = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('stories')
-          .select('*');
+          .select(`
+            id,
+            world_name,
+            story_context,
+            created_at,
+            image,
+            logo_image,
+            description,
+            chapters,
+            genre
+          `);
 
         if (error) throw error;
         
-        // Transform the data to match our Story type
-        const formattedStories = data?.map(story => ({
-          ...story,
-          chapters: Array.isArray(story.chapters) ? story.chapters : []
-        })) || [];
+        // Filter out anime stories and format the data
+        const filteredStories = (data || [])
+          .filter(story => story.worlds?.genre !== 'anime')
+          .map(story => ({
+            id: story.id,
+            world_name: story.world_name,
+            story_context: story.story_context,
+            created_at: story.created_at,
+            image: story.image,
+            logo_image: story.logo_image,
+            description: story.description,
+            chapters: Array.isArray(story.chapters) ? story.chapters : [],
+            genre: story.genre || 'Other'
+          }));
         
-        setStories(formattedStories);
+        setStories(filteredStories);
       } catch (error: any) {
         console.error('Error fetching stories:', error.message);
         setError('Failed to load stories');
@@ -88,87 +111,108 @@ const StoryList = () => {
     );
   }
 
+  // Group stories by genre
+  const storiesByGenre = stories.reduce((acc, story) => {
+    const genre = story.genre || 'Other';
+    if (!acc[genre]) {
+      acc[genre] = [];
+    }
+    acc[genre].push(story);
+    return acc;
+  }, {} as Record<string, StoryWithGenre[]>);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {stories.map((story) => (
-        <Link href={`/story/${story.id}`} key={story.id}>
-          <div className="relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-[400px] group">
-            {/* Image overlay */}
-            <div className="absolute inset-0 z-0">
-              {story.image ? (
-                <img 
-                  src={story.image} 
-                  alt={story.world_name} 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-purple-800 to-indigo-900 flex items-center justify-center">
-                  <span className="text-white font-bold text-2xl">{story.world_name.charAt(0)}</span>
-                </div>
-              )}
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
-            </div>
-            
-            {/* Content */}
-            <div className="absolute inset-0 z-10 flex flex-col justify-between p-4">
-              {/* Top section */}
-              <div>
-                <span className="inline-block bg-red-800/90 text-white px-4 py-1 rounded-full text-sm font-medium">
-                  Story
-                </span>
-                
-                {/* Optional badge for chapter count */}
-                {story.chapters && story.chapters.length > 0 && (
-                  <span className="inline-block bg-purple-900/90 text-white px-4 py-1 rounded-full text-sm font-medium ml-2">
-                    {story.chapters.length} {story.chapters.length === 1 ? 'episode' : 'episodes'}
-                  </span>
-                )}
-              </div>
-              
-              {/* Bottom section */}
-              <div>
-                {/* Stats */}
-                <div className="flex items-center space-x-3 mb-3">
-                  {/* Like count */}
-                  <div className="flex items-center">
-                    <span className="text-red-500 mr-1">❤️</span>
-                    <span className="text-white">{Math.floor(Math.random() * 10 + 1)}.{Math.floor(Math.random() * 10)}k</span>
-                  </div>
-                  
-                  {/* Play count */}
-                  <div className="flex items-center">
-                    <span className="text-purple-400 mr-1">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </span>
-                    <span className="text-white">{Math.floor(Math.random() * 90 + 10)}.{Math.floor(Math.random() * 10)}k</span>
-                  </div>
-                  
-                  {/* Age restriction */}
-                  <div className="flex items-center">
-                    <span className="text-red-500 mr-1">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                    </span>
-                    <span className="text-white">18+</span>
-                  </div>
-                </div>
-                
-                {/* Title */}
-                <h3 className="text-2xl font-bold text-white mb-1 line-clamp-2">{story.world_name}</h3>
-                
-                {/* Description */}
-                <p className="text-gray-300 text-sm line-clamp-2">{story.description}</p>
-              </div>
-            </div>
+    <div className="space-y-16 px-4 md:px-0">
+      {Object.entries(storiesByGenre).map(([genre, genreStories]) => (
+        <div key={genre} className="space-y-8">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-2xl font-bold text-white">{genre}</h2>
+            <div className="h-px flex-1 bg-gray-800"></div>
           </div>
-        </Link>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+            {genreStories.map((story) => (
+              <Link href={`/story/${story.id}`} key={story.id}>
+                <div className="relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-[400px] group">
+                  {/* Image overlay */}
+                  <div className="absolute inset-0 z-0">
+                    {story.image ? (
+                      <img 
+                        src={story.image} 
+                        alt={story.world_name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-purple-800 to-indigo-900 flex items-center justify-center">
+                        <span className="text-white font-bold text-2xl">{story.world_name.charAt(0)}</span>
+                      </div>
+                    )}
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="absolute inset-0 z-10 flex flex-col justify-between p-4">
+                    {/* Top section */}
+                    <div>
+                      <span className="inline-block bg-red-800/90 text-white px-4 py-1 rounded-full text-sm font-medium">
+                        {genre}
+                      </span>
+                      
+                      {/* Optional badge for chapter count */}
+                      {story.chapters && story.chapters.length > 0 && (
+                        <span className="inline-block bg-purple-900/90 text-white px-4 py-1 rounded-full text-sm font-medium ml-2">
+                          {story.chapters.length} {story.chapters.length === 1 ? 'episode' : 'episodes'}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Bottom section */}
+                    <div>
+                      {/* Stats */}
+                      <div className="flex items-center space-x-3 mb-3">
+                        {/* Like count */}
+                        <div className="flex items-center">
+                          <span className="text-red-500 mr-1">❤️</span>
+                          <span className="text-white">{Math.floor(Math.random() * 10 + 1)}.{Math.floor(Math.random() * 10)}k</span>
+                        </div>
+                        
+                        {/* Play count */}
+                        <div className="flex items-center">
+                          <span className="text-purple-400 mr-1">
+                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </span>
+                          <span className="text-white">{Math.floor(Math.random() * 90 + 10)}.{Math.floor(Math.random() * 10)}k</span>
+                        </div>
+                        
+                        {/* Age restriction */}
+                        <div className="flex items-center">
+                          <span className="text-red-500 mr-1">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                          </span>
+                          <span className="text-white">18+</span>
+                        </div>
+                      </div>
+                      
+                      {/* Title */}
+                      <h3 className="text-2xl font-bold text-white mb-1 line-clamp-2">{story.world_name}</h3>
+                      
+                      {/* Description */}
+                      <p className="text-gray-300 text-sm line-clamp-2">{story.description}</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );
 };
 
-export default StoryList; 
+export default StoryList;
