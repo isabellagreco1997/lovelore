@@ -18,7 +18,7 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
       if (featuredStories.length > 1) {
         handleNextSlide();
       }
-    }, 6000); // Slightly longer interval for better readability
+    }, 6000);
     
     return () => clearInterval(interval);
   }, [featuredStories, activeSlide]);
@@ -79,63 +79,62 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
                     : 'opacity-0 translate-x-full z-0'
               }`}
             >
-              <div className="absolute inset-0 z-0">
-                <div className="w-full h-full bg-gradient-to-br from-blue-900 to-indigo-900">
+              <div className="flex h-full">
+                {/* Image Section - Left Half */}
+                <div className="w-1/2 relative overflow-hidden">
                   {story.image && (
-                    <div className="relative w-full h-full">
+                    <div className="absolute inset-0">
                       <img 
                         src={story.image} 
                         alt={story.world_name} 
-                        className="w-full h-full object-cover opacity-70 transition-transform duration-700 scale-105 hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-700 scale-105 hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-black/90 backdrop-blur-[2px]"></div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/50"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/80"></div>
                     </div>
                   )}
                 </div>
-              </div>
-              
-              <div className="relative z-10 flex flex-col md:flex-row w-full h-full max-w-screen-2xl mx-auto px-8 md:px-16">
-                <div className="w-full md:w-6/12 lg:w-7/12 flex items-center justify-center p-8">
-                  {story.logo_image ? (
-                    <img 
-                      src={story.logo_image} 
-                      alt={`${story.world_name} logo`}
-                      className="max-w-md w-full h-auto object-contain filter drop-shadow-2xl"
-                    />
-                  ) : null}
-                </div>
-                
-                <div className="w-full md:w-6/12 lg:w-5/12 p-8 flex flex-col justify-center space-y-8">
-                  <div className="space-y-6 transform transition-all duration-500 delay-200">
-                    <div className="flex items-center space-x-6 text-white/90">
-                      <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                        <span>{Math.floor(Math.random() * 20 + 5)}.{Math.floor(Math.random() * 10)}k playing</span>
+
+                {/* Content Section - Right Half */}
+                <div className="w-1/2 flex items-center justify-center p-16 bg-black/90">
+                  <div className="max-w-xl">
+                    <div className="space-y-6 transform transition-all duration-500 delay-200">
+                      <div className="flex items-center space-x-6 text-white/90">
+                        <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
+                          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                          <span>{Math.floor(Math.random() * 20 + 5)}.{Math.floor(Math.random() * 10)}k playing</span>
+                        </div>
+                        <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
+                          <span className="text-red-400">♥</span>
+                          <span>{Math.floor(Math.random() * 150 + 30)}%</span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <span className="text-red-400">♥</span>
-                        <span>{Math.floor(Math.random() * 150 + 30)}%</span>
+
+                      {story.logo_image ? (
+                        <img 
+                          src={story.logo_image} 
+                          alt={`${story.world_name} logo`}
+                          className="h-24 object-contain mb-6"
+                        />
+                      ) : (
+                        <h2 className="text-5xl font-bold text-white leading-tight mb-6">{story.world_name}</h2>
+                      )}
+                      
+                      <p className="text-gray-200 text-lg leading-relaxed line-clamp-3">
+                        {story.description}
+                      </p>
+                      
+                      <div className="flex flex-col space-y-4 pt-6">
+                        <button 
+                          onClick={() => router.push(`/story/${story.id}`)} 
+                          className="group relative overflow-hidden bg-[#EC444B] hover:bg-[#d83a40] text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                        >
+                          <span className="relative z-10 flex items-center justify-center text-lg">
+                            Play Now
+                            <span className="ml-2">→</span>
+                          </span>
+                          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700"></div>
+                        </button>
                       </div>
-                    </div>
-                    
-                    <h2 className="text-5xl font-bold text-white leading-tight">{story.world_name}</h2>
-                    
-                    <p className="text-gray-200 text-lg leading-relaxed line-clamp-3">
-                      {story.description}
-                    </p>
-                    
-                    <div className="flex flex-col space-y-4">
-                      <button 
-                        onClick={() => router.push(`/story/${story.id}`)} 
-                        className="group relative overflow-hidden bg-[#EC444B] hover:bg-[#d83a40] text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
-                      >
-                        <span className="relative z-10 flex items-center justify-center text-lg">
-                          Play Now
-                          <span className="ml-2">→</span>
-                        </span>
-                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700"></div>
-                      </button>
                     </div>
                   </div>
                 </div>
