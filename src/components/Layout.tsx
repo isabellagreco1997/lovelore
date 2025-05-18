@@ -1,5 +1,3 @@
-"use client";
-
 import { ReactNode } from 'react';
 import useUser from '@/hooks/useUser';
 import Link from 'next/link';
@@ -33,14 +31,14 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Header - Hide on login page */}
       {!isLoginPage && (
         <header className="bg-black shadow-md sticky top-0 z-10 border-b border-[#EC444B]">
-          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <div className="flex items-center space-x-8">
-              <Link href="/">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <div className="flex items-center space-x-4 md:space-x-8">
+              <Link href="/" className="flex-shrink-0">
                 <div className="flex items-center group">
                   <img 
                     src="/images/logo.png" 
                     alt="LoveLore Logo" 
-                    className="h-8 w-auto object-contain mr-2"
+                    className="h-8 w-auto object-contain"
                   />
                 </div>
               </Link>
@@ -55,28 +53,28 @@ const Layout = ({ children }: LayoutProps) => {
             </div>
             
             {!loading && (
-              <div>
+              <div className="flex items-center space-x-2 md:space-x-4">
                 {user ? (
-                  <div className="flex items-center space-x-4">
-                    <span className="text-white hidden sm:block">
-                      Hello, {user.email?.split('@')[0]}
+                  <>
+                    <span className="text-white hidden sm:block text-sm">
+                      {user.email?.split('@')[0]}
                     </span>
                     <Link 
                       href="/account"
-                      className="bg-transparent border border-[#EC444B] text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 shadow-sm hover:shadow"
+                      className="bg-transparent border border-[#EC444B] text-white px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10"
                     >
                       Account
                     </Link>
                     <button
                       onClick={() => signOut()}
-                      className="bg-transparent border border-[#EC444B] text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 shadow-sm hover:shadow"
+                      className="bg-transparent border border-[#EC444B] text-white px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10"
                     >
                       Sign Out
                     </button>
-                  </div>
+                  </>
                 ) : (
                   <Link href="/login">
-                    <span className="bg-transparent border border-[#EC444B] text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 shadow-sm hover:shadow">
+                    <span className="bg-transparent border border-[#EC444B] text-white px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10">
                       Sign In
                     </span>
                   </Link>
@@ -88,7 +86,7 @@ const Layout = ({ children }: LayoutProps) => {
       )}
       
       {/* Main content */}
-      <main className={`flex-grow z-10 ${isLoginPage ? '' : isHomePage ? 'mb-8' : 'my-8 mx-8'}`}>
+      <main className={`flex-grow z-10 ${isLoginPage ? '' : isHomePage ? 'mb-8' : 'my-8 mx-4 md:mx-8'}`}>
         {children}
       </main>
       
