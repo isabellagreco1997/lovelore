@@ -241,7 +241,7 @@ export default function StoryPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Mobile Chapter Selection */}
             <div className="lg:col-span-8 lg:order-2">
-              <div className="bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-800/50">
+              <div className="bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-800/50 overflow-hidden">
                 <div className="p-4 md:p-6">
                   {/* Chapter Preview - Mobile Optimized */}
                   {selectedChapter && (
