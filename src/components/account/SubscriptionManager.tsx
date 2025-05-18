@@ -151,7 +151,7 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
   };
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto px-4">
       <h2 className="text-xl font-semibold text-white mb-8">Subscription Plans</h2>
       
       {error && (
@@ -160,7 +160,7 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {plans.map((plan) => (
           <div
             key={plan.id}
@@ -168,7 +168,7 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
               currentPlan === plan.priceId
                 ? 'border-[#EC444B] bg-[#EC444B]/10'
                 : 'border-gray-800 bg-black/40'
-            } p-8 flex flex-col justify-between`}
+            } p-8 flex flex-col justify-between min-h-[420px]`}
           >
             <div>
               <div className="flex justify-between items-start mb-8">
