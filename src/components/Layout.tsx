@@ -138,6 +138,11 @@ const Layout = ({ children }: LayoutProps) => {
                       Account Settings
                     </Link>
                   </li>
+                  <li>
+                    <Link href="/help" className="text-gray-400 hover:text-white transition-colors">
+                      Help Center
+                    </Link>
+                  </li>
                 </ul>
               </div>
 
@@ -146,9 +151,9 @@ const Layout = ({ children }: LayoutProps) => {
                 <h3 className="text-white font-semibold mb-4">Resources</h3>
                 <ul className="space-y-2">
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    <Link href="/help" className="text-gray-400 hover:text-white transition-colors">
                       Help Center
-                    </a>
+                    </Link>
                   </li>
                   <li>
                     <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">
@@ -178,8 +183,8 @@ const Layout = ({ children }: LayoutProps) => {
                   Terms
                 </Link>
                 <span className="text-gray-700">•</span>
-                <Link href="/cookies" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  Cookies
+                <Link href="/help" className="text-gray-400 hover:text-white transition-colors text-sm">
+                  Help
                 </Link>
               </div>
             </div>
