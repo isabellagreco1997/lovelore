@@ -220,10 +220,11 @@ export default function StoryPage() {
   return (
     <Layout>
       <div className="relative min-h-screen">
-        {/* Hero Section with Parallax Effect */}
-        <div className="relative h-[50vh] overflow-hidden -mt-8">
+        {/* Hero Section - Responsive Design */}
+        <div className="relative h-[300px] md:h-[50vh] overflow-hidden -mt-8">
+          {/* Background Image - Hidden on mobile */}
           <div 
-            className="absolute inset-0 bg-cover bg-center transform scale-110 transition-transform duration-1000"
+            className="absolute inset-0 bg-cover bg-center transform scale-110 transition-transform duration-1000 hidden md:block"
             style={{ 
               backgroundImage: `url(${story.image})`,
               transform: 'translateZ(0)'
@@ -231,12 +232,14 @@ export default function StoryPage() {
           >
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black"></div>
           </div>
-          <div className="absolute inset-0 flex items-center justify-center p-8">
-            <div className="text-center">
-              <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+
+          {/* Mobile-optimized content */}
+          <div className="absolute inset-0 flex items-center justify-center p-4 md:p-8 bg-gradient-to-b from-gray-900 to-black md:bg-none">
+            <div className="text-center max-w-3xl mx-auto">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
                 {story.world_name}
               </h1>
-              <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
+              <p className="text-lg md:text-xl text-gray-200 leading-relaxed drop-shadow-md px-4 md:px-0">
                 {story.description?.substring(0, 120)}{story.description?.length > 120 ? '...' : ''}
               </p>
             </div>
@@ -368,8 +371,6 @@ export default function StoryPage() {
                         </div>
                       </>
                     )}
-                    
-        
                     
                     {/* Chapter Progress Timeline */}
                     <div className="space-y-4">
