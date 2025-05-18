@@ -48,9 +48,6 @@ const Layout = ({ children }: LayoutProps) => {
                   <Link href="/story" className="text-white hover:text-purple-300 transition-colors flex items-center">
                     <span className="mr-1">✦</span> Stories
                   </Link>
-                  <Link href="/account" className="text-white hover:text-purple-300 transition-colors flex items-center">
-                    <span className="mr-1">✦</span> Account
-                  </Link>
                 </nav>
               )}
             </div>
@@ -59,11 +56,14 @@ const Layout = ({ children }: LayoutProps) => {
               <div>
                 {user ? (
                   <div className="flex items-center space-x-4">
+                    <span className="text-purple-200 hidden sm:block">
+                      {user.email?.split('@')[0]}
+                    </span>
                     <Link 
                       href="/account"
-                      className="text-purple-200 hidden sm:flex items-center hover:text-purple-300 transition-colors"
+                      className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium transition-all duration-300 hover:bg-gray-800 border border-gray-700"
                     >
-                      <span className="mr-2">{user.email?.split('@')[0]}</span>
+                      Account
                     </Link>
                     <button
                       onClick={() => signOut()}
