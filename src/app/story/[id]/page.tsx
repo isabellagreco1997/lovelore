@@ -239,10 +239,9 @@ export default function StoryPage() {
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
                 {story.world_name}
               </h1>
-             <p className="text-lg md:text-xl text-gray-200 leading-relaxed drop-shadow-md px-4 md:px-0 block sm:hidden">
-  {story.description?.substring(0, 120)}{story.description?.length > 120 ? '...' : ''}
-</p>
-
+              <p className="text-lg md:text-xl text-gray-200 leading-relaxed drop-shadow-md px-4 md:px-0">
+                {story.description?.substring(0, 120)}{story.description?.length > 120 ? '...' : ''}
+              </p>
             </div>
           </div>
         </div>
