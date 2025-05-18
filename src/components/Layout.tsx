@@ -56,7 +56,7 @@ const Layout = ({ children }: LayoutProps) => {
               <div>
                 {user ? (
                   <div className="flex items-center space-x-4">
-                    <span className="text-purple-200 hidden sm:block">
+                    <span className="text-white hidden sm:block">
                       {user.email?.split('@')[0]}
                     </span>
                     <Link 
