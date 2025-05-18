@@ -360,6 +360,11 @@ export default function StoryPage() {
                 )}
                 
                 <div className="p-6">
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-white mb-3">{story.world_name}</h2>
+                    <p className="text-gray-300 text-sm leading-relaxed">{story.description}</p>
+                  </div>
+
                   <div className="flex items-center justify-between mb-4">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-900/50 text-purple-200 border border-purple-700/50">
                       {story.chapters.length} chapters
