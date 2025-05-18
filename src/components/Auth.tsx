@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import useUser from '@/hooks/useUser';
+import useSupabase from '@/hooks/useSupabase';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ const Auth = () => {
   const [error, setError] = useState<string | null>(null);
   
   const { signIn, signUp } = useUser();
+  const supabase = useSupabase();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +27,31 @@ const Auth = () => {
       }
     } catch (error: any) {
       setError(error.message || 'An error occurred during authentication');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!supabase) {
+      setError('Authentication service not available');
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/login`
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      setError(error.message || 'Failed to sign in with Google');
     } finally {
       setLoading(false);
     }
@@ -79,6 +106,8 @@ const Auth = () => {
             <div>
               <button
                 type="button"
+                onClick={handleGoogleSignIn}
+                disabled={loading}
                 className="w-full bg-white text-black rounded-xl p-3 font-medium flex items-center justify-center space-x-2 hover:bg-gray-100 transition-colors text-sm md:text-base"
               >
                 <img 
