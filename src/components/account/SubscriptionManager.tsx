@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { loadStripe } from '@stripe/stripe-js';
 import useSupabase from '@/hooks/useSupabase';
-import { products } from '@/stripe-config';
 
 interface SubscriptionManagerProps {
   user: User;
@@ -12,9 +11,9 @@ interface Plan {
   id: string;
   name: string;
   features: { name: string; included: boolean }[];
-  price: number | null;
-  priceId?: string;
-  mode?: 'payment' | 'subscription';
+  price: number;
+  priceId: string;
+  mode: 'payment' | 'subscription';
   popular?: boolean;
   interval?: string;
 }
@@ -30,52 +29,72 @@ const defaultFeatures = [
 
 const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
   const supabase = useSupabase();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
 
   useEffect(() => {
-    // Format products into plans
-    const formattedPlans: Plan[] = products
-      .map(product => {
-        const price = product.description.match(/£(\d+\.?\d*)/)?.[1];
-        const interval = product.mode === 'subscription' 
-          ? product.name.toLowerCase().includes('yearly') ? 'year' : 'month'
-          : undefined;
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/stripe-products');
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+        
+        const products = await response.json();
+        
+        // Format products into plans
+        const formattedPlans: Plan[] = products
+          .filter((price: any) => price.active)
+          .map((price: any) => {
+            const product = price.product as any;
+            const interval = price.recurring?.interval;
+            const amount = price.unit_amount / 100; // Convert from cents to dollars/pounds
 
-        return {
-          id: product.id,
-          name: product.name,
-          price: price ? parseFloat(price) : null,
-          priceId: product.priceId,
-          mode: product.mode,
-          features: defaultFeatures,
-          interval,
-          popular: interval === 'year'
-        };
-      })
-      .sort((a, b) => {
-        // Sort yearly plans first, then monthly, then one-time payments
-        if (a.interval === 'year') return -1;
-        if (b.interval === 'year') return 1;
-        if (a.interval === 'month') return -1;
-        if (b.interval === 'month') return 1;
-        return 0;
-      });
+            return {
+              id: product.id,
+              name: product.name,
+              price: amount,
+              priceId: price.id,
+              mode: price.recurring ? 'subscription' : 'payment',
+              features: defaultFeatures,
+              interval,
+              popular: interval === 'year'
+            };
+          })
+          .sort((a, b) => {
+            // Sort yearly plans first, then monthly, then one-time payments
+            if (a.interval === 'year') return -1;
+            if (b.interval === 'year') return 1;
+            if (a.interval === 'month') return -1;
+            if (b.interval === 'month') return 1;
+            return 0;
+          });
 
-    // Add free plan
-    formattedPlans.push({
-      id: 'free',
-      name: 'Free',
-      price: null,
-      features: defaultFeatures.map(f => ({
-        ...f,
-        included: ['Access to free stories', 'Basic AI responses', 'Limited chapters per day'].includes(f.name)
-      }))
-    });
+        // Add free plan
+        formattedPlans.push({
+          id: 'free',
+          name: 'Free',
+          price: 0,
+          priceId: 'free',
+          mode: 'payment',
+          features: defaultFeatures.map(f => ({
+            ...f,
+            included: ['Access to free stories', 'Basic AI responses', 'Limited chapters per day'].includes(f.name)
+          }))
+        });
 
-    setPlans(formattedPlans);
+        setPlans(formattedPlans);
+      } catch (error: any) {
+        console.error('Error fetching products:', error);
+        setError('Failed to load subscription plans');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   useEffect(() => {
@@ -239,9 +258,9 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
               </ul>
             </div>
 
-            {plan.priceId && (
+            {plan.priceId !== 'free' && (
               <button
-                onClick={() => handleSubscribe(plan.priceId!, plan.mode!)}
+                onClick={() => handleSubscribe(plan.priceId, plan.mode)}
                 disabled={loading || currentPlan === plan.priceId}
                 className={`w-full py-4 px-6 rounded-xl font-medium text-base transition-all duration-300 ${
                   loading || currentPlan === plan.priceId
