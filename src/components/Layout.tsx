@@ -61,7 +61,7 @@ const Layout = ({ children }: LayoutProps) => {
                     </span>
                     <Link 
                       href="/account"
-                      className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium transition-all duration-300 hover:bg-gray-800 border border-gray-700"
+                      className="bg-transparent border border-[#EC444B] text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 shadow-sm hover:shadow"
                     >
                       Account
                     </Link>
