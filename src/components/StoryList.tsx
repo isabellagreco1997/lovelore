@@ -32,9 +32,8 @@ const StoryList = () => {
             logo_image,
             description,
             chapters,
-            worlds (
-              genre
-            )
+            genre
+            
           `);
 
         if (error) throw error;
