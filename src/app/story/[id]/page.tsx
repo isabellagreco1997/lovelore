@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
@@ -350,10 +348,10 @@ export default function StoryPage() {
                             onClick={handleStartChapter}
                             disabled={!selectedChapter || isChapterLocked(story.chapters.indexOf(selectedChapter))}
                             className={`
-                              w-full py-4 px-6 rounded-xl font-medium text-lg transition-all duration-300 transform
+                              w-full py-3 px-6 rounded-xl font-medium text-base transition-all duration-300
                               ${!selectedChapter || isChapterLocked(story.chapters.indexOf(selectedChapter))
                                 ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white hover:scale-105 hover:shadow-xl'
+                                : 'bg-transparent border border-[#EC444B] text-white hover:bg-[#EC444B]/10'
                               }
                             `}
                           >
