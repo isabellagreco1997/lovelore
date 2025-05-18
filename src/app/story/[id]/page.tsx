@@ -222,7 +222,7 @@ export default function StoryPage() {
       {/* Hero Section */}
       <div className="relative">
         {/* Background Image - Hidden on mobile */}
-        <div className="relative h-[300px] md:h-[500px] w-full overflow-hidden">
+        <div className="relative h-[200px] md:h-[400px] w-full overflow-hidden">
           <div 
             className="absolute inset-0 bg-cover bg-center hidden md:block"
             style={{ backgroundImage: `url(${story.image})` }}
@@ -232,12 +232,12 @@ export default function StoryPage() {
           
           {/* Content Overlay */}
           <div className="relative h-full flex items-center justify-center px-4 md:px-8">
-            <div className="text-center max-w-4xl">
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+            <div className="text-center">
+              <h1 className="text-4xl md:text-7xl font-bold text-white mb-4 md:mb-0">
                 {story.world_name}
               </h1>
-              <p className="text-lg md:text-xl text-gray-200 leading-relaxed max-w-2xl mx-auto">
-                {story.description}
+              <p className="text-lg text-gray-300 leading-relaxed md:hidden">
+                {story.description?.split('.')[0]}.
               </p>
             </div>
           </div>
