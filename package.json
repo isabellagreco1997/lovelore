@@ -16,7 +16,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@sendgrid/mail": "^8.1.0",
     "@supabase/supabase-js": "^2.x.x",
     "@stripe/stripe-js": "^2.2.0",
     "autoprefixer": "^10.4.21",
