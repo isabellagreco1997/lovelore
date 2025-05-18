@@ -316,32 +316,57 @@ export default function StoryPage() {
 
                     {/* Selected Chapter Preview - Moved to top */}
                     {selectedChapter && (
-                      <div className="mb-8 p-6 rounded-xl bg-gray-800/30 border border-gray-700/50">
-                        <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                          <span className="w-8 h-8 rounded-full bg-purple-900/50 flex items-center justify-center mr-3 text-purple-300">
-                            📝
-                          </span>
-                          Chapter Preview
-                        </h3>
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="text-purple-300 text-sm font-medium mb-1">Objective</h4>
-                            <p className="text-white">{selectedChapter.objective}</p>
-                          </div>
-                          <div>
-                            <h4 className="text-purple-300 text-sm font-medium mb-1">Context</h4>
-                            <p className="text-gray-300 italic">
-                              "{selectedChapter.chapterContext.substring(0, 150)}..."
-                            </p>
-                          </div>
-                          {isChapterCompleted(selectedChapter.chapterName) && (
-                            <div className="text-green-400 flex items-center">
-                              <span className="mr-2">✓</span>
-                              You've completed this chapter!
+                      <>
+                        <div className="mb-8 p-6 rounded-xl bg-gray-800/30 border border-gray-700/50">
+                          <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                            <span className="w-8 h-8 rounded-full bg-purple-900/50 flex items-center justify-center mr-3 text-purple-300">
+                              📝
+                            </span>
+                            Chapter Preview
+                          </h3>
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="text-purple-300 text-sm font-medium mb-1">Objective</h4>
+                              <p className="text-white">{selectedChapter.objective}</p>
                             </div>
-                          )}
+                            <div>
+                              <h4 className="text-purple-300 text-sm font-medium mb-1">Context</h4>
+                              <p className="text-gray-300 italic">
+                                "{selectedChapter.chapterContext.substring(0, 150)}..."
+                              </p>
+                            </div>
+                            {isChapterCompleted(selectedChapter.chapterName) && (
+                              <div className="text-green-400 flex items-center">
+                                <span className="mr-2">✓</span>
+                                You've completed this chapter!
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
+
+                        {/* Start Chapter Button - Moved below preview */}
+                        <div className="mb-8">
+                          <button
+                            onClick={handleStartChapter}
+                            disabled={!selectedChapter || isChapterLocked(story.chapters.indexOf(selectedChapter))}
+                            className={`
+                              w-full py-4 px-6 rounded-xl font-medium text-lg transition-all duration-300 transform
+                              ${!selectedChapter || isChapterLocked(story.chapters.indexOf(selectedChapter))
+                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white hover:scale-105 hover:shadow-xl'
+                              }
+                            `}
+                          >
+                            {!selectedChapter
+                              ? 'Select a Chapter'
+                              : isChapterLocked(story.chapters.indexOf(selectedChapter))
+                                ? 'Complete Previous Chapter to Unlock'
+                                : isChapterCompleted(selectedChapter.chapterName)
+                                  ? 'Play Chapter Again'
+                                  : 'Start Chapter'}
+                          </button>
+                        </div>
+                      </>
                     )}
                     
                     <div className="mb-6">
@@ -432,29 +457,6 @@ export default function StoryPage() {
                           </div>
                         );
                       })}
-                    </div>
-                    
-                    {/* Start Chapter Button */}
-                    <div className="mt-8">
-                      <button
-                        onClick={handleStartChapter}
-                        disabled={!selectedChapter || isChapterLocked(story.chapters.indexOf(selectedChapter))}
-                        className={`
-                          w-full py-4 px-6 rounded-xl font-medium text-lg transition-all duration-300 transform
-                          ${!selectedChapter || isChapterLocked(story.chapters.indexOf(selectedChapter))
-                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white hover:scale-105 hover:shadow-xl'
-                          }
-                        `}
-                      >
-                        {!selectedChapter
-                          ? 'Select a Chapter'
-                          : isChapterLocked(story.chapters.indexOf(selectedChapter))
-                            ? 'Complete Previous Chapter to Unlock'
-                            : isChapterCompleted(selectedChapter.chapterName)
-                              ? 'Play Chapter Again'
-                              : 'Start Chapter'}
-                      </button>
                     </div>
                   </div>
                 </div>
