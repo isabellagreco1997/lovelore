@@ -1,3 +1,5 @@
+"use client";
+
 import { ReactNode } from 'react';
 import useUser from '@/hooks/useUser';
 import Link from 'next/link';
