@@ -15,68 +15,16 @@ interface Plan {
   priceId?: string;
   mode?: 'payment' | 'subscription';
   popular?: boolean;
+  interval?: string;
 }
 
-const plans: Plan[] = [
-  {
-    id: 'yearly',
-    name: 'Yearly Plan',
-    price: 47.99,
-    priceId: 'price_1RQ7zdA5F3yID83zkNUSPBfu',
-    mode: 'subscription',
-    popular: true,
-    features: [
-      { name: 'Access to free stories', included: true },
-      { name: 'Basic AI responses', included: true },
-      { name: 'Limited chapters per day', included: true },
-      { name: 'Premium stories', included: true },
-      { name: 'Advanced AI features', included: true },
-      { name: 'Unlimited chapters', included: true },
-    ],
-  },
-  {
-    id: 'monthly',
-    name: 'Monthly Plan',
-    price: 7.99,
-    priceId: 'price_1RQ7xKA5F3yID83zA3CX9OxY',
-    mode: 'subscription',
-    features: [
-      { name: 'Access to free stories', included: true },
-      { name: 'Basic AI responses', included: true },
-      { name: 'Limited chapters per day', included: true },
-      { name: 'Premium stories', included: true },
-      { name: 'Advanced AI features', included: true },
-      { name: 'Unlimited chapters', included: true },
-    ],
-  },
-  {
-    id: 'one-month',
-    name: 'One-Month Pass',
-    price: 5.99,
-    priceId: 'price_1RQ84GA5F3yID83zA886qepx',
-    mode: 'payment',
-    features: [
-      { name: 'Access to free stories', included: true },
-      { name: 'Basic AI responses', included: true },
-      { name: 'Limited chapters per day', included: true },
-      { name: 'Premium stories', included: true },
-      { name: 'Advanced AI features', included: true },
-      { name: 'Unlimited chapters', included: true },
-    ],
-  },
-  {
-    id: 'free',
-    name: 'Free',
-    price: null,
-    features: [
-      { name: 'Access to free stories', included: true },
-      { name: 'Basic AI responses', included: true },
-      { name: 'Limited chapters per day', included: true },
-      { name: 'Premium stories', included: false },
-      { name: 'Advanced AI features', included: false },
-      { name: 'Unlimited chapters', included: false },
-    ],
-  },
+const defaultFeatures = [
+  { name: 'Access to free stories', included: true },
+  { name: 'Basic AI responses', included: true },
+  { name: 'Limited chapters per day', included: true },
+  { name: 'Premium stories', included: true },
+  { name: 'Advanced AI features', included: true },
+  { name: 'Unlimited chapters', included: true },
 ];
 
 const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
@@ -84,6 +32,63 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
   const [loading, setLoading] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        setLoadingPlans(true);
+        const response = await fetch('/api/stripe-products');
+        const prices = await response.json();
+
+        if (!Array.isArray(prices)) {
+          throw new Error('Invalid response from Stripe');
+        }
+
+        const formattedPlans: Plan[] = prices
+          .filter((price: any) => price.active)
+          .map((price: any) => ({
+            id: price.product.id,
+            name: price.product.name,
+            price: price.unit_amount / 100,
+            priceId: price.id,
+            mode: price.type === 'recurring' ? 'subscription' : 'payment',
+            features: defaultFeatures,
+            interval: price.recurring?.interval,
+            popular: price.recurring?.interval === 'year'
+          }))
+          .sort((a, b) => {
+            // Sort yearly plans first, then monthly, then one-time payments
+            if (a.interval === 'year') return -1;
+            if (b.interval === 'year') return 1;
+            if (a.interval === 'month') return -1;
+            if (b.interval === 'month') return 1;
+            return 0;
+          });
+
+        // Add free plan
+        formattedPlans.push({
+          id: 'free',
+          name: 'Free',
+          price: null,
+          features: defaultFeatures.map(f => ({
+            ...f,
+            included: ['Access to free stories', 'Basic AI responses', 'Limited chapters per day'].includes(f.name)
+          }))
+        });
+
+        setPlans(formattedPlans);
+      } catch (error: any) {
+        console.error('Error fetching plans:', error);
+        setError('Failed to load subscription plans');
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
 
   useEffect(() => {
     const fetchSubscription = async () => {
@@ -152,6 +157,28 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
     }
   };
 
+  if (loadingPlans) {
+    return (
+      <div className="max-w-7xl mx-auto px-4">
+        <h2 className="text-xl font-semibold text-white mb-8">Subscription Plans</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-xl border border-gray-800 bg-black/40 p-8 animate-pulse">
+              <div className="h-8 bg-gray-800 rounded w-1/3 mb-4"></div>
+              <div className="h-12 bg-gray-800 rounded w-1/2 mb-8"></div>
+              <div className="space-y-4 mb-8">
+                {[1, 2, 3, 4].map((j) => (
+                  <div key={j} className="h-6 bg-gray-800 rounded w-full"></div>
+                ))}
+              </div>
+              <div className="h-12 bg-gray-800 rounded w-full"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4">
       <h2 className="text-xl font-semibold text-white mb-8">Subscription Plans</h2>
@@ -191,13 +218,13 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
                     <span className="text-3xl font-bold text-white">
                       {plan.price ? `£${plan.price}` : 'Free'}
                     </span>
-                    {plan.mode === 'subscription' && (
+                    {plan.interval && (
                       <span className="text-gray-400 text-sm ml-2">
-                        /{plan.id === 'yearly' ? 'year' : 'month'}
+                        /{plan.interval}
                       </span>
                     )}
                   </div>
-                  {plan.id === 'yearly' && (
+                  {plan.interval === 'year' && (
                     <div className="mt-2 text-purple-400 text-sm">
                       Save 60% compared to monthly
                     </div>
