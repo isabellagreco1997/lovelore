@@ -152,7 +152,7 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
                 className="absolute left-8 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-4 z-20 backdrop-blur-sm transition-all duration-300 transform hover:scale-110"
               >
                 <span className="sr-only">Previous</span>
-                <span className="block w-6 h-6 border-l-2 border-b-2 transform -rotate-45"></span>
+                <span className="block w-6 h-6 border-l-2 border-t-2 transform -rotate-45"></span>
               </button>
               <button 
                 onClick={handleNextSlide}
