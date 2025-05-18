@@ -40,12 +40,12 @@ const Auth = () => {
     
     setLoading(true);
     setError(null);
-    
+    console.log('Signing in with Google', `${window.location.origin}/login`);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/login`
+          redirectTo: `${window.location.origin}`
         }
       });
       
