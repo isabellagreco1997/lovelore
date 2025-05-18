@@ -22,6 +22,7 @@ export default function StoryPage() {
   const [world, setWorld] = useState<{ id: string } | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   useEffect(() => {
     if (!supabase || !id) return;
@@ -231,7 +232,17 @@ export default function StoryPage() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4">
               <h1 className="text-4xl font-bold text-white mb-2">{story.world_name}</h1>
-              <p className="text-gray-300 text-sm line-clamp-2">{story.description}</p>
+              <p className={`text-gray-300 text-sm ${showFullDescription ? '' : 'line-clamp-2'}`}>
+                {story.description}
+              </p>
+              {story.description.length > 100 && (
+                <button
+                  onClick={() => setShowFullDescription(!showFullDescription)}
+                  className="text-purple-400 text-sm mt-2 hover:text-purple-300 transition-colors"
+                >
+                  {showFullDescription ? 'Show Less' : 'Read More'}
+                </button>
+              )}
             </div>
           </div>
         </div>
