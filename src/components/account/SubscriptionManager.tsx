@@ -2,59 +2,16 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { loadStripe } from '@stripe/stripe-js';
 import useSupabase from '@/hooks/useSupabase';
+import { products } from '@/stripe-config';
 
 interface SubscriptionManagerProps {
   user: User;
 }
 
-interface PlanFeature {
-  name: string;
-  included: boolean;
-}
-
-interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  interval: 'month' | 'year';
-  features: PlanFeature[];
-}
-
-const plans: Plan[] = [
-  {
-    id: 'basic',
-    name: 'Basic',
-    price: 0,
-    interval: 'month',
-    features: [
-      { name: 'Access to free stories', included: true },
-      { name: 'Basic AI responses', included: true },
-      { name: 'Limited chapters per day', included: true },
-      { name: 'Premium stories', included: false },
-      { name: 'Advanced AI features', included: false },
-      { name: 'Unlimited chapters', included: false },
-    ],
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    price: 9.99,
-    interval: 'month',
-    features: [
-      { name: 'Access to free stories', included: true },
-      { name: 'Basic AI responses', included: true },
-      { name: 'Limited chapters per day', included: true },
-      { name: 'Premium stories', included: true },
-      { name: 'Advanced AI features', included: true },
-      { name: 'Unlimited chapters', included: true },
-    ],
-  },
-];
-
 const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
   const supabase = useSupabase();
   const [loading, setLoading] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState<string>('basic');
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,14 +21,13 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('subscriptions')
-          .select('*')
-          .eq('user_id', user.id)
+          .from('stripe_subscriptions')
+          .select('price_id, status')
           .single();
 
         if (error) throw error;
-        if (data) {
-          setCurrentPlan(data.plan_id);
+        if (data && data.status === 'active') {
+          setCurrentPlan(data.price_id);
         }
       } catch (error: any) {
         console.error('Error fetching subscription:', error.message);
@@ -83,23 +39,31 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
     fetchSubscription();
   }, [supabase, user]);
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (priceId: string, mode: 'payment' | 'subscription') => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/create-checkout-session', {
+      const response = await fetch('/api/stripe-checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase?.auth.session()?.access_token}`,
         },
         body: JSON.stringify({
-          planId,
-          userId: user.id,
+          price_id: priceId,
+          success_url: `${window.location.origin}/account?success=true`,
+          cancel_url: `${window.location.origin}/account?canceled=true`,
+          mode,
         }),
       });
 
-      const { sessionId } = await response.json();
+      const { sessionId, error: stripeError } = await response.json();
+
+      if (stripeError) {
+        throw new Error(stripeError);
+      }
+
       const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
       
       if (!stripe) {
@@ -127,58 +91,46 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {plans.map((plan) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {products.map((product) => (
           <div
-            key={plan.id}
+            key={product.id}
             className={`rounded-xl border ${
-              currentPlan === plan.id
+              currentPlan === product.priceId
                 ? 'border-[#EC444B] bg-[#EC444B]/10'
                 : 'border-gray-800 bg-black/40'
             } p-6`}
           >
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
+                <h3 className="text-lg font-semibold text-white">{product.name}</h3>
                 <div className="mt-2">
-                  <span className="text-2xl font-bold text-white">${plan.price}</span>
-                  <span className="text-gray-400 ml-2">/{plan.interval}</span>
+                  <p className="text-gray-400">{product.description}</p>
                 </div>
               </div>
-              {currentPlan === plan.id && (
+              {currentPlan === product.priceId && (
                 <span className="bg-[#EC444B]/20 text-[#EC444B] px-3 py-1 rounded-full text-sm">
                   Current Plan
                 </span>
               )}
             </div>
 
-            <ul className="space-y-3 mb-6">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex items-center text-sm">
-                  <span className={`mr-2 ${feature.included ? 'text-green-400' : 'text-red-400'}`}>
-                    {feature.included ? '✓' : '×'}
-                  </span>
-                  <span className={feature.included ? 'text-white' : 'text-gray-400'}>
-                    {feature.name}
-                  </span>
-                </li>
-              ))}
-            </ul>
-
             <button
-              onClick={() => handleSubscribe(plan.id)}
-              disabled={loading || currentPlan === plan.id}
+              onClick={() => handleSubscribe(product.priceId, product.mode)}
+              disabled={loading || currentPlan === product.priceId}
               className={`w-full py-3 px-4 rounded-xl font-medium transition-colors ${
-                loading || currentPlan === plan.id
+                loading || currentPlan === product.priceId
                   ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                   : 'bg-[#EC444B] text-white hover:bg-[#d83a40]'
               }`}
             >
               {loading
                 ? 'Processing...'
-                : currentPlan === plan.id
+                : currentPlan === product.priceId
                 ? 'Current Plan'
-                : 'Subscribe'}
+                : product.mode === 'subscription'
+                ? 'Subscribe'
+                : 'Buy Now'}
             </button>
           </div>
         ))}
