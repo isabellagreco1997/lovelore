@@ -89,13 +89,16 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
                         alt={story.world_name} 
                         className="w-full h-full object-cover transition-transform duration-700 scale-105 hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/80"></div>
+                      {/* Multi-layer gradient for smoother transition */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/40 to-black/90"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black opacity-80"></div>
+                      <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-r from-transparent to-black"></div>
                     </div>
                   )}
                 </div>
 
                 {/* Content Section - Right Half */}
-                <div className="w-1/2 flex items-center justify-center p-16 bg-black/90">
+                <div className="w-1/2 flex items-center justify-center p-16 bg-black">
                   <div className="max-w-xl">
                     <div className="space-y-6 transform transition-all duration-500 delay-200">
                       <div className="flex items-center space-x-6 text-white/90">
