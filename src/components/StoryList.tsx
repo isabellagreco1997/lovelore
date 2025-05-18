@@ -115,7 +115,7 @@ const StoryList = () => {
   // Group stories by genre
   const storiesByGenre = stories.reduce((acc, story) => {
     const genre = story.genre || 'Other';
-    console.log(story, 'story')
+    console.log(story.genre, 'story')
     if (!acc[genre]) {
       acc[genre] = [];
     }
