@@ -240,6 +240,7 @@ export default function StoryPage() {
                 {story.world_name}
               </h1>
               <p className="text-lg md:text-xl text-gray-200 leading-relaxed drop-shadow-md px-4 md:px-0">
+                dsaddsa
                 {story.description?.substring(0, 120)}{story.description?.length > 120 ? '...' : ''}
               </p>
             </div>
