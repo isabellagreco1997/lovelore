@@ -268,9 +268,10 @@ export default function StoryPage() {
                   <div className="p-6">
                     <h2 className="text-2xl font-bold text-white mb-4">{story.world_name}</h2>
                     
-                    <div className={`prose prose-invert max-w-none ${!expandedDescription && 'line-clamp-3'}`}>
-                      <p className="text-gray-300">{story.description}</p>
-                    </div>
+                   <div className={`prose prose-invert max-w-none ${!expandedDescription && 'line-clamp-3'} hidden sm:block`}>
+  <p className="text-gray-300">{story.description}</p>
+</div>
+
                     
                     {story.description && story.description.length > 150 && (
                       <button
