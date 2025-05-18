@@ -22,7 +22,7 @@ export default function StoryPage() {
   const [world, setWorld] = useState<{ id: string } | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
 
   useEffect(() => {
     if (!supabase || !id) return;
@@ -232,17 +232,15 @@ export default function StoryPage() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center px-4">
               <h1 className="text-4xl font-bold text-white mb-2">{story.world_name}</h1>
-              <p className={`text-gray-300 text-sm ${showFullDescription ? '' : 'line-clamp-2'}`}>
+              <p className="text-gray-300 text-sm line-clamp-2">
                 {story.description}
               </p>
-              {story.description.length > 100 && (
-                <button
-                  onClick={() => setShowFullDescription(!showFullDescription)}
-                  className="text-purple-400 text-sm mt-2 hover:text-purple-300 transition-colors"
-                >
-                  {showFullDescription ? 'Show Less' : 'Read More'}
-                </button>
-              )}
+              <button
+                onClick={() => setShowDescriptionModal(true)}
+                className="text-purple-400 text-sm mt-2 hover:text-purple-300 transition-colors"
+              >
+                Read More
+              </button>
             </div>
           </div>
         </div>
@@ -409,6 +407,22 @@ export default function StoryPage() {
             </div>
           </div>
         </div>
+
+        {/* Description Modal for Mobile */}
+        {showDescriptionModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm md:hidden">
+            <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold text-white mb-4">{story.world_name}</h2>
+              <p className="text-gray-300 text-sm leading-relaxed mb-6">{story.description}</p>
+              <button
+                onClick={() => setShowDescriptionModal(false)}
+                className="w-full bg-purple-600 text-white py-3 rounded-xl font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Reset Confirmation Modal */}
         {showResetConfirm && (
