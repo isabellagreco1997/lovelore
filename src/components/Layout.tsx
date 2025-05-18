@@ -87,21 +87,107 @@ const Layout = ({ children }: LayoutProps) => {
       
       {/* Footer - Hide on login page */}
       {!isLoginPage && (
-        <footer className="bg-black py-6 mt-auto z-10">
+        <footer className="bg-gray-900/30 backdrop-blur-sm border-t border-gray-800 py-12 mt-auto z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row justify-between items-center">
-              <p className="text-purple-200 text-sm mb-2 sm:mb-0">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              {/* Logo and Description */}
+              <div className="col-span-1 md:col-span-2">
+                <Link href="/">
+                  <div className="flex items-center mb-4">
+                    <img 
+                      src="/images/logo.png" 
+                      alt="LoveLore Logo" 
+                      className="h-8 w-auto object-contain"
+                    />
+                  </div>
+                </Link>
+                <p className="text-gray-400 text-sm mb-4">
+                  Experience interactive storytelling like never before. Create, explore, and immerse yourself in unique narratives powered by advanced AI.
+                </p>
+                <div className="flex space-x-4">
+                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    Twitter
+                  </a>
+                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    Discord
+                  </a>
+                  <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    GitHub
+                  </a>
+                </div>
+              </div>
+
+              {/* Quick Links */}
+              <div>
+                <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <Link href="/story" className="text-gray-400 hover:text-white transition-colors">
+                      Browse Stories
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/conversations" className="text-gray-400 hover:text-white transition-colors">
+                      My Conversations
+                    </Link>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                      Create Story
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                      Community
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Resources */}
+              <div>
+                <h3 className="text-white font-semibold mb-4">Resources</h3>
+                <ul className="space-y-2">
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                      Documentation
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                      Help Center
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                      Privacy Policy
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                      Terms of Service
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom Bar */}
+            <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+              <p className="text-gray-400 text-sm mb-4 md:mb-0">
                 &copy; {new Date().getFullYear()} LoveLore. All rights reserved.
               </p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-purple-200 hover:text-purple-300 transition-colors">
-                  About
-                </a>
-                <a href="#" className="text-purple-200 hover:text-purple-300 transition-colors">
+              <div className="flex items-center space-x-4">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Privacy
                 </a>
-                <a href="#" className="text-purple-200 hover:text-purple-300 transition-colors">
+                <span className="text-gray-700">•</span>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Terms
+                </a>
+                <span className="text-gray-700">•</span>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
+                  Cookies
                 </a>
               </div>
             </div>
