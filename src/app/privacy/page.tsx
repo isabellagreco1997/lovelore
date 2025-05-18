@@ -1,3 +1,5 @@
+"use client";
+
 import Layout from '@/components/Layout';
 
 const PrivacyPolicy = () => {
@@ -86,7 +88,7 @@ const PrivacyPolicy = () => {
             <h2 className="text-2xl font-semibold mb-4">Contact Us</h2>
             <p className="text-gray-300">
               If you have any questions about this Privacy Policy, please contact us at:
-              privacy@lovelore.com
+              lovelore.contact@gmail.com
             </p>
           </section>
         </div>
