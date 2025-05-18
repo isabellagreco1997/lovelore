@@ -48,6 +48,9 @@ const Layout = ({ children }: LayoutProps) => {
                   <Link href="/story" className="text-white hover:text-purple-300 transition-colors flex items-center">
                     <span className="mr-1">✦</span> Stories
                   </Link>
+                  <Link href="/account" className="text-white hover:text-purple-300 transition-colors flex items-center">
+                    <span className="mr-1">✦</span> Account
+                  </Link>
                 </nav>
               )}
             </div>
@@ -56,7 +59,12 @@ const Layout = ({ children }: LayoutProps) => {
               <div>
                 {user ? (
                   <div className="flex items-center space-x-4">
-                    <span className="text-purple-200 hidden sm:inline">Hello, {user.email?.split('@')[0]}</span>
+                    <Link 
+                      href="/account"
+                      className="text-purple-200 hidden sm:flex items-center hover:text-purple-300 transition-colors"
+                    >
+                      <span className="mr-2">{user.email?.split('@')[0]}</span>
+                    </Link>
                     <button
                       onClick={() => signOut()}
                       className="bg-transparent border border-[#EC444B] text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 shadow-sm hover:shadow"
@@ -121,6 +129,11 @@ const Layout = ({ children }: LayoutProps) => {
                   <li>
                     <Link href="/story" className="text-gray-400 hover:text-white transition-colors">
                       Browse Stories
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/account" className="text-gray-400 hover:text-white transition-colors">
+                      Account Settings
                     </Link>
                   </li>
                 </ul>
