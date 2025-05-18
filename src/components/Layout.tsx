@@ -131,16 +131,7 @@ const Layout = ({ children }: LayoutProps) => {
                       My Conversations
                     </Link>
                   </li>
-                  <li>
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                      Create Story
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                      Community
-                    </a>
-                  </li>
+                
                 </ul>
               </div>
 
