@@ -1,3 +1,5 @@
+"use client";
+
 import { ReactNode } from 'react';
 import useUser from '@/hooks/useUser';
 import Link from 'next/link';
@@ -59,17 +61,31 @@ const Layout = ({ children }: LayoutProps) => {
                     <span className="text-white hidden sm:block text-sm">
                       {user.email?.split('@')[0]}
                     </span>
+                    
+                    {/* Account Link - Icon on mobile, text on desktop */}
                     <Link 
                       href="/account"
-                      className="bg-transparent border border-[#EC444B] text-white px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10"
+                      className="bg-transparent border border-[#EC444B] text-white rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10 flex items-center justify-center"
                     >
-                      Account
+                      <span className="hidden sm:block px-4 py-2">Account</span>
+                      <span className="sm:hidden w-9 h-9 flex items-center justify-center">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </span>
                     </Link>
+
+                    {/* Sign Out Button - Icon on mobile, text on desktop */}
                     <button
                       onClick={() => signOut()}
-                      className="bg-transparent border border-[#EC444B] text-white px-3 py-1.5 md:px-4 md:py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10"
+                      className="bg-transparent border border-[#EC444B] text-white rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10 flex items-center justify-center"
                     >
-                      Sign Out
+                      <span className="hidden sm:block px-4 py-2">Sign Out</span>
+                      <span className="sm:hidden w-9 h-9 flex items-center justify-center">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                      </span>
                     </button>
                   </>
                 ) : (
