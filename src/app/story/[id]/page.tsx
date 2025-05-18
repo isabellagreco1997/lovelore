@@ -369,31 +369,7 @@ export default function StoryPage() {
                       </>
                     )}
                     
-                    <div className="mb-6">
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Select a chapter to begin:
-                      </label>
-                      <select 
-                        className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent p-3"
-                        value={selectedChapter?.chapterName || ''}
-                        onChange={(e) => {
-                          const chapter = story.chapters.find(ch => ch.chapterName === e.target.value);
-                          setSelectedChapter(chapter || null);
-                        }}
-                      >
-                        {story.chapters.map((chapter, index) => (
-                          <option 
-                            key={index} 
-                            value={chapter.chapterName}
-                            disabled={isChapterLocked(index)}
-                          >
-                            {chapter.chapterName}
-                            {isChapterCompleted(chapter.chapterName) ? ' (Completed)' : ''}
-                            {isChapterLocked(index) ? ' (Locked)' : ''}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+        
                     
                     {/* Chapter Progress Timeline */}
                     <div className="space-y-4">
