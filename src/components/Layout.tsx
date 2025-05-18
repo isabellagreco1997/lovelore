@@ -48,9 +48,6 @@ const Layout = ({ children }: LayoutProps) => {
                   <Link href="/story" className="text-white hover:text-purple-300 transition-colors flex items-center">
                     <span className="mr-1">✦</span> Stories
                   </Link>
-                  <Link href="/conversations" className="text-white hover:text-purple-300 transition-colors flex items-center">
-                    <span className="mr-1">✦</span> Conversations
-                  </Link>
                 </nav>
               )}
             </div>
@@ -126,12 +123,6 @@ const Layout = ({ children }: LayoutProps) => {
                       Browse Stories
                     </Link>
                   </li>
-                  <li>
-                    <Link href="/conversations" className="text-gray-400 hover:text-white transition-colors">
-                      My Conversations
-                    </Link>
-                  </li>
-                
                 </ul>
               </div>
 
@@ -139,7 +130,6 @@ const Layout = ({ children }: LayoutProps) => {
               <div>
                 <h3 className="text-white font-semibold mb-4">Resources</h3>
                 <ul className="space-y-2">
-        
                   <li>
                     <a href="#" className="text-gray-400 hover:text-white transition-colors">
                       Help Center
