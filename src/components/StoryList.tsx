@@ -33,7 +33,6 @@ const StoryList = () => {
             description,
             chapters,
             genre
-            
           `);
 
         if (error) throw error;
@@ -115,7 +114,6 @@ const StoryList = () => {
   // Group stories by genre
   const storiesByGenre = stories.reduce((acc, story) => {
     const genre = story.genre || 'Other';
-    console.log(story.genre, 'story')
     if (!acc[genre]) {
       acc[genre] = [];
     }
@@ -124,7 +122,7 @@ const StoryList = () => {
   }, {} as Record<string, StoryWithGenre[]>);
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-16 px-4 md:px-0">
       {Object.entries(storiesByGenre).map(([genre, genreStories]) => (
         <div key={genre} className="space-y-8">
           <div className="flex items-center space-x-4">
@@ -132,7 +130,7 @@ const StoryList = () => {
             <div className="h-px flex-1 bg-gray-800"></div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {genreStories.map((story) => (
               <Link href={`/story/${story.id}`} key={story.id}>
                 <div className="relative rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 h-[400px] group">
