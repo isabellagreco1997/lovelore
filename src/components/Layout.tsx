@@ -149,14 +149,14 @@ const Layout = ({ children }: LayoutProps) => {
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">
                       Privacy Policy
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                    <Link href="/terms" className="text-gray-400 hover:text-white transition-colors">
                       Terms of Service
-                    </a>
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -168,17 +168,17 @@ const Layout = ({ children }: LayoutProps) => {
                 &copy; {new Date().getFullYear()} LoveLore. All rights reserved.
               </p>
               <div className="flex items-center space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Privacy
-                </a>
+                </Link>
                 <span className="text-gray-700">•</span>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link href="/terms" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Terms
-                </a>
+                </Link>
                 <span className="text-gray-700">•</span>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link href="/cookies" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Cookies
-                </a>
+                </Link>
               </div>
             </div>
           </div>
