@@ -2,11 +2,80 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { loadStripe } from '@stripe/stripe-js';
 import useSupabase from '@/hooks/useSupabase';
-import { products } from '@/stripe-config';
 
 interface SubscriptionManagerProps {
   user: User;
 }
+
+interface Plan {
+  id: string;
+  name: string;
+  features: { name: string; included: boolean }[];
+  price: number | null;
+  priceId?: string;
+  mode?: 'payment' | 'subscription';
+}
+
+const plans: Plan[] = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: null,
+    features: [
+      { name: 'Access to free stories', included: true },
+      { name: 'Basic AI responses', included: true },
+      { name: 'Limited chapters per day', included: true },
+      { name: 'Premium stories', included: false },
+      { name: 'Advanced AI features', included: false },
+      { name: 'Unlimited chapters', included: false },
+    ],
+  },
+  {
+    id: 'one-month',
+    name: 'One-Month Pass',
+    price: 5.99,
+    priceId: 'price_1RQ84GA5F3yID83zA886qepx',
+    mode: 'payment',
+    features: [
+      { name: 'Access to free stories', included: true },
+      { name: 'Basic AI responses', included: true },
+      { name: 'Limited chapters per day', included: true },
+      { name: 'Premium stories', included: true },
+      { name: 'Advanced AI features', included: true },
+      { name: 'Unlimited chapters', included: true },
+    ],
+  },
+  {
+    id: 'monthly',
+    name: 'Monthly Plan',
+    price: 7.99,
+    priceId: 'price_1RQ7xKA5F3yID83zA3CX9OxY',
+    mode: 'subscription',
+    features: [
+      { name: 'Access to free stories', included: true },
+      { name: 'Basic AI responses', included: true },
+      { name: 'Limited chapters per day', included: true },
+      { name: 'Premium stories', included: true },
+      { name: 'Advanced AI features', included: true },
+      { name: 'Unlimited chapters', included: true },
+    ],
+  },
+  {
+    id: 'yearly',
+    name: 'Yearly Plan',
+    price: 47.99,
+    priceId: 'price_1RQ7zdA5F3yID83zkNUSPBfu',
+    mode: 'subscription',
+    features: [
+      { name: 'Access to free stories', included: true },
+      { name: 'Basic AI responses', included: true },
+      { name: 'Limited chapters per day', included: true },
+      { name: 'Premium stories', included: true },
+      { name: 'Advanced AI features', included: true },
+      { name: 'Unlimited chapters', included: true },
+    ],
+  },
+];
 
 const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
   const supabase = useSupabase();
@@ -91,47 +160,69 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {products.map((product) => (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {plans.map((plan) => (
           <div
-            key={product.id}
+            key={plan.id}
             className={`rounded-xl border ${
-              currentPlan === product.priceId
+              currentPlan === plan.priceId
                 ? 'border-[#EC444B] bg-[#EC444B]/10'
                 : 'border-gray-800 bg-black/40'
             } p-6`}
           >
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-white">{product.name}</h3>
+                <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
                 <div className="mt-2">
-                  <p className="text-gray-400">{product.description}</p>
+                  <span className="text-2xl font-bold text-white">
+                    {plan.price ? `£${plan.price}` : 'Free'}
+                  </span>
+                  {plan.mode === 'subscription' && (
+                    <span className="text-gray-400 text-sm ml-1">
+                      /{plan.id === 'yearly' ? 'year' : 'month'}
+                    </span>
+                  )}
                 </div>
               </div>
-              {currentPlan === product.priceId && (
+              {currentPlan === plan.priceId && (
                 <span className="bg-[#EC444B]/20 text-[#EC444B] px-3 py-1 rounded-full text-sm">
                   Current Plan
                 </span>
               )}
             </div>
 
-            <button
-              onClick={() => handleSubscribe(product.priceId, product.mode)}
-              disabled={loading || currentPlan === product.priceId}
-              className={`w-full py-3 px-4 rounded-xl font-medium transition-colors ${
-                loading || currentPlan === product.priceId
-                  ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  : 'bg-[#EC444B] text-white hover:bg-[#d83a40]'
-              }`}
-            >
-              {loading
-                ? 'Processing...'
-                : currentPlan === product.priceId
-                ? 'Current Plan'
-                : product.mode === 'subscription'
-                ? 'Subscribe'
-                : 'Buy Now'}
-            </button>
+            <ul className="space-y-3 mb-6">
+              {plan.features.map((feature, index) => (
+                <li key={index} className="flex items-center text-sm">
+                  <span className={`mr-2 ${feature.included ? 'text-green-400' : 'text-red-400'}`}>
+                    {feature.included ? '✓' : '×'}
+                  </span>
+                  <span className={feature.included ? 'text-white' : 'text-gray-400'}>
+                    {feature.name}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {plan.priceId && (
+              <button
+                onClick={() => handleSubscribe(plan.priceId!, plan.mode!)}
+                disabled={loading || currentPlan === plan.priceId}
+                className={`w-full py-3 px-4 rounded-xl font-medium transition-colors ${
+                  loading || currentPlan === plan.priceId
+                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : 'bg-[#EC444B] text-white hover:bg-[#d83a40]'
+                }`}
+              >
+                {loading
+                  ? 'Processing...'
+                  : currentPlan === plan.priceId
+                  ? 'Current Plan'
+                  : plan.mode === 'subscription'
+                  ? 'Subscribe'
+                  : 'Buy Now'}
+              </button>
+            )}
           </div>
         ))}
       </div>
