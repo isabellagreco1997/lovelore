@@ -152,15 +152,15 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-white mb-6">Subscription Plans</h2>
+      <h2 className="text-xl font-semibold text-white mb-8">Subscription Plans</h2>
       
       {error && (
-        <div className="mb-6 bg-red-900/20 border border-red-500/20 text-red-400 p-4 rounded-xl">
+        <div className="mb-8 bg-red-900/20 border border-red-500/20 text-red-400 p-4 rounded-xl">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {plans.map((plan) => (
           <div
             key={plan.id}
@@ -168,50 +168,52 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
               currentPlan === plan.priceId
                 ? 'border-[#EC444B] bg-[#EC444B]/10'
                 : 'border-gray-800 bg-black/40'
-            } p-6`}
+            } p-8 flex flex-col justify-between`}
           >
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
-                <div className="mt-2">
-                  <span className="text-2xl font-bold text-white">
-                    {plan.price ? `£${plan.price}` : 'Free'}
-                  </span>
-                  {plan.mode === 'subscription' && (
-                    <span className="text-gray-400 text-sm ml-1">
-                      /{plan.id === 'yearly' ? 'year' : 'month'}
+            <div>
+              <div className="flex justify-between items-start mb-8">
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold text-white">
+                      {plan.price ? `£${plan.price}` : 'Free'}
                     </span>
-                  )}
+                    {plan.mode === 'subscription' && (
+                      <span className="text-gray-400 text-sm ml-2">
+                        /{plan.id === 'yearly' ? 'year' : 'month'}
+                      </span>
+                    )}
+                  </div>
                 </div>
+                {currentPlan === plan.priceId && (
+                  <span className="bg-[#EC444B]/20 text-[#EC444B] px-3 py-1 rounded-full text-sm whitespace-nowrap">
+                    Current Plan
+                  </span>
+                )}
               </div>
-              {currentPlan === plan.priceId && (
-                <span className="bg-[#EC444B]/20 text-[#EC444B] px-3 py-1 rounded-full text-sm">
-                  Current Plan
-                </span>
-              )}
-            </div>
 
-            <ul className="space-y-3 mb-6">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex items-center text-sm">
-                  <span className={`mr-2 ${feature.included ? 'text-green-400' : 'text-red-400'}`}>
-                    {feature.included ? '✓' : '×'}
-                  </span>
-                  <span className={feature.included ? 'text-white' : 'text-gray-400'}>
-                    {feature.name}
-                  </span>
-                </li>
-              ))}
-            </ul>
+              <ul className="space-y-4 mb-8">
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-center text-base">
+                    <span className={`mr-3 text-lg ${feature.included ? 'text-green-400' : 'text-red-400'}`}>
+                      {feature.included ? '✓' : '×'}
+                    </span>
+                    <span className={feature.included ? 'text-white' : 'text-gray-400'}>
+                      {feature.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             {plan.priceId && (
               <button
                 onClick={() => handleSubscribe(plan.priceId!, plan.mode!)}
                 disabled={loading || currentPlan === plan.priceId}
-                className={`w-full py-3 px-4 rounded-xl font-medium transition-colors ${
+                className={`w-full py-4 px-6 rounded-xl font-medium text-base transition-all duration-300 ${
                   loading || currentPlan === plan.priceId
                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                    : 'bg-[#EC444B] text-white hover:bg-[#d83a40]'
+                    : 'bg-[#EC444B] text-white hover:bg-[#d83a40] transform hover:scale-105'
                 }`}
               >
                 {loading
