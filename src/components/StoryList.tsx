@@ -50,7 +50,7 @@ const StoryList = () => {
             logo_image: story.logo_image,
             description: story.description,
             chapters: Array.isArray(story.chapters) ? story.chapters : [],
-            genre: story.worlds?.genre || 'Other'
+            genre: story.genre || 'Other'
           }));
         
         setStories(filteredStories);
