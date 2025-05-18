@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { loadStripe } from '@stripe/stripe-js';
 import useSupabase from '@/hooks/useSupabase';
+import { products } from '@/stripe-config';
 
 interface SubscriptionManagerProps {
   user: User;
@@ -33,61 +34,48 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [loadingPlans, setLoadingPlans] = useState(true);
 
   useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        setLoadingPlans(true);
-        const response = await fetch('/api/stripe-products');
-        const prices = await response.json();
+    // Format products into plans
+    const formattedPlans: Plan[] = products
+      .map(product => {
+        const price = product.description.match(/£(\d+\.?\d*)/)?.[1];
+        const interval = product.mode === 'subscription' 
+          ? product.name.toLowerCase().includes('yearly') ? 'year' : 'month'
+          : undefined;
 
-        if (!Array.isArray(prices)) {
-          throw new Error('Invalid response from Stripe');
-        }
+        return {
+          id: product.id,
+          name: product.name,
+          price: price ? parseFloat(price) : null,
+          priceId: product.priceId,
+          mode: product.mode,
+          features: defaultFeatures,
+          interval,
+          popular: interval === 'year'
+        };
+      })
+      .sort((a, b) => {
+        // Sort yearly plans first, then monthly, then one-time payments
+        if (a.interval === 'year') return -1;
+        if (b.interval === 'year') return 1;
+        if (a.interval === 'month') return -1;
+        if (b.interval === 'month') return 1;
+        return 0;
+      });
 
-        const formattedPlans: Plan[] = prices
-          .filter((price: any) => price.active)
-          .map((price: any) => ({
-            id: price.product.id,
-            name: price.product.name,
-            price: price.unit_amount / 100,
-            priceId: price.id,
-            mode: price.type === 'recurring' ? 'subscription' : 'payment',
-            features: defaultFeatures,
-            interval: price.recurring?.interval,
-            popular: price.recurring?.interval === 'year'
-          }))
-          .sort((a, b) => {
-            // Sort yearly plans first, then monthly, then one-time payments
-            if (a.interval === 'year') return -1;
-            if (b.interval === 'year') return 1;
-            if (a.interval === 'month') return -1;
-            if (b.interval === 'month') return 1;
-            return 0;
-          });
+    // Add free plan
+    formattedPlans.push({
+      id: 'free',
+      name: 'Free',
+      price: null,
+      features: defaultFeatures.map(f => ({
+        ...f,
+        included: ['Access to free stories', 'Basic AI responses', 'Limited chapters per day'].includes(f.name)
+      }))
+    });
 
-        // Add free plan
-        formattedPlans.push({
-          id: 'free',
-          name: 'Free',
-          price: null,
-          features: defaultFeatures.map(f => ({
-            ...f,
-            included: ['Access to free stories', 'Basic AI responses', 'Limited chapters per day'].includes(f.name)
-          }))
-        });
-
-        setPlans(formattedPlans);
-      } catch (error: any) {
-        console.error('Error fetching plans:', error);
-        setError('Failed to load subscription plans');
-      } finally {
-        setLoadingPlans(false);
-      }
-    };
-
-    fetchPlans();
+    setPlans(formattedPlans);
   }, []);
 
   useEffect(() => {
@@ -157,12 +145,12 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
     }
   };
 
-  if (loadingPlans) {
+  if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-xl font-semibold text-white mb-8">Subscription Plans</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="rounded-xl border border-gray-800 bg-black/40 p-8 animate-pulse">
               <div className="h-8 bg-gray-800 rounded w-1/3 mb-4"></div>
               <div className="h-12 bg-gray-800 rounded w-1/2 mb-8"></div>
