@@ -246,9 +246,8 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         <div className="max-w-4xl mx-auto">
           {loading ? (
             <div className="flex justify-center items-center h-full">
-              <div className="relative">
-                <div className="absolute inset-0 animate-ping rounded-full h-12 w-12 border-2 border-pink-500/20"></div>
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-400"></div>
+              <div className="text-pink-300/50 italic font-light tracking-wider">
+                Loading conversation...
               </div>
             </div>
           ) : error ? (
