@@ -165,6 +165,11 @@ const Layout = ({ children }: LayoutProps) => {
                       Terms of Service
                     </Link>
                   </li>
+                  <li>
+                    <Link href="/contact" className="text-gray-400 hover:text-white transition-colors">
+                      Contact Us
+                    </Link>
+                  </li>
                 </ul>
               </div>
             </div>
