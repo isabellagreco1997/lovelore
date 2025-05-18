@@ -240,7 +240,8 @@ export default function ChapterPage() {
         
         console.log('Created new conversation:', newConvo.id);
 
-        const currentChapter = storyData.chapters[parseInt(chapterId)];
+        const chapterIdValue = Array.isArray(chapterId) ? chapterId[0] : chapterId;
+        const currentChapter = storyData.chapters[parseInt(chapterIdValue)];
         if (!currentChapter) throw new Error('Chapter not found');
 
         // Generate the initial message
@@ -260,7 +261,8 @@ export default function ChapterPage() {
           let previousChapterMessages: Array<{role: string, content: string}> = [];
           let previousChapterSummary = '';
           
-          const currentChapterIndex = parseInt(chapterId);
+          const chapterIdValue = Array.isArray(chapterId) ? chapterId[0] : chapterId;
+          const currentChapterIndex = parseInt(chapterIdValue);
           if (currentChapterIndex > 0) {
             const prevChapterId = String(currentChapterIndex - 1);
             console.log(`Fetching previous chapter (${prevChapterId}) messages for continuity`);
