@@ -47,14 +47,26 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
   return (
     <div className="relative overflow-hidden h-[650px] md:h-[650px] w-full">
       {loading ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-900">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-            <p className="mt-4 text-white animate-pulse">Loading featured stories...</p>
+        <div className="absolute inset-0 bg-black/90 transition-opacity duration-500">
+          <div className="h-full flex flex-col items-center justify-center">
+            <div className="space-y-8 w-full max-w-2xl px-4">
+              {/* Loading title */}
+              <div className="h-12 bg-gray-800/50 rounded-lg animate-pulse"></div>
+              
+              {/* Loading description */}
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-800/50 rounded animate-pulse"></div>
+                <div className="h-4 bg-gray-800/50 rounded animate-pulse w-5/6"></div>
+                <div className="h-4 bg-gray-800/50 rounded animate-pulse w-4/6"></div>
+              </div>
+              
+              {/* Loading button */}
+              <div className="h-12 bg-gray-800/50 rounded-lg w-1/3 animate-pulse"></div>
+            </div>
           </div>
         </div>
       ) : featuredStories.length === 0 ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-900">
+        <div className="absolute inset-0 bg-black/90 transition-opacity duration-500 flex items-center justify-center">
           <div className="text-center max-w-md px-6">
             <h3 className="text-2xl font-bold text-white mb-4">No featured stories yet</h3>
             <p className="text-gray-300 mb-6">Create your first story to see it featured in this carousel!</p>
