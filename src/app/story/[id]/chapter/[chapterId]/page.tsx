@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Auth from '@/components/Auth';
 import ConversationView from '@/components/ConversationView';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
-import { streamAIResponse, getStoryContextFromConversation } from '@/lib/deepseek';
+import { streamAIResponse, getStoryContextFromConversation, getPreviousChapterMessages, formatPreviousChapterSummary } from '@/lib/deepseek';
 
 export default function ChapterPage() {
-  const { id, chapterId } = useParams();
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const chapterId = Array.isArray(params.chapterId) ? params.chapterId[0] : params.chapterId;
+  
   const router = useRouter();
   const { user, loading: userLoading } = useUser();
   const supabase = useSupabase();
@@ -23,18 +26,32 @@ export default function ChapterPage() {
   const [worldId, setWorldId] = useState<string | null>(null);
   const [dataFetched, setDataFetched] = useState(false);
   const [generatingInitialMessage, setGeneratingInitialMessage] = useState(false);
+  const [worldCreationInProgress, setWorldCreationInProgress] = useState(false);
+  const [processingStep, setProcessingStep] = useState<'loading' | 'creating-world' | 'initializing' | 'generating'>('loading');
+  const isCreatingWorldRef = useRef(false);
 
   useEffect(() => {
-    if (!supabase || !id || dataFetched) return;
+    if (!supabase || !id || dataFetched || userLoading) return;
+    
+    // Don't proceed if user isn't authenticated
+    if (!user) {
+      console.log('User not authenticated, waiting for authentication...');
+      return;
+    }
 
     const fetchInitialData = async () => {
       try {
+        console.log('User authenticated, fetching initial data...');
         setLoading(true);
+        setProcessingStep('loading');
+        
+        // Ensure ID is a string
+        const storyId = Array.isArray(id) ? id[0] : id;
         
         const { data: story, error: storyError } = await supabase
           .from('stories')
           .select('*')
-          .eq('id', id)
+          .eq('id', storyId)
           .single();
 
         if (storyError) throw storyError;
@@ -46,17 +63,111 @@ export default function ChapterPage() {
 
         setStoryData({ ...story, chapters: chaptersArray });
 
-        const { data: world, error: worldError } = await supabase
-          .from('worlds')
-          .select('id')
-          .eq('story_id', id)
-          .single();
-
-        if (worldError) throw worldError;
-        if (!world) throw new Error('World not found');
-
-        setWorldId(world.id);
+        // World processing step
+        console.log('Fetching world for story ID:', storyId);
+        setProcessingStep('creating-world');
+        
+        try {
+          // Use direct fetch instead of Supabase client to ensure proper headers
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+          
+          if (!supabaseUrl || !supabaseKey) {
+            throw new Error('Missing Supabase environment variables');
+          }
+          
+          // First, check if a world already exists for this user AND story
+          console.log(`Checking for existing world for story ${storyId} and user ${user.id}`);
+          
+          const { data: existingWorlds, error: worldError } = await supabase
+            .from('worlds')
+            .select('id')
+            .eq('story_id', storyId)
+            .eq('user_id', user.id);
+            
+          if (worldError) {
+            console.error('Error checking for existing worlds:', worldError);
+            throw worldError;
+          }
+          
+          // If world already exists for this user and story, use it
+          if (existingWorlds && existingWorlds.length > 0) {
+            console.log('Found existing world for this user and story:', existingWorlds[0]);
+            setWorldId(existingWorlds[0].id);
+          } else {
+            // If no world exists, create a new one
+            console.log('No world found for this user and story, creating a new world...');
+            
+            // Use ref to prevent duplicate world creation
+            if (isCreatingWorldRef.current) {
+              console.log('World creation already in progress, waiting...');
+              // Wait for existing creation to finish
+              await new Promise(resolve => setTimeout(resolve, 3000));
+              
+              // Check again if world was created while waiting
+              const { data: recheckWorlds } = await supabase
+                .from('worlds')
+                .select('id')
+                .eq('story_id', storyId)
+                .eq('user_id', user.id);
+                
+              if (recheckWorlds && recheckWorlds.length > 0) {
+                console.log('World was created in another process:', recheckWorlds[0]);
+                setWorldId(recheckWorlds[0].id);
+                return;
+              }
+            }
+            
+            // Set flag to prevent parallel world creation
+            isCreatingWorldRef.current = true;
+            
+            try {
+              // Create a new world for this story
+              const newWorld = {
+                user_id: user.id,
+                story_id: storyId,
+                name: story.world_name || 'New World',
+                description: story.description || '',
+                is_prebuilt: false,
+                created_at: new Date().toISOString()
+              };
+              
+              const { data: createdWorld, error: createError } = await supabase
+                .from('worlds')
+                .insert([newWorld])
+                .select()
+                .single();
+                
+              if (createError) {
+                console.error('Error creating world:', createError);
+                throw createError;
+              }
+              
+              console.log('Successfully created new world:', createdWorld);
+              
+              // Wait for 2 seconds to ensure the world creation is properly registered in the database
+              console.log('Waiting for world creation to be fully processed...');
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              
+              setWorldId(createdWorld.id);
+            } finally {
+              // Reset flag regardless of success or failure
+              isCreatingWorldRef.current = false;
+            }
+          }
+          
+          // Wait a moment before proceeding to next step
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+        } catch (worldError: any) {
+          console.error('World error:', worldError);
+          throw worldError;
+        }
+        
+        // Now we have a worldId, proceed to immediate initialization
+        console.log('World ready, proceeding to conversation initialization...');
         setDataFetched(true);
+        
       } catch (error: any) {
         console.error('Error fetching initial data:', error.message);
         setError(error.message || 'Failed to load story data');
@@ -66,16 +177,25 @@ export default function ChapterPage() {
     };
 
     fetchInitialData();
-  }, [supabase, id]);
+  }, [supabase, id, user, userLoading]);
 
   useEffect(() => {
     if (!supabase || !worldId || !user || !chapterId || !storyData || !dataFetched || conversation) return;
 
     const initializeConversation = async () => {
       try {
+        setProcessingStep('initializing');
         setGeneratingInitialMessage(true);
         
-        const { data: existingConvo, error: fetchError } = await supabase
+        // Debug what we're querying with
+        console.log('Querying conversations with:', {
+          world_id: worldId,
+          chapter_id: chapterId,
+          user_id: user.id
+        });
+        
+        // First, check for existing conversation - Use orderBy and limit instead of maybeSingle
+        const { data: existingConvos, error: fetchError } = await supabase
           .from('conversations')
           .select(`
             *,
@@ -84,17 +204,24 @@ export default function ChapterPage() {
           .eq('world_id', worldId)
           .eq('chapter_id', chapterId)
           .eq('user_id', user.id)
-          .maybeSingle();
+          .order('started_at', { ascending: false })
+          .limit(1);
 
         if (fetchError) throw fetchError;
 
-        if (existingConvo) {
+        // Use the most recent conversation if any exist
+        if (existingConvos && existingConvos.length > 0) {
+          const existingConvo = existingConvos[0];
+          console.log('Found existing conversation:', existingConvo.id);
           setConversation(existingConvo);
           setHasExistingMessages(existingConvo.messages?.length > 0);
           setIsInitialLoad(false);
           return;
         }
 
+        console.log('No existing conversation found, creating new one');
+        
+        // Create a new conversation
         const { data: newConvo, error: createError } = await supabase
           .from('conversations')
           .insert([{
@@ -106,11 +233,19 @@ export default function ChapterPage() {
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createError) {
+          console.error('Error creating conversation:', createError);
+          throw createError;
+        }
+        
+        console.log('Created new conversation:', newConvo.id);
 
         const currentChapter = storyData.chapters[parseInt(chapterId)];
         if (!currentChapter) throw new Error('Chapter not found');
 
+        // Generate the initial message
+        setProcessingStep('generating');
+        
         const storyContext = {
           storyName: storyData.world_name,
           chapterName: currentChapter.chapterName,
@@ -118,36 +253,81 @@ export default function ChapterPage() {
           chapterObjective: currentChapter.objective
         };
 
-        const result = await streamAIResponse(
-          "Begin the story",
-          storyContext,
-          () => {},
-          []
-        );
+        console.log('About to call DeepSeek API with context:', JSON.stringify(storyContext));
+        
+        try {
+          // Get previous chapter messages if not on first chapter
+          let previousChapterMessages: Array<{role: string, content: string}> = [];
+          let previousChapterSummary = '';
+          
+          const currentChapterIndex = parseInt(chapterId);
+          if (currentChapterIndex > 0) {
+            const prevChapterId = String(currentChapterIndex - 1);
+            console.log(`Fetching previous chapter (${prevChapterId}) messages for continuity`);
+            
+            // Get messages from previous chapter
+            previousChapterMessages = await getPreviousChapterMessages(
+              supabase,
+              worldId,
+              user.id,
+              prevChapterId
+            );
+            
+            // Create a summary from those messages
+            if (previousChapterMessages.length > 0) {
+              previousChapterSummary = formatPreviousChapterSummary(previousChapterMessages);
+              console.log(`Generated previous chapter summary (${previousChapterSummary.length} chars)`);
+            } else {
+              console.log('No previous chapter messages found for continuity');
+            }
+          } else {
+            console.log('First chapter - no previous context to include');
+          }
+          
+          // Now call streamAIResponse with the previous chapter context
+          const result = await streamAIResponse(
+            "Begin the story",
+            storyContext,
+            (chunk) => {
+              console.log('Received chunk from DeepSeek:', chunk.substring(0, 50) + '...');
+            },
+            [],
+            previousChapterSummary,
+            previousChapterMessages
+          );
+          
+          console.log('Successfully received DeepSeek response:', result.content.substring(0, 100) + '...');
 
-        const { data: message, error: messageError } = await supabase
-          .from('messages')
-          .insert([{
-            conversation_id: newConvo.id,
-            role: 'assistant',
-            content: result.content,
-            timestamp: new Date().toISOString()
-          }])
-          .select()
-          .single();
+          // Save the generated message
+          const { data: message, error: messageError } = await supabase
+            .from('messages')
+            .insert([{
+              conversation_id: newConvo.id,
+              role: 'assistant',
+              content: result.content,
+              timestamp: new Date().toISOString()
+            }])
+            .select()
+            .single();
 
-        if (messageError) throw messageError;
+          if (messageError) throw messageError;
 
-        setConversation({
-          ...newConvo,
-          messages: [message]
-        });
-        setHasExistingMessages(true);
-        setIsInitialLoad(false);
+          // Complete the process
+          setConversation({
+            ...newConvo,
+            messages: [message]
+          });
+          setHasExistingMessages(true);
+          setIsInitialLoad(false);
+        } catch (deepseekError) {
+          console.error('DeepSeek API call failed:', deepseekError);
+          throw new Error('Failed to generate story content');
+        }
       } catch (error: any) {
         console.error('Error initializing conversation:', error.message);
-        setError('Failed to initialize conversation');
-        setIsInitialLoad(false);
+        // Don't set error message, just keep user in loading state
+        // setError('Failed to initialize conversation. Please try refreshing the page.');
+        // setIsInitialLoad(false);
       } finally {
         setGeneratingInitialMessage(false);
       }
@@ -156,55 +336,51 @@ export default function ChapterPage() {
     initializeConversation();
   }, [supabase, worldId, user, chapterId, storyData, dataFetched, conversation]);
 
-  if (userLoading) {
-    return <div className="h-screen flex items-center justify-center text-white">Loading...</div>;
-  }
-
-  if (!user) {
-    return <Auth />;
-  }
-
-  if (isInitialLoad && !hasExistingMessages) {
+  if (userLoading || loading || (isInitialLoad && !hasExistingMessages)) {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
         <div className="text-center">
-          <div className="relative">
-            <div className="w-24 h-24 border-t-4 border-b-4 border-purple-500 rounded-full animate-spin"></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-16 h-16 border-t-4 border-b-4 border-purple-300 rounded-full animate-spin animation-delay-150"></div>
-            </div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-4 h-4 bg-purple-400 rounded-full animate-pulse"></div>
-            </div>
+          <div className="mb-8">
+            <div className="w-20 h-20 border-t-4 border-b-4 border-purple-500 rounded-full animate-spin mx-auto"></div>
           </div>
           
-          <div className="mt-8 space-y-3">
+          <div className="space-y-3">
             <h2 className="text-2xl font-bold text-white">
-              {generatingInitialMessage ? 'Generating Your Story' : 'Loading Your Story'}
+              {userLoading 
+                ? 'Authenticating' 
+                : processingStep === 'loading' 
+                  ? 'Loading Your Story'
+                  : processingStep === 'creating-world' 
+                    ? 'Creating Your Story World'
+                    : processingStep === 'initializing' 
+                      ? 'Preparing Your Adventure'
+                      : 'Generating Your Story'}
             </h2>
             <p className="text-purple-300">
-              {generatingInitialMessage 
-                ? 'Please wait while we craft your unique narrative experience...'
-                : 'Loading story data...'}
+              {userLoading 
+                ? 'Please wait while we verify your credentials...'
+                : processingStep === 'loading' 
+                  ? 'Loading story data...'
+                  : processingStep === 'creating-world' 
+                    ? 'Please wait while we prepare your adventure world...'
+                    : processingStep === 'initializing' 
+                      ? 'Setting up your story experience...'
+                      : 'Please wait while we craft your unique narrative experience...'}
             </p>
           </div>
           
-          <div className="mt-4 flex justify-center space-x-2">
-            <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"></div>
-            <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce animation-delay-200"></div>
-            <div className="w-3 h-3 bg-purple-300 rounded-full animate-bounce animation-delay-400"></div>
+          <div className="mt-6 flex justify-center space-x-2">
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse animation-delay-200"></div>
+            <div className="w-2 h-2 bg-purple-300 rounded-full animate-pulse animation-delay-400"></div>
           </div>
         </div>
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-300"></div>
-      </div>
-    );
+  if (!user) {
+    return <Auth />;
   }
 
   if (error) {

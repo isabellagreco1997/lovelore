@@ -9,7 +9,18 @@ export const supabaseClient = () => {
     throw new Error('Missing Supabase environment variables');
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey);
+  // Add necessary headers to avoid 406 errors
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'apikey': supabaseAnonKey
+  };
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers
+    }
+  });
 };
 
 // Initialize the client with service role key for server-side operations
@@ -22,5 +33,16 @@ export const supabaseAdmin = () => {
     throw new Error('Missing Supabase admin environment variables');
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey);
+  // Add necessary headers for admin requests
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'apikey': supabaseServiceKey
+  };
+
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    global: {
+      headers
+    }
+  });
 }; 

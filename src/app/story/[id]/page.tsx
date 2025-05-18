@@ -99,11 +99,30 @@ export default function StoryPage() {
           return;
         }
         
+        // Raw data for debugging
+        console.log('FULL CHAPTER PROGRESS DATA FROM DATABASE:');
+        console.table(data);
+        
+        // Get table structure for chapter_id field
+        if (data.length > 0) {
+          console.log('First progress record:');
+          console.log('chapter_id:', data[0].chapter_id);
+          console.log('chapter_id type:', typeof data[0].chapter_id);
+          console.log('is_completed:', data[0].is_completed);
+          console.log('is_completed type:', typeof data[0].is_completed);
+        }
+        
         const progressMap: Record<string, boolean> = {};
         data.forEach((progress: UserChapterProgress) => {
+          // Store chapter_id exactly as it is in the database
           progressMap[progress.chapter_id] = progress.is_completed;
+          console.log(`Adding to progressMap: [${progress.chapter_id}] = ${progress.is_completed}`);
         });
         
+        // Show the final map content
+        console.log('FINAL PROGRESS MAP:');
+        console.log(progressMap);
+
         setChapterProgress(progressMap);
       } catch (error: any) {
         console.error('Error processing chapter progress:', error.message);
@@ -126,6 +145,9 @@ export default function StoryPage() {
     try {
       setResetLoading(true);
       
+      // Log more details for debugging
+      console.log(`Attempting complete reset/deletion for story ${id} for user ${user.id}`);
+      
       const response = await fetch('/api/story-reset', {
         method: 'POST',
         headers: {
@@ -138,19 +160,40 @@ export default function StoryPage() {
       });
       
       const data = await response.json();
+      console.log('Reset response:', data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to reset story');
       }
       
+      // Clear progress state
       setChapterProgress({});
+      setWorld(null);
       setShowResetConfirm(false);
       
-      alert('Story progress has been reset successfully!');
+      // Display success message
+      alert(data.message || 'Story progress has been reset successfully!');
+      
+      // Add a delay before refreshing to ensure deletion completes
+      console.log('Waiting 5 seconds before refreshing...');
+      
+      // Increase wait time to 5 seconds to ensure deletion completes
+      setTimeout(() => {
+        console.log('Refreshing page now...');
+        
+        // Force a hard refresh that bypasses cache
+        window.location.href = window.location.href;
+      }, 5000);
       
     } catch (error: any) {
       console.error('Error resetting story:', error);
-      alert(`Failed to reset story: ${error.message}`);
+      
+      // Show more detailed error message
+      const errorMessage = error.message || 'Unknown error occurred';
+      alert(`Failed to reset story: ${errorMessage}\n\nPlease check console for more details.`);
+      
+      // Close modal even on error
+      setShowResetConfirm(false);
     } finally {
       setResetLoading(false);
     }
@@ -162,12 +205,27 @@ export default function StoryPage() {
     const chapterIndex = story.chapters.findIndex(ch => ch.chapterName === chapterName);
     if (chapterIndex === -1) return false;
     
-    return !!chapterProgress[chapterIndex.toString()];
+    const rawChapterId = String(chapterIndex);
+    
+    console.log(`Chapter check "${chapterName}" (index ${chapterIndex}):`);
+    console.log(`- chapterProgress["${rawChapterId}"] =`, chapterProgress[rawChapterId]);
+    console.log(`- all chapterProgress keys:`, Object.keys(chapterProgress));
+    
+    return !!chapterProgress[rawChapterId];
   };
 
   const isChapterLocked = (index: number) => {
     if (index === 0) return false;
-    return !isChapterCompleted(story!.chapters[index - 1].chapterName);
+    
+    const previousChapterId = String(index - 1);
+    const isPrevChapterCompleted = !!chapterProgress[previousChapterId];
+    
+    console.log(`Chapter lock check for index ${index}:`);
+    console.log(`- Previous chapter index: ${index - 1}`);
+    console.log(`- previousChapterId: "${previousChapterId}"`);
+    console.log(`- Has completion status: ${isPrevChapterCompleted}`);
+    
+    return !isPrevChapterCompleted;
   };
 
   if (userLoading || loading) {
@@ -326,26 +384,35 @@ export default function StoryPage() {
                           setSelectedChapter(chapter || null);
                         }}
                       >
-                        {story.chapters.map((chapter, index) => (
-                          <option 
-                            key={index} 
-                            value={chapter.chapterName}
-                            disabled={isChapterLocked(index)}
-                          >
-                            {chapter.chapterName}
-                            {isChapterCompleted(chapter.chapterName) ? ' (Completed)' : ''}
-                            {isChapterLocked(index) ? ' (Locked)' : ''}
-                          </option>
-                        ))}
+                        {story.chapters.map((chapter, index) => {
+                          // Use the updated helper functions instead of inline logic
+                          const isCompleted = isChapterCompleted(chapter.chapterName);
+                          const isLocked = isChapterLocked(index);
+                          
+                          return (
+                            <option 
+                              key={index} 
+                              value={chapter.chapterName}
+                              disabled={isLocked}
+                            >
+                              {chapter.chapterName}
+                              {isCompleted ? ' (Completed)' : ''}
+                              {isLocked ? ' (Locked)' : ''}
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
                     
                     {/* Chapter Progress Timeline */}
                     <div className="space-y-4">
                       {story.chapters.map((chapter, index) => {
+                        // Use the updated helper functions instead of inline logic
                         const isCompleted = isChapterCompleted(chapter.chapterName);
                         const isLocked = isChapterLocked(index);
                         const isSelected = selectedChapter?.chapterName === chapter.chapterName;
+                        
+                        console.log(`Chapter timeline item ${index} (${chapter.chapterName}) status: completed=${isCompleted}, locked=${isLocked}`);
                         
                         return (
                           <div 
@@ -438,10 +505,10 @@ export default function StoryPage() {
                     <div className="mt-8">
                       <button
                         onClick={handleStartChapter}
-                        disabled={!selectedChapter || isChapterLocked(story.chapters.indexOf(selectedChapter))}
+                        disabled={!selectedChapter || (selectedChapter && isChapterLocked(story.chapters.findIndex(ch => ch.chapterName === selectedChapter.chapterName)))}
                         className={`
                           w-full py-4 px-6 rounded-xl font-medium text-lg transition-all duration-300 transform
-                          ${!selectedChapter || isChapterLocked(story.chapters.indexOf(selectedChapter))
+                          ${!selectedChapter || (selectedChapter && isChapterLocked(story.chapters.findIndex(ch => ch.chapterName === selectedChapter.chapterName)))
                             ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                             : 'bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white hover:scale-105 hover:shadow-xl'
                           }
@@ -449,7 +516,7 @@ export default function StoryPage() {
                       >
                         {!selectedChapter
                           ? 'Select a Chapter'
-                          : isChapterLocked(story.chapters.indexOf(selectedChapter))
+                          : isChapterLocked(story.chapters.findIndex(ch => ch.chapterName === selectedChapter.chapterName))
                             ? 'Complete Previous Chapter to Unlock'
                             : isChapterCompleted(selectedChapter.chapterName)
                               ? 'Play Chapter Again'

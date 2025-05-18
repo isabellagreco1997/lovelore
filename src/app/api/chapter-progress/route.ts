@@ -13,10 +13,15 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Ensure chapter_id is stored as a string as per schema
+    const chapterIdAsString = String(chapter_id);
+    
     console.log('Updating chapter progress with params:', { 
       user_id, 
       world_id, 
-      chapter_id, 
+      chapter_id,
+      chapter_id_type: typeof chapter_id,
+      chapter_id_as_string: chapterIdAsString,
       is_completed 
     });
     
@@ -28,7 +33,7 @@ export async function POST(request: NextRequest) {
       .select('*')
       .eq('user_id', user_id)
       .eq('world_id', world_id)
-      .eq('chapter_id', chapter_id)
+      .eq('chapter_id', chapterIdAsString)
       .maybeSingle();
     
     if (queryError) {
@@ -69,7 +74,7 @@ export async function POST(request: NextRequest) {
         .insert({
           user_id,
           world_id,
-          chapter_id,
+          chapter_id: chapterIdAsString,
           is_completed: is_completed ?? true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()

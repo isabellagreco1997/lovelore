@@ -72,7 +72,8 @@ export async function streamAIResponse(
              ${previousChapterSummary || (previousChapterMessages && previousChapterMessages.length > 0) ? `11. When starting a new chapter, always reference and acknowledge what happened at the end of the previous chapter. Create a sense of continuity in the story.` : ''}`
   };
 
-  console.log('systemMessage', systemMessage);
+  console.log('System message prepared for story context:', 
+    {storyName: storyContext.storyName, chapterName: storyContext.chapterName});
   
   allMessages.push(systemMessage);
   
@@ -110,41 +111,64 @@ export async function streamAIResponse(
   // Add the current user prompt
   allMessages.push({ role: 'user', content: prompt });
   
-  // Format messages for the API - formattedMessages is now allMessages
-  const response = await fetch('/api/deepseek', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
-      model: 'deepseek-chat',
-      messages: allMessages,
-      temperature: 0.7,
-      max_tokens: 1000,
-      stream: true
-    }),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
-  }
-  
-  if (!response.body) throw new Error('No response body');
-  
-  const reader = response.body!.getReader();
-  const decoder = new TextDecoder();
-  let done = false;
-  let fullContent = '';
+  console.log(`Making API request to deepseek with ${allMessages.length} messages. Prompt: "${prompt}"`);
   
   try {
+    // Format messages for the API - formattedMessages is now allMessages
+    const response = await fetch('/api/deepseek', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        model: 'deepseek-chat',
+        messages: allMessages,
+        temperature: 0.7,
+        max_tokens: 1000,
+        stream: true
+      }),
+    });
+    
+    console.log('API response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API error response:', errorText);
+      throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+    
+    if (!response.body) {
+      console.error('No response body received');
+      throw new Error('No response body');
+    }
+    
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+    let fullContent = '';
+    let chunkCount = 0;
+    
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
+      
       if (value) {
         const chunk = decoder.decode(value, { stream: !done });
         if (chunk) {
+          chunkCount++;
           fullContent += chunk;
           onChunk(chunk);
+          
+          if (chunkCount % 10 === 0) {
+            console.log(`Received ${chunkCount} chunks so far, content length: ${fullContent.length}`);
+          }
         }
       }
+    }
+    
+    console.log(`Stream complete. Received ${chunkCount} total chunks with content length: ${fullContent.length}`);
+    
+    if (fullContent.trim().length === 0) {
+      console.error('Empty response received from API');
+      throw new Error('Empty response from API');
     }
     
     // Once streaming is complete, check objective completion with a separate call
@@ -159,9 +183,14 @@ export async function streamAIResponse(
       content: fullContent,
       objectiveCompleted
     };
-  } catch (error) {
-    console.error('Error while reading stream:', error);
-    throw error;
+  } catch (error: any) {
+    console.error('Error while processing AI response:', error);
+    
+    // Return a fallback response in case of API error
+    return {
+      content: `The storyteller seems to be gathering their thoughts. Please try again in a moment. (Error: ${error.message})`,
+      objectiveCompleted: false
+    };
   }
 }
 
@@ -180,7 +209,17 @@ export async function checkObjectiveCompletion(
   objective: string,
   previousMessages: Array<{role: string, content: string}> = []
 ): Promise<boolean> {
-  if (!objective) return false;
+  if (!objective) {
+    console.log('No objective provided to check, returning false');
+    return false;
+  }
+  
+  console.log('Checking objective completion:', { 
+    objective,
+    contentPreview: content.substring(0, 100) + '...',
+    promptPreview: userPrompt.substring(0, 50) + '...',
+    previousMessagesCount: previousMessages.length
+  });
   
   try {
     // Make a separate API call just to check if the objective was completed
@@ -227,7 +266,10 @@ export async function checkObjectiveCompletion(
     const answer = data.choices?.[0]?.message?.content || '';
     
     // Check if the response contains YES
-    return answer.toUpperCase().includes('YES');
+    const isCompleted = answer.toUpperCase().includes('YES');
+    console.log(`Objective completion check result: "${answer}" -> ${isCompleted ? 'COMPLETED' : 'NOT COMPLETED'}`);
+    
+    return isCompleted;
   } catch (error) {
     console.error('Error checking objective completion:', error);
     return false;
@@ -245,25 +287,56 @@ export async function getStoryContextFromConversation(
   storyData?: any
 ): Promise<StoryContext> {
   // If we already have story data provided, use it
-  if (storyData) {
-    // Find the chapter that matches the chapter_id in the conversation
-    const chapter = storyData.chapters?.find(
-      (ch: any) => ch.chapterName === conversation.chapter_id
-    );
-    
-    if (chapter) {
-      return {
-        storyName: storyData.world_name,
-        chapterName: chapter.chapterName,
-        chapterContext: chapter.chapterContext,
-        chapterObjective: chapter.objective
-      };
+  if (storyData && storyData.chapters && storyData.chapters.length > 0) {
+    try {
+      // The chapter_id in the conversation is actually the chapter index as a string
+      const chapterIndex = parseInt(conversation.chapter_id);
+      
+      console.log("Finding chapter with index:", {
+        chapterIndex,
+        rawChapterId: conversation.chapter_id,
+        availableChapters: storyData.chapters.length
+      });
+      
+      // Check if the index is valid
+      if (!isNaN(chapterIndex) && chapterIndex >= 0 && chapterIndex < storyData.chapters.length) {
+        const chapter = storyData.chapters[chapterIndex];
+        
+        if (chapter) {
+          console.log("Found chapter by index, objective:", chapter.objective);
+          return {
+            storyName: storyData.world_name,
+            chapterName: chapter.chapterName,
+            chapterContext: chapter.chapterContext,
+            chapterObjective: chapter.objective
+          };
+        }
+      } else {
+        console.log("Invalid chapter index, searching by name as fallback");
+        // Fallback: try to find by name (old method)
+        const chapter = storyData.chapters.find(
+          (ch: any) => ch.chapterName === conversation.chapter_id
+        );
+        
+        if (chapter) {
+          console.log("Found chapter by name, objective:", chapter.objective);
+          return {
+            storyName: storyData.world_name,
+            chapterName: chapter.chapterName,
+            chapterContext: chapter.chapterContext,
+            chapterObjective: chapter.objective
+          };
+        }
+      }
+    } catch (error) {
+      console.error("Error finding chapter:", error);
     }
   }
   
   // If no story data or chapter not found, return minimal context
+  console.log("Could not find chapter, using default context");
   return {
-    storyName: 'Unknown Story',
+    storyName: storyData?.world_name || 'Unknown Story',
     chapterName: conversation.chapter_id || 'Unknown Chapter',
     chapterContext: 'No context available for this chapter.',
     chapterObjective: 'Continue the story.'
