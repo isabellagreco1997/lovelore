@@ -14,28 +14,17 @@ interface Plan {
   price: number | null;
   priceId?: string;
   mode?: 'payment' | 'subscription';
+  popular?: boolean;
 }
 
 const plans: Plan[] = [
   {
-    id: 'free',
-    name: 'Free',
-    price: null,
-    features: [
-      { name: 'Access to free stories', included: true },
-      { name: 'Basic AI responses', included: true },
-      { name: 'Limited chapters per day', included: true },
-      { name: 'Premium stories', included: false },
-      { name: 'Advanced AI features', included: false },
-      { name: 'Unlimited chapters', included: false },
-    ],
-  },
-  {
-    id: 'one-month',
-    name: 'One-Month Pass',
-    price: 5.99,
-    priceId: 'price_1RQ84GA5F3yID83zA886qepx',
-    mode: 'payment',
+    id: 'yearly',
+    name: 'Yearly Plan',
+    price: 47.99,
+    priceId: 'price_1RQ7zdA5F3yID83zkNUSPBfu',
+    mode: 'subscription',
+    popular: true,
     features: [
       { name: 'Access to free stories', included: true },
       { name: 'Basic AI responses', included: true },
@@ -61,11 +50,11 @@ const plans: Plan[] = [
     ],
   },
   {
-    id: 'yearly',
-    name: 'Yearly Plan',
-    price: 47.99,
-    priceId: 'price_1RQ7zdA5F3yID83zkNUSPBfu',
-    mode: 'subscription',
+    id: 'one-month',
+    name: 'One-Month Pass',
+    price: 5.99,
+    priceId: 'price_1RQ84GA5F3yID83zA886qepx',
+    mode: 'payment',
     features: [
       { name: 'Access to free stories', included: true },
       { name: 'Basic AI responses', included: true },
@@ -73,6 +62,19 @@ const plans: Plan[] = [
       { name: 'Premium stories', included: true },
       { name: 'Advanced AI features', included: true },
       { name: 'Unlimited chapters', included: true },
+    ],
+  },
+  {
+    id: 'free',
+    name: 'Free',
+    price: null,
+    features: [
+      { name: 'Access to free stories', included: true },
+      { name: 'Basic AI responses', included: true },
+      { name: 'Limited chapters per day', included: true },
+      { name: 'Premium stories', included: false },
+      { name: 'Advanced AI features', included: false },
+      { name: 'Unlimited chapters', included: false },
     ],
   },
 ];
@@ -164,12 +166,23 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className={`rounded-xl border ${
+            className={`rounded-xl border relative ${
               currentPlan === plan.priceId
                 ? 'border-[#EC444B] bg-[#EC444B]/10'
+                : plan.popular
+                ? 'border-purple-500 bg-purple-900/20'
                 : 'border-gray-800 bg-black/40'
-            } p-8 flex flex-col justify-between min-h-[420px]`}
+            } p-8 flex flex-col justify-between min-h-[420px] ${
+              plan.popular ? 'transform md:scale-105' : ''
+            }`}
           >
+            {plan.popular && (
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="bg-purple-600 text-white px-4 py-1 rounded-full text-sm">
+                  Most Popular
+                </span>
+              </div>
+            )}
             <div>
               <div className="flex justify-between items-start mb-8">
                 <div>
@@ -184,6 +197,11 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
                       </span>
                     )}
                   </div>
+                  {plan.id === 'yearly' && (
+                    <div className="mt-2 text-purple-400 text-sm">
+                      Save 60% compared to monthly
+                    </div>
+                  )}
                 </div>
                 {currentPlan === plan.priceId && (
                   <span className="bg-[#EC444B]/20 text-[#EC444B] px-3 py-1 rounded-full text-sm whitespace-nowrap">
@@ -213,6 +231,8 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
                 className={`w-full py-4 px-6 rounded-xl font-medium text-base transition-all duration-300 ${
                   loading || currentPlan === plan.priceId
                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : plan.popular
+                    ? 'bg-purple-600 text-white hover:bg-purple-500 transform hover:scale-105'
                     : 'bg-[#EC444B] text-white hover:bg-[#d83a40] transform hover:scale-105'
                 }`}
               >
