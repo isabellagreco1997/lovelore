@@ -201,4 +201,4 @@ const SubscriptionDetails = ({ userId }: SubscriptionDetailsProps) => {
   );
 };
 
-export default SubscriptionDetails; 
+export default SubscriptionDetails;
