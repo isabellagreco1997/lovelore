@@ -13,7 +13,7 @@ const useStripeSync = () => {
   useEffect(() => {
     if (!supabase || !user) return;
 
-    const syncStripeData = async () => {
+    const syncSubscriptionData = async () => {
       const now = Date.now();
       if (now - lastSyncTime.current < SYNC_INTERVAL) {
         return;
@@ -23,18 +23,32 @@ const useStripeSync = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
-        const { error } = await supabase
+        // Query the stripe_user_subscriptions view to get latest data
+        const { data: subscriptionData, error } = await supabase
           .from('stripe_user_subscriptions')
-          .select('subscription_status')
+          .select('*')
           .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error syncing Stripe data:', error);
+          console.error('Error fetching subscription data:', error);
+          return;
+        }
+
+        // If we have subscription data, check if it needs updating
+        if (subscriptionData?.current_period_end) {
+          const periodEnd = subscriptionData.current_period_end * 1000; // Convert to milliseconds
+          const timeUntilExpiry = periodEnd - now;
+
+          // If subscription is expiring soon (within 24 hours), sync more frequently
+          if (timeUntilExpiry < 24 * 60 * 60 * 1000) {
+            // Set a shorter interval for the next sync
+            setTimeout(syncSubscriptionData, 15 * 60 * 1000); // 15 minutes
+          }
         }
 
         lastSyncTime.current = now;
       } catch (error) {
-        console.error('Error in Stripe sync:', error);
+        console.error('Error syncing subscription data:', error);
       }
     };
 
@@ -43,13 +57,17 @@ const useStripeSync = () => {
       clearTimeout(syncTimeoutRef.current);
     }
 
-    // Debounce the sync call
-    syncTimeoutRef.current = setTimeout(syncStripeData, 1000);
+    // Initial sync with debounce
+    syncTimeoutRef.current = setTimeout(syncSubscriptionData, 1000);
+
+    // Set up interval for regular syncs
+    const intervalId = setInterval(syncSubscriptionData, SYNC_INTERVAL);
 
     return () => {
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current);
       }
+      clearInterval(intervalId);
     };
   }, [supabase, user]);
 };
