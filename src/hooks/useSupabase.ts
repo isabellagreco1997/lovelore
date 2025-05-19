@@ -7,6 +7,7 @@ const useSupabase = () => {
 
   useEffect(() => {
     try {
+      // Initialize the Supabase client
       const supabase = supabaseClient();
       setClient(supabase);
     } catch (error) {
@@ -17,4 +18,4 @@ const useSupabase = () => {
   return client;
 };
 
-export default useSupabase;
+export default useSupabase; 
