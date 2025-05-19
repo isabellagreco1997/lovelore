@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { headers } from 'next/headers';
 import Stripe from 'stripe';
 
 // Use test keys in development, otherwise use production keys
@@ -54,9 +53,13 @@ export async function POST(request: Request) {
       );
     }
     
-    // Get auth headers
-    const headersList = headers();
-    const authorization = headersList.get('authorization');
+    // Get auth token from Authorization header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Unauthorized - Invalid token format' }, { status: 401 });
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
     
     // Initialize Supabase client
     const supabase = createClient(
@@ -71,33 +74,13 @@ export async function POST(request: Request) {
     );
     
     // Get user information
-    let user;
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
-    if (authorization && authorization.startsWith('Bearer ')) {
-      const token = authorization.replace('Bearer ', '');
-      const { data, error } = await supabase.auth.getUser(token);
-      
-      if (error) {
-        console.error('Auth error:', error);
-        return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
-      }
-      
-      user = data.user;
-    } else {
-      // Try to get session from cookie
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error || !session) {
-        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-      }
-      
-      user = session.user;
+    if (userError || !user) {
+      console.error('Auth error:', userError);
+      return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
     }
-    
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-    
+
     // Get or create Stripe customer
     let customerId;
     
@@ -165,4 +148,4 @@ export async function POST(request: Request) {
     console.error('Checkout error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-} 
+}
