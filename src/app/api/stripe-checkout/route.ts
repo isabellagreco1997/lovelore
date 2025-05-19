@@ -14,9 +14,14 @@ const stripe = new Stripe(secretKey!, {
 // Check that required environment variables are set
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  console.error('Missing Supabase environment variables');
+if (!supabaseUrl) {
+  console.error('NEXT_PUBLIC_SUPABASE_URL is not defined');
+}
+
+if (!supabaseServiceRoleKey && !supabaseAnonKey) {
+  console.error('Neither SUPABASE_SERVICE_ROLE_KEY nor NEXT_PUBLIC_SUPABASE_ANON_KEY is defined');
 }
 
 export async function POST(request: Request) {
@@ -40,6 +45,14 @@ export async function POST(request: Request) {
       );
     }
     
+    // Check if Supabase URL is available
+    if (!supabaseUrl) {
+      return NextResponse.json(
+        { error: 'Supabase URL is not configured. Please check your environment variables.' },
+        { status: 500 }
+      );
+    }
+    
     // Get auth token from Authorization header
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -48,13 +61,17 @@ export async function POST(request: Request) {
     
     const token = authHeader.replace('Bearer ', '');
     
-    // Initialize Supabase admin client
-    const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
+    // Initialize Supabase client
+    const supabase = createClient(
+      supabaseUrl,
+      supabaseServiceRoleKey || supabaseAnonKey || '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
       }
-    });
+    );
     
     // Get user information
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
@@ -115,11 +132,15 @@ export async function POST(request: Request) {
       mode,
       success_url,
       cancel_url,
-      expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
+      // Make the session expire after 1 hour (in seconds)
+      expires_at: Math.floor(Date.now() / 1000) + 60 * 60,
     });
     
-    // Return the URL directly - no need for sessionId
+    console.log(`Created checkout session ${session.id} for customer ${customerId}`);
+    
+    // Return both the session ID and URL to allow for client or server-side redirects
     return NextResponse.json({ 
+      sessionId: session.id, 
       url: session.url,
       success: true 
     });
