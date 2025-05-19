@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Use test keys in development, otherwise use production keys
+const secretKey = process.env.NODE_ENV === 'development'
+  ? process.env.STRIPE_TEST_SECRET_KEY
+  : process.env.STRIPE_SECRET_KEY;
+
+const stripe = new Stripe(secretKey!, {
   apiVersion: '2023-10-16'
 });
 

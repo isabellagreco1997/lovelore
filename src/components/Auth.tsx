@@ -1,14 +1,15 @@
+'use client';
+
 import { useState } from 'react';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
-
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const { signIn, signUp } = useUser();
   const supabase = useSupabase();
 
@@ -21,6 +22,7 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
+        window.location.href = '/';
       } else {
         const { error } = await signUp(email, password);
         if (error) throw error;
