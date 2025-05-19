@@ -41,7 +41,24 @@ Deno.serve(async (req) => {
       return new Response(`Webhook signature verification failed: ${error.message}`, { status: 400 });
     }
 
-    EdgeRuntime.waitUntil(handleEvent(event));
+    console.log('Processing webhook event:', event.type);
+
+    // Handle the event
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+        break;
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted':
+        await handleSubscriptionUpdate(event.data.object as Stripe.Subscription);
+        break;
+      case 'payment_intent.succeeded':
+        await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
+        break;
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
 
     return Response.json({ received: true });
   } catch (error: any) {
@@ -50,125 +67,107 @@ Deno.serve(async (req) => {
   }
 });
 
-async function handleEvent(event: Stripe.Event) {
-  const stripeData = event?.data?.object ?? {};
-  console.log('Processing Stripe event:', event.type);
-
-  if (!stripeData) {
-    return;
-  }
-
-  if (!('customer' in stripeData)) {
-    return;
-  }
-
-  const customerId = stripeData.customer;
-  if (!customerId || typeof customerId !== 'string') {
-    console.error(`No customer received on event: ${JSON.stringify(event)}`);
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  console.log('Processing checkout.session.completed');
+  
+  const customerId = session.customer as string;
+  if (!customerId) {
+    console.error('No customer ID in session');
     return;
   }
 
   try {
-    // Get customer details from Stripe
-    const customer = await stripe.customers.retrieve(customerId);
-    if (customer.deleted) {
-      console.log(`Customer ${customerId} has been deleted`);
-      return;
-    }
-
-    // Get user_id from customer metadata
-    const userId = customer.metadata.userId;
-    if (!userId) {
-      console.error(`No userId in metadata for customer ${customerId}`);
-      return;
-    }
-
-    // Update customer record
-    const { error: customerError } = await supabase
-      .from('stripe_customers')
-      .upsert({
-        user_id: userId,
+    // For one-time payments
+    if (session.mode === 'payment' && session.payment_status === 'paid') {
+      await supabase.from('stripe_orders').insert({
+        checkout_session_id: session.id,
+        payment_intent_id: session.payment_intent as string,
         customer_id: customerId,
+        amount_subtotal: session.amount_subtotal || 0,
+        amount_total: session.amount_total || 0,
+        currency: session.currency || 'usd',
+        payment_status: session.payment_status,
+        status: 'completed'
+      });
+    }
+
+    // For subscriptions, fetch the latest subscription data
+    if (session.mode === 'subscription') {
+      const subscription = await stripe.subscriptions.retrieve(session.subscription as string, {
+        expand: ['default_payment_method']
+      });
+      await handleSubscriptionUpdate(subscription);
+    }
+  } catch (error) {
+    console.error('Error handling checkout session:', error);
+    throw error;
+  }
+}
+
+async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+  console.log('Processing subscription update:', subscription.id);
+  
+  const customerId = subscription.customer as string;
+  const paymentMethod = subscription.default_payment_method as Stripe.PaymentMethod;
+
+  try {
+    // Update subscription record
+    const { error: subError } = await supabase
+      .from('stripe_subscriptions')
+      .upsert({
+        customer_id: customerId,
+        subscription_id: subscription.id,
+        price_id: subscription.items.data[0].price.id,
+        current_period_start: subscription.current_period_start,
+        current_period_end: subscription.current_period_end,
+        cancel_at_period_end: subscription.cancel_at_period_end,
+        payment_method_brand: paymentMethod?.card?.brand || null,
+        payment_method_last4: paymentMethod?.card?.last4 || null,
+        status: subscription.status,
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'customer_id'
       });
 
-    if (customerError) {
-      throw new Error(`Failed to update customer: ${customerError.message}`);
+    if (subError) {
+      console.error('Error updating subscription:', subError);
+      throw subError;
     }
 
-    // Get latest subscription data
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      limit: 1,
-      status: 'all',
-      expand: ['data.default_payment_method']
-    });
-
-    if (subscriptions.data.length > 0) {
-      const subscription = subscriptions.data[0];
-      const paymentMethod = subscription.default_payment_method as Stripe.PaymentMethod;
-
-      // Update subscription record
-      const { error: subError } = await supabase
-        .from('stripe_subscriptions')
-        .upsert({
-          customer_id: customerId,
-          subscription_id: subscription.id,
-          price_id: subscription.items.data[0].price.id,
-          current_period_start: subscription.current_period_start,
-          current_period_end: subscription.current_period_end,
-          cancel_at_period_end: subscription.cancel_at_period_end,
-          payment_method_brand: paymentMethod?.card?.brand || null,
-          payment_method_last4: paymentMethod?.card?.last4 || null,
-          status: subscription.status,
-          updated_at: new Date().toISOString()
-        });
-
-      if (subError) {
-        throw new Error(`Failed to update subscription: ${subError.message}`);
-      }
-    } else {
-      // No active subscription - set to not_started
-      const { error: noSubError } = await supabase
-        .from('stripe_subscriptions')
-        .upsert({
-          customer_id: customerId,
-          status: 'not_started',
-          updated_at: new Date().toISOString()
-        });
-
-      if (noSubError) {
-        throw new Error(`Failed to update subscription status: ${noSubError.message}`);
-      }
-    }
-
-    // Handle one-time payments if applicable
-    if (event.type === 'checkout.session.completed') {
-      const session = stripeData as Stripe.Checkout.Session;
-      if (session.mode === 'payment' && session.payment_status === 'paid') {
-        const { error: orderError } = await supabase
-          .from('stripe_orders')
-          .upsert({
-            checkout_session_id: session.id,
-            payment_intent_id: session.payment_intent as string,
-            customer_id: customerId,
-            amount_subtotal: session.amount_subtotal || 0,
-            amount_total: session.amount_total || 0,
-            currency: session.currency || 'usd',
-            payment_status: session.payment_status,
-            status: 'completed',
-            updated_at: new Date().toISOString()
-          });
-
-        if (orderError) {
-          throw new Error(`Failed to create order record: ${orderError.message}`);
-        }
-      }
-    }
-
-    console.log(`Successfully processed ${event.type} event for customer ${customerId}`);
+    console.log('Successfully updated subscription:', subscription.id);
   } catch (error) {
-    console.error(`Failed to process event for customer ${customerId}:`, error);
+    console.error('Error handling subscription update:', error);
+    throw error;
+  }
+}
+
+async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+  console.log('Processing payment_intent.succeeded');
+  
+  if (!paymentIntent.customer) {
+    console.log('No customer associated with payment intent');
+    return;
+  }
+
+  try {
+    // Only handle one-time payments (not subscription payments)
+    if (!paymentIntent.invoice) {
+      await supabase.from('stripe_orders').upsert({
+        payment_intent_id: paymentIntent.id,
+        customer_id: paymentIntent.customer as string,
+        amount_subtotal: paymentIntent.amount,
+        amount_total: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        payment_status: paymentIntent.status,
+        status: 'completed',
+        checkout_session_id: paymentIntent.metadata.checkout_session_id || 'direct_payment',
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'payment_intent_id'
+      });
+    }
+  } catch (error) {
+    console.error('Error handling payment intent:', error);
     throw error;
   }
 }
