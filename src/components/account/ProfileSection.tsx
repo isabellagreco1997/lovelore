@@ -27,28 +27,10 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
           return;
         }
         
-        // First check if we have a customer record
-        const { data: customerData, error: customerError } = await supabase
-          .from('stripe_customers')
-          .select('customer_id')
-          .eq('user_id', user.id)
-          .single();
-
-        if (customerError && customerError.code !== 'PGRST116') {
-          throw new Error('Failed to fetch customer data');
-        }
-
-        if (!customerData) {
-          // No customer record yet, which is normal for new users
-          setSubscription(null);
-          return;
-        }
-
-        // Now fetch subscription data
+        // Use the stripe_user_subscriptions view
         const { data: subscriptionData, error: subscriptionError } = await supabase
-          .from('stripe_subscriptions')
+          .from('stripe_user_subscriptions')
           .select('*')
-          .eq('customer_id', customerData.customer_id)
           .single();
 
         if (subscriptionError && subscriptionError.code !== 'PGRST116') {
@@ -113,12 +95,12 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
               </div>
             </div>
           ) : subscription ? (
-            <div className={`px-4 py-3 rounded-xl border ${getStatusColor(subscription.status)}`}>
+            <div className={`px-4 py-3 rounded-xl border ${getStatusColor(subscription.subscription_status)}`}>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <span className="font-medium capitalize">
-                      {subscription.status} Subscription
+                      {subscription.subscription_status} Subscription
                     </span>
                   </div>
                 </div>
