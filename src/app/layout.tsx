@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '../styles/globals.css';
-import useStripeSync from '@/hooks/useStripeSync';
+import ClientLayout from '@/components/ClientLayout';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,15 +23,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Add Stripe sync hook
-  useStripeSync();
-
   return (
     <html lang="en">
       <head>
         <link rel="icon" href="/images/favicon.png" type="image/svg+xml" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <ClientLayout>{children}</ClientLayout>
+      </body>
     </html>
   );
 }
