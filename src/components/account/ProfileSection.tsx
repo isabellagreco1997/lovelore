@@ -53,6 +53,21 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
     fetchSubscriptionDetails();
   }, [supabase]);
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-900/20 text-green-400 border-green-900/20';
+      case 'trialing':
+        return 'bg-blue-900/20 text-blue-400 border-blue-900/20';
+      case 'past_due':
+        return 'bg-yellow-900/20 text-yellow-400 border-yellow-900/20';
+      case 'canceled':
+        return 'bg-red-900/20 text-red-400 border-red-900/20';
+      default:
+        return 'bg-gray-900/20 text-gray-400 border-gray-900/20';
+    }
+  };
+
   return (
     <div>
       <h2 className="text-xl font-semibold text-white mb-6">Profile Information</h2>
@@ -78,34 +93,57 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
               <div className="h-6 bg-gray-800 rounded w-24"></div>
             </div>
           ) : error ? (
-            <div className="text-red-400 bg-red-900/20 px-4 py-3 rounded-xl border border-red-900/20">
-              Failed to load subscription status
+            <div className="bg-red-900/20 px-4 py-3 rounded-xl border border-red-900/20">
+              <div className="flex items-center">
+                <span className="text-red-400">Failed to load subscription status</span>
+              </div>
             </div>
           ) : subscription ? (
-            <div className="bg-black/40 px-4 py-3 rounded-xl border border-gray-800">
-              <div className="flex items-center space-x-3">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  subscription.status === 'active' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
-                </span>
-                {subscription.price && (
-                  <span className="text-gray-400">
-                    {subscription.price.amount} {subscription.price.currency.toUpperCase()}/{subscription.price.interval}
-                  </span>
+            <div className={`px-4 py-3 rounded-xl border ${getStatusColor(subscription.status)}`}>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <span className="font-medium">
+                      {subscription.product?.name || 'Premium Subscription'}
+                    </span>
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-black/20">
+                      {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
+                    </span>
+                  </div>
+                  {subscription.price && (
+                    <span>
+                      {subscription.price.amount} {subscription.price.currency.toUpperCase()}/{subscription.price.interval}
+                    </span>
+                  )}
+                </div>
+
+                {subscription.payment_method_brand && (
+                  <div className="text-sm opacity-80">
+                    Payment method: {subscription.payment_method_brand.toUpperCase()} •••• {subscription.payment_method_last4}
+                  </div>
+                )}
+
+                {subscription.current_period_end && (
+                  <div className="text-sm opacity-80">
+                    {subscription.cancel_at_period_end 
+                      ? `Cancels on ${new Date(subscription.current_period_end * 1000).toLocaleDateString()}`
+                      : `Next billing date: ${new Date(subscription.current_period_end * 1000).toLocaleDateString()}`
+                    }
+                  </div>
                 )}
               </div>
-              {subscription.current_period_end && (
-                <p className="mt-2 text-sm text-gray-400">
-                  Next billing date: {new Date(subscription.current_period_end * 1000).toLocaleDateString()}
-                </p>
-              )}
             </div>
           ) : (
-            <div className="text-gray-400 bg-black/40 px-4 py-3 rounded-xl border border-gray-800">
-              No active subscription
+            <div className="bg-black/40 px-4 py-3 rounded-xl border border-gray-800">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400">No active subscription</span>
+                <a 
+                  href="/account?tab=subscription" 
+                  className="text-[#EC444B] hover:text-[#d83a40] text-sm"
+                >
+                  View Plans →
+                </a>
+              </div>
             </div>
           )}
         </div>
