@@ -243,7 +243,7 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
         throw new Error(errorData.error || `Failed to create checkout session (${response.status})`);
       }
 
-      const { sessionId, url, error: stripeError } = await response.json();
+      const { url, error: stripeError } = await response.json();
 
       if (stripeError) {
         console.error('Stripe error:', stripeError);
@@ -252,29 +252,13 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
 
       console.log('Redirecting to Stripe checkout...');
       
-      // If API returns a direct URL, redirect to it
+      // Redirect to Stripe checkout URL
       if (url) {
         window.location.href = url;
         return;
       }
 
-      // Otherwise use Stripe.js to redirect
-      // Use the test key in development, otherwise use the production key
-      const publishableKey = process.env.NODE_ENV === 'development' 
-        ? process.env.NEXT_PUBLIC_STRIPE_TEST_PUBLISHABLE_KEY 
-        : process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-      
-      const stripe = await loadStripe(publishableKey!);
-      
-      if (!stripe) {
-        throw new Error('Failed to load Stripe');
-      }
-
-      const { error } = await stripe.redirectToCheckout({ sessionId });
-      if (error) {
-        console.error('Stripe redirect error:', error);
-        throw error;
-      }
+      throw new Error('No checkout URL received');
     } catch (error: any) {
       console.error('Subscription error:', error);
       setError(error.message || 'Failed to start checkout process');
