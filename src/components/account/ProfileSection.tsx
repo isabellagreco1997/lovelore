@@ -27,21 +27,35 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
           return;
         }
         
-        // Fetch subscription directly from Stripe via API endpoint
-        const response = await fetch('/api/stripe-subscription', {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          credentials: 'include',
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch subscription data');
+        // First check if we have a customer record
+        const { data: customerData, error: customerError } = await supabase
+          .from('stripe_customers')
+          .select('customer_id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (customerError && customerError.code !== 'PGRST116') {
+          throw new Error('Failed to fetch customer data');
         }
-        
-        const { subscription: subData } = await response.json();
-        setSubscription(subData);
+
+        if (!customerData) {
+          // No customer record yet, which is normal for new users
+          setSubscription(null);
+          return;
+        }
+
+        // Now fetch subscription data
+        const { data: subscriptionData, error: subscriptionError } = await supabase
+          .from('stripe_subscriptions')
+          .select('*')
+          .eq('customer_id', customerData.customer_id)
+          .single();
+
+        if (subscriptionError && subscriptionError.code !== 'PGRST116') {
+          throw new Error('Failed to fetch subscription data');
+        }
+
+        setSubscription(subscriptionData);
       } catch (error: any) {
         console.error('Error fetching subscription:', error);
         setError(error.message);
@@ -51,7 +65,7 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
     };
 
     fetchSubscriptionDetails();
-  }, [supabase]);
+  }, [supabase, user.id]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -103,18 +117,10 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <span className="font-medium">
-                      {subscription.product?.name || 'Premium Subscription'}
-                    </span>
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-black/20">
-                      {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
+                    <span className="font-medium capitalize">
+                      {subscription.status} Subscription
                     </span>
                   </div>
-                  {subscription.price && (
-                    <span>
-                      {subscription.price.amount} {subscription.price.currency.toUpperCase()}/{subscription.price.interval}
-                    </span>
-                  )}
                 </div>
 
                 {subscription.payment_method_brand && (
