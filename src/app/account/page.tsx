@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/Layout';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
@@ -12,7 +13,16 @@ import ProfileSection from '@/components/account/ProfileSection';
 const AccountPage = () => {
   const { user, loading } = useUser();
   const supabase = useSupabase();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'profile' | 'subscription' | 'security'>('profile');
+
+  // Read tab parameter from URL
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'subscription' || tabParam === 'security' || tabParam === 'profile') {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   if (loading) {
     return (

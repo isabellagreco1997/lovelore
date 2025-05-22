@@ -12,6 +12,143 @@ import FeaturedStoriesCarousel from '@/components/FeaturedStoriesCarousel';
 import FeaturesGrid from '@/components/home/FeaturesGrid';
 import FeaturedScenarios from '@/components/home/FeaturedScenarios';
 import FAQSection from '@/components/home/FAQSection';
+import TikTokBrowserBanner from '@/components/home/TikTokBrowserBanner';
+import Script from 'next/script';
+import Head from 'next/head';
+
+// Add this CSS at the top level of your component or in a global CSS file
+const shadowGlowStyle = `
+  .shadow-glow {
+    box-shadow: 0 0 15px rgba(255, 206, 84, 0.3);
+  }
+
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+  }
+  
+  @keyframes float-medium {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(-5deg); }
+  }
+  
+  @keyframes float-fast {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(8deg); }
+  }
+  
+  .animate-float-slow {
+    animation: float-slow 6s ease-in-out infinite;
+  }
+  
+  .animate-float-medium {
+    animation: float-medium 4s ease-in-out infinite;
+  }
+  
+  .animate-float-fast {
+    animation: float-fast 3s ease-in-out infinite;
+  }
+`;
+
+// Countdown Timer Component
+const CountdownTimer = () => {
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number }>({
+    days: 3,
+    hours: 7,
+    minutes: 25,
+    seconds: 0
+  });
+
+  // Countdown timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev.seconds > 0) {
+          return { ...prev, seconds: prev.seconds - 1 };
+        } else if (prev.minutes > 0) {
+          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        } else if (prev.hours > 0) {
+          return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        } else if (prev.days > 0) {
+          return { ...prev, days: prev.days - 1, hours: 23, minutes: 59, seconds: 59 };
+        }
+        return prev;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="bg-black/20 backdrop-blur-sm px-2 py-1.5 rounded-md border border-white/10">
+      {/* Simple countdown for all screen sizes */}
+      <div className="flex items-center justify-center">
+        <span className="text-white font-mono text-[11px] xs:text-xs sm:text-sm font-medium">
+          {timeLeft.days}d : {timeLeft.hours.toString().padStart(2, '0')}h : {timeLeft.minutes.toString().padStart(2, '0')}m
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// JSON-LD structured data for SEO
+const StructuredData = ({ stories }: { stories: Story[] }) => {
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'LoveLore',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'}/stories?search={search_term_string}`,
+      'query-input': 'required name=search_term_string'
+    },
+    description: 'Immerse yourself in interactive romance stories with AI-powered narratives that respond to your choices'
+  };
+
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'LoveLore',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app',
+    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'}/images/logo.png`
+  };
+
+  const storiesSchema = stories.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: stories.map((story, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'CreativeWork',
+        name: story.world_name,
+        description: story.description || story.story_context,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'}/story/${story.id}`,
+        image: story.image
+      }
+    }))
+  } : null;
+
+  return (
+    <>
+      <script 
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script 
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      {storiesSchema && (
+        <script 
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(storiesSchema) }}
+        />
+      )}
+    </>
+  );
+};
 
 export default function Home() {
   const { user, loading } = useUser();
@@ -20,8 +157,38 @@ export default function Home() {
   const [stories, setStories] = useState<Story[]>([]);
   const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
   const [showcaseStories, setShowcaseStories] = useState<Story[]>([]);
+  const [recentlyViewedStories, setRecentlyViewedStories] = useState<Story[]>([]);
   const [carouselLoading, setCarouselLoading] = useState(true);
   const [storiesLoading, setStoriesLoading] = useState(true);
+  const [recentStoriesLoading, setRecentStoriesLoading] = useState(true);
+  const [hasSubscription, setHasSubscription] = useState(false);
+  const [showTikTokBanner, setShowTikTokBanner] = useState(true);
+
+  // Check if user has a subscription
+  useEffect(() => {
+    if (!supabase || !user) return;
+
+    const checkSubscription = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('stripe_user_subscriptions')
+          .select('subscription_status')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking subscription:', error);
+          return;
+        }
+
+        setHasSubscription(!!data && data.subscription_status === 'active');
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+      }
+    };
+
+    checkSubscription();
+  }, [supabase, user]);
 
   // Fetch stories for showcase
   useEffect(() => {
@@ -47,7 +214,7 @@ export default function Home() {
         if (storiesError) throw storiesError;
         
         const filteredStories = (storiesData || [])
-          .filter(story => story.genre !== 'anime')
+          .filter(story => story.genre !== 'Anime')
           .map(story => ({
             id: story.id,
             world_name: story.world_name,
@@ -57,8 +224,7 @@ export default function Home() {
             logo_image: story.logo_image,
             description: story.description,
             chapters: Array.isArray(story.chapters) ? story.chapters : []
-          }))
-          .slice(0, 3);
+          }));
         
         setShowcaseStories(filteredStories);
       } catch (error: any) {
@@ -120,9 +286,144 @@ export default function Home() {
     fetchStories();
   }, [supabase, user]);
 
+  // Fetch recently viewed stories
+  useEffect(() => {
+    if (!supabase || !user) return;
+
+    const fetchRecentlyViewedStories = async () => {
+      try {
+        setRecentStoriesLoading(true);
+        
+        // Get user's recent conversations from the database
+        const { data: conversationsData, error: conversationsError } = await supabase
+          .from('conversations')
+          .select('world_id, started_at, ended_at')
+          .eq('user_id', user.id)
+          .order('started_at', { ascending: false })
+          .limit(10);
+        
+        if (conversationsError) throw conversationsError;
+        
+        if (!conversationsData || conversationsData.length === 0) {
+          // Fallback: get stories with worlds created
+          const { data: worldStories, error: worldsError } = await supabase
+            .from('stories')
+            .select(`
+              id,
+              world_name,
+              story_context,
+              created_at,
+              image,
+              logo_image,
+              description,
+              chapters,
+              genre
+            `)
+            .not('world_name', 'is', null)
+            .limit(5);
+            
+          if (worldsError) throw worldsError;
+          
+          const formattedStories = (worldStories || []).map(story => ({
+            id: story.id,
+            world_name: story.world_name,
+            story_context: story.story_context,
+            created_at: story.created_at,
+            image: story.image,
+            logo_image: story.logo_image,
+            description: story.description,
+            chapters: Array.isArray(story.chapters) ? story.chapters : []
+          }));
+          
+          setRecentlyViewedStories(formattedStories);
+          setRecentStoriesLoading(false);
+          return;
+        }
+        
+        // Get the unique world IDs
+        const worldIds = Array.from(new Set(conversationsData.map(conv => conv.world_id))).slice(0, 5);
+        
+        // Get the worlds associated with these conversations
+        const { data: worldsData, error: worldsError } = await supabase
+          .from('worlds')
+          .select('id, story_id')
+          .in('id', worldIds);
+        
+        if (worldsError) throw worldsError;
+        
+        // Get the story IDs from worlds
+        const storyIds = worldsData.map(world => world.story_id).filter(Boolean);
+        
+        if (storyIds.length === 0) {
+          setRecentStoriesLoading(false);
+          return;
+        }
+        
+        // Get the story details
+        const { data: storiesData, error: storiesError } = await supabase
+          .from('stories')
+          .select(`
+            id,
+            world_name,
+            story_context,
+            created_at,
+            image,
+            logo_image,
+            description,
+            chapters,
+            genre
+          `)
+          .in('id', storyIds);
+        
+        if (storiesError) throw storiesError;
+        
+        // Sort stories to match the order of conversations
+        const worldIdToStoryId = Object.fromEntries(
+          worldsData.map(world => [world.id, world.story_id])
+        );
+        
+        const conversationWorldIds = conversationsData
+          .map(conv => conv.world_id)
+          .filter((value, index, self) => self.indexOf(value) === index); // Keep only unique values in original order
+        
+        const sortedStoryIds = conversationWorldIds
+          .map(worldId => worldIdToStoryId[worldId])
+          .filter(Boolean);
+        
+        const sortedStories = sortedStoryIds
+          .map(storyId => storiesData.find(story => story.id === storyId))
+          .filter(Boolean)
+          .map(story => ({
+            id: story.id,
+            world_name: story.world_name,
+            story_context: story.story_context,
+            created_at: story.created_at,
+            image: story.image,
+            logo_image: story.logo_image,
+            description: story.description,
+            chapters: Array.isArray(story.chapters) ? story.chapters : []
+          }));
+        
+        setRecentlyViewedStories(sortedStories);
+      } catch (error: any) {
+        console.error('Error fetching recently viewed stories:', error.message);
+      } finally {
+        setRecentStoriesLoading(false);
+      }
+    };
+
+    fetchRecentlyViewedStories();
+  }, [supabase, user]);
+
+  // Simple handler for closing the TikTok banner
+  const handleCloseTikTokBanner = () => {
+    setShowTikTokBanner(false);
+  };
+
   if (loading) {
     return (
       <Layout>
+        <TikTokBrowserBanner onClose={handleCloseTikTokBanner} />
         <div className="flex justify-center items-center h-64">
           <div className="flex flex-col items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
@@ -136,10 +437,27 @@ export default function Home() {
   if (!user) {
     return (
       <Layout>
+        <TikTokBrowserBanner onClose={handleCloseTikTokBanner} />
         <div className="relative min-h-screen flex flex-col">
           <div className="w-full">
             <Auth />
           </div>
+          
+          {/* Added tagline banner */}
+          <div className="mb-8 mt-8 relative max-w-xl mx-auto px-8 sm:px-4">
+            {/* Static hearts and chat bubble - adjusted for mobile */}
+            <div className="absolute left-2 sm:-left-4 -top-2 sm:-top-4">🤍</div>
+            <div className="absolute left-4 sm:left-2 -bottom-4 sm:-bottom-6">🤍</div>
+            <div className="absolute right-4 sm:right-8 -top-2 sm:-top-6">🤍</div>
+            
+            <h2 className="text-[2.8rem] sm:text-[3.5rem] leading-[0.9] mb-2 font-bold tracking-tight uppercase">
+            Step Into the Story You <span className="text-[#EC444B]"> Secretly</span> Want
+            </h2>
+            <p className="text-sm text-gray-400 font-light">
+              With our interactive stories, your desires come alive through immersive AI-powered experiences
+            </p>
+          </div>
+          
           <FeaturesGrid />
           <FeaturedScenarios stories={showcaseStories} loading={storiesLoading} />
           <FAQSection />
@@ -149,31 +467,189 @@ export default function Home() {
   }
 
   return (
-    <Layout>
-      <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-10">
-        <FeaturedStoriesCarousel stories={featuredStories} loading={carouselLoading} />
-      </div>
-      
-      <div className="space-y-10 max-w-screen-2xl mx-auto">
-        <div className="rounded-xl p-6 relative overflow-hidden">
-          <div className="absolute inset-0 z-0"></div>
-          <div className="relative z-10">
-            <h2 className="text-2xl font-bold text-white flex items-center mb-2">
-              <span className="w-8 h-8 mr-3 rounded-full bg-[#EC444B] flex items-center justify-center shadow-sm">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
-              Stories
-            </h2>
-            <div className="flex items-center justify-between">
-              <p className="text-gray-400 text-sm max-w-md">Create, explore our interactive stories</p>
+          <>
+        <style jsx global>{shadowGlowStyle}</style>
+       
+       {/* Structured data for SEO */}
+       {featuredStories.length > 0 && <StructuredData stories={featuredStories} />}
+       
+        <Layout>
+          {showTikTokBanner && <TikTokBrowserBanner onClose={handleCloseTikTokBanner} />}
+        {!hasSubscription && (
+          <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+            <div className="bg-gradient-to-r from-indigo-900 via-[#EC444B] to-purple-900 shadow-lg relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
+              {/* Decorative elements */}
+              <div className="absolute top-0 left-[10%] w-20 h-20 rounded-full bg-yellow-500/10 blur-xl"></div>
+              <div className="absolute bottom-0 right-[20%] w-24 h-24 rounded-full bg-purple-500/10 blur-xl"></div>
+              
+              <div className="max-w-screen-2xl mx-auto px-3 sm:px-6 lg:px-8 py-3 md:py-2 relative">
+                <div className="flex flex-row items-center justify-between gap-2 sm:gap-3">
+                  <div className="flex items-center shrink-0 max-w-[60%] sm:max-w-none">
+                    <div className="flex items-center justify-center w-7 h-7 sm:w-7 sm:h-7 md:w-6 md:h-6 rounded-full bg-yellow-400/20 backdrop-blur-sm mr-2 sm:mr-2 md:mr-3 shadow-glow shrink-0">
+                      <span className="text-sm sm:text-sm md:text-sm">🔥</span>
+                    </div>
+                    <div className="hidden xs:block uppercase">
+                      <p className="text-[10px] xs:text-[11px] sm:text-xs md:text-xs text-yellow-300 uppercase font-bold tracking-wider leading-none mb-0.5 break-words">Limited Time Offer</p>
+                      <p className="font-bold text-white text-[11px] xs:text-xs sm:text-sm md:text-sm leading-tight break-words">
+                        <span className="text-yellow-300 uppercase whitespace-nowrap">50% OFF</span> your first subscription!
+                      </p>
+                    </div>
+                    <div className="block xs:hidden">
+                      <p className="font-bold text-white text-[11px] leading-tight break-words uppercase">
+                        <span className="text-yellow-300 uppercase whitespace-nowrap uppercase">50% OFF</span> first sub!
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 sm:gap-3 md:gap-3 shrink-0">
+                    <CountdownTimer />
+                    
+                    <button 
+                      onClick={() => router.push('/account?tab=subscription')}
+                      className="group relative overflow-hidden bg-white hover:bg-yellow-300 text-[#EC444B] font-bold text-[10px] xs:text-xs sm:text-sm md:text-xs px-2.5 xs:px-3 sm:px-4 md:px-4 py-1.5 sm:py-1.5 md:py-1.5 rounded-lg transition-all duration-300 shadow-glow transform hover:scale-105 whitespace-nowrap"
+                    >
+                      <span className="relative z-10 uppercase">Subscribe</span>
+                      <span className="absolute inset-0 bg-gradient-to-r from-yellow-200 via-white to-yellow-200 transform translate-x-full group-hover:translate-x-0 transition-transform duration-500"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        )}
+        
+        <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw] mb-10">
+          <FeaturedStoriesCarousel stories={featuredStories} loading={carouselLoading} />
         </div>
         
-        <StoryList />
-      </div>
-    </Layout>
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          {/* Recently Viewed Stories Section */}
+          {user && (
+            <>
+              {/* New tagline banner */}
+              <div className="text-center mb-6 md:mb-10 relative py-4 md:py-8">
+                {/* Floating hearts */}
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="heart-1 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-slow" style={{top: '10%', left: '15%'}}>❤️</div>
+                  <div className="heart-2 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-medium" style={{top: '60%', left: '5%'}}>❤️</div>
+                  <div className="heart-3 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-fast" style={{top: '20%', left: '75%'}}>❤️</div>
+                  <div className="heart-4 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-slow" style={{top: '70%', left: '85%'}}>❤️</div>
+                </div>
+                
+                <h2 className="font-bold text-white text-2xl sm:text-3xl uppercase tracking-wider leading-none mb-0">
+                  New Stories Added Every Week
+                </h2>
+                <p className="font-bold text-white text-2xl sm:text-3xl uppercase tracking-wider leading-none -mt-2">
+                  Your <span className="text-[#EC444B]">fantasies</span> come to life
+                </p>
+              </div>
+              
+              <div className="rounded-xl p-6 relative overflow-hidden">
+                <div className="absolute inset-0 z-0"></div>
+                <div className="relative z-10">
+                  <h2 className="text-2xl font-bold text-white flex items-center mb-2">
+                    <span className="w-8 h-8 mr-3 rounded-full bg-[#EC444B] flex items-center justify-center shadow-sm">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </span>
+                    {recentlyViewedStories.length > 0 ? "RECENTLY VIEWED" : "WORLDS TO EXPLORE"}
+                  </h2>
+                  <div className="flex items-center justify-between">
+                    <p className="text-gray-400 text-sm max-w-md">
+                      {recentlyViewedStories.length > 0 
+                        ? "Continue where you left off" 
+                        : "Discover stories with created worlds"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {recentStoriesLoading ? (
+                  Array(4).fill(0).map((_, index) => (
+                    <div key={index} className="bg-gray-800/50 rounded-xl overflow-hidden shadow-lg h-72 animate-pulse">
+                      <div className="h-full w-full bg-gray-700/50"></div>
+                    </div>
+                  ))
+                ) : (
+                  recentlyViewedStories.map((story) => (
+                    <div 
+                      key={story.id}
+                      onClick={() => router.push(`/story/${story.id}`)}
+                      className="group relative bg-gradient-to-br from-gray-800/80 to-gray-900/90 rounded-xl overflow-hidden shadow-lg cursor-pointer transform transition-all duration-500 hover:shadow-[0_0_15px_rgba(236,68,75,0.3)] hover:-translate-y-1"
+                    >
+                      {/* Decorative elements */}
+                      <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-[#EC444B]/10 to-purple-900/20 rounded-bl-3xl"></div>
+                      <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-[#EC444B]/10 to-purple-900/20 rounded-tr-3xl"></div>
+                      
+                      {/* Image container with gradient overlay */}
+                      <div className="h-44 w-full relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60 z-10"></div>
+                        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-transparent to-gray-900 opacity-60 z-10"></div>
+                        
+                        {story.image ? (
+                          <img 
+                            src={story.image} 
+                            alt={story.world_name} 
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-900">
+                            <span className="text-white text-3xl opacity-50">📚</span>
+                          </div>
+                        )}
+                        
+                        {/* Continue badge */}
+                        <div className="absolute top-3 right-3 z-20 bg-[#EC444B]/90 text-white text-xs font-bold py-1 px-2 rounded-full shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0">
+                          Continue
+                        </div>
+                        
+                        {story.logo_image && (
+                          <div className="absolute bottom-3 left-3 h-10 w-auto z-20 drop-shadow-lg">
+                            <img 
+                              src={story.logo_image} 
+                              alt={`${story.world_name} logo`} 
+                              className="h-full w-auto object-contain"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Content with subtle decoration */}
+                      <div className="p-4 border-t border-gray-700/30 relative">
+                        <h3 className="text-white font-bold truncate text-lg group-hover:text-[#EC444B] transition-colors duration-300">
+                          {story.world_name}
+                        </h3>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+
+          <div className="rounded-xl p-6 relative overflow-hidden">
+            <div className="absolute inset-0 z-0"></div>
+            <div className="relative z-10">
+              <h2 className="text-2xl font-bold text-white flex items-center mb-2">
+                <span className="w-8 h-8 mr-3 rounded-full bg-[#EC444B] flex items-center justify-center shadow-sm">
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+                STORIES
+              </h2>
+              <div className="flex items-center justify-between">
+                <p className="text-gray-400 text-sm max-w-md">Explore our interactive stories</p>
+              </div>
+            </div>
+          </div>
+          
+          <StoryList />
+        </div>
+      </Layout>
+    </>
   );
 }

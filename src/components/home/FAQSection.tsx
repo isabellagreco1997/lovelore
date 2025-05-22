@@ -3,7 +3,7 @@ import FAQItem from './FAQItem';
 const FAQSection = () => (
   <div className="relative py-24 px-4 sm:px-6 lg:px-8 bg-black/80 backdrop-blur-sm">
     <div className="max-w-4xl mx-auto">
-      <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+      <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12 uppercase">
         Frequently Asked Questions
       </h2>
       <div className="space-y-8">

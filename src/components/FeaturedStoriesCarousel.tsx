@@ -132,7 +132,7 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
                           className="h-16 md:h-24 object-contain mb-4 md:mb-6"
                         />
                       ) : (
-                        <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-4 md:mb-6">{story.world_name}</h2>
+                        <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-4 md:mb-6 uppercase">{story.world_name}</h2>
                       )}
                       
                       <p className="text-gray-200 text-base md:text-lg leading-relaxed line-clamp-2 md:line-clamp-3">

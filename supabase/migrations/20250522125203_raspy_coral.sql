@@ -1,38 +1,17 @@
 /*
-  # Stripe Integration Schema
+  # Create Stripe Integration Tables
 
   1. New Tables
-    - `stripe_customers`: Links Supabase users to Stripe customers
-      - Includes `user_id` (references `auth.users`)
-      - Stores Stripe `customer_id`
-      - Implements soft delete
-
-    - `stripe_subscriptions`: Manages subscription data
-      - Tracks subscription status, periods, and payment details
-      - Links to `stripe_customers` via `customer_id`
-      - Custom enum type for subscription status
-      - Implements soft delete
-
-    - `stripe_orders`: Stores order/purchase information
-      - Records checkout sessions and payment intents
-      - Tracks payment amounts and status
-      - Custom enum type for order status
-      - Implements soft delete
+    - Creates tables for managing Stripe customers, subscriptions, and orders
+    - Sets up proper relationships and constraints
+    - Implements RLS policies for security
 
   2. Views
-    - `stripe_user_subscriptions`: Secure view for user subscription data
-      - Joins customers and subscriptions
-      - Filtered by authenticated user
-
-    - `stripe_user_orders`: Secure view for user order history
-      - Joins customers and orders
-      - Filtered by authenticated user
-
-  3. Security
-    - Enables Row Level Security (RLS) on all tables
-    - Implements policies for authenticated users to view their own data
+    - Creates secure views for accessing subscription and order data
+    - Implements proper user filtering
 */
 
+-- Create customers table
 CREATE TABLE IF NOT EXISTS stripe_customers (
   id bigint primary key generated always as identity,
   user_id uuid references auth.users(id) not null unique,
@@ -50,6 +29,7 @@ CREATE POLICY "Users can view their own customer data"
     TO authenticated
     USING (user_id = auth.uid() AND deleted_at IS NULL);
 
+-- Create subscription status enum
 CREATE TYPE stripe_subscription_status AS ENUM (
     'not_started',
     'incomplete',
@@ -62,6 +42,7 @@ CREATE TYPE stripe_subscription_status AS ENUM (
     'paused'
 );
 
+-- Create subscriptions table
 CREATE TABLE IF NOT EXISTS stripe_subscriptions (
   id bigint primary key generated always as identity,
   customer_id text unique not null,
@@ -93,12 +74,14 @@ CREATE POLICY "Users can view their own subscription data"
         AND deleted_at IS NULL
     );
 
+-- Create order status enum
 CREATE TYPE stripe_order_status AS ENUM (
     'pending',
     'completed',
     'canceled'
 );
 
+-- Create orders table
 CREATE TABLE IF NOT EXISTS stripe_orders (
     id bigint primary key generated always as identity,
     checkout_session_id text not null,
@@ -129,9 +112,10 @@ CREATE POLICY "Users can view their own order data"
         AND deleted_at IS NULL
     );
 
--- View for user subscriptions
-CREATE VIEW stripe_user_subscriptions WITH (security_invoker = true) AS
+-- Create subscription view
+CREATE OR REPLACE VIEW stripe_user_subscriptions WITH (security_invoker = true) AS
 SELECT
+    c.user_id,
     c.customer_id,
     s.subscription_id,
     s.status as subscription_status,
@@ -149,8 +133,8 @@ AND s.deleted_at IS NULL;
 
 GRANT SELECT ON stripe_user_subscriptions TO authenticated;
 
--- View for user orders
-CREATE VIEW stripe_user_orders WITH (security_invoker = true) AS
+-- Create orders view
+CREATE OR REPLACE VIEW stripe_user_orders WITH (security_invoker = true) AS
 SELECT
     c.customer_id,
     o.id as order_id,
@@ -168,5 +152,4 @@ WHERE c.user_id = auth.uid()
 AND c.deleted_at IS NULL
 AND o.deleted_at IS NULL;
 
--- Add grant statement for the orders view
 GRANT SELECT ON stripe_user_orders TO authenticated;
