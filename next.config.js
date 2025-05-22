@@ -21,8 +21,11 @@ const nextConfig = {
   output: 'standalone',
   // Improve performance with compression
   compress: true,
-  // Add trailing slash for better SEO consistency
-  trailingSlash: true,
+  // Use App Router exclusively
+  experimental: {
+    appDir: true,
+    serverComponentsExternalPackages: [],
+  },
   // Add security headers
   async headers() {
     return [

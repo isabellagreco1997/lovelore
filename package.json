@@ -4,7 +4,8 @@
   "description": "An interactive storytelling application",
   "scripts": {
     "dev": "next dev",
-    "build": "cross-env NEXT_DISABLE_TYPECHECK=1 NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_CHECK=false next build --no-verify-types",
+    "clean": "rimraf .next",
+    "build": "npm run clean && cross-env NEXT_DISABLE_TYPECHECK=1 NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_CHECK=false next build --no-verify-types",
     "start": "next start",
     "lint": "next lint"
   },
