@@ -33,8 +33,7 @@ export default function StoryPage() {
         const { data: subscription, error } = await supabase
           .from('stripe_user_subscriptions')
           .select('subscription_status')
-          .eq('user_id', user.id)
-          .maybeSingle();
+          .single();
 
         if (error) {
           console.error('Error checking subscription:', error);
@@ -125,10 +124,25 @@ export default function StoryPage() {
           return;
         }
         
+        console.log('FULL CHAPTER PROGRESS DATA FROM DATABASE:');
+        console.table(data);
+        
+        if (data.length > 0) {
+          console.log('First progress record:');
+          console.log('chapter_id:', data[0].chapter_id);
+          console.log('chapter_id type:', typeof data[0].chapter_id);
+          console.log('is_completed:', data[0].is_completed);
+          console.log('is_completed type:', typeof data[0].is_completed);
+        }
+        
         const progressMap: Record<string, boolean> = {};
         data.forEach((progress: UserChapterProgress) => {
           progressMap[progress.chapter_id] = progress.is_completed;
+          console.log(`Adding to progressMap: [${progress.chapter_id}] = ${progress.is_completed}`);
         });
+        
+        console.log('FINAL PROGRESS MAP:');
+        console.log(progressMap);
 
         setChapterProgress(progressMap);
       } catch (error: any) {
@@ -152,6 +166,8 @@ export default function StoryPage() {
     try {
       setResetLoading(true);
       
+      console.log(`Attempting complete reset/deletion for story ${id} for user ${user.id}`);
+      
       const response = await fetch('/api/story-reset', {
         method: 'POST',
         headers: {
@@ -164,6 +180,7 @@ export default function StoryPage() {
       });
       
       const data = await response.json();
+      console.log('Reset response:', data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to reset story');
@@ -175,13 +192,19 @@ export default function StoryPage() {
       
       alert(data.message || 'Story progress has been reset successfully!');
       
+      console.log('Waiting 5 seconds before refreshing...');
+      
       setTimeout(() => {
+        console.log('Refreshing page now...');
         window.location.href = window.location.href;
       }, 5000);
       
     } catch (error: any) {
       console.error('Error resetting story:', error);
-      alert(`Failed to reset story: ${error.message}\n\nPlease check console for more details.`);
+      
+      const errorMessage = error.message || 'Unknown error occurred';
+      alert(`Failed to reset story: ${errorMessage}\n\nPlease check console for more details.`);
+      
       setShowResetConfirm(false);
     } finally {
       setResetLoading(false);
@@ -195,6 +218,11 @@ export default function StoryPage() {
     if (chapterIndex === -1) return false;
     
     const rawChapterId = String(chapterIndex);
+    
+    console.log(`Chapter check "${chapterName}" (index ${chapterIndex}):`);
+    console.log(`- chapterProgress["${rawChapterId}"] =`, chapterProgress[rawChapterId]);
+    console.log(`- all chapterProgress keys:`, Object.keys(chapterProgress));
+    
     return !!chapterProgress[rawChapterId];
   };
 
@@ -208,6 +236,11 @@ export default function StoryPage() {
     
     const previousChapterId = String(index - 1);
     const isPrevChapterCompleted = !!chapterProgress[previousChapterId];
+    
+    console.log(`Chapter lock check for index ${index}:`);
+    console.log(`- Previous chapter index: ${index - 1}`);
+    console.log(`- previousChapterId: "${previousChapterId}"`);
+    console.log(`- Has completion status: ${isPrevChapterCompleted}`);
     
     return !isPrevChapterCompleted;
   };
