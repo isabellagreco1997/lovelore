@@ -86,17 +86,9 @@ export default function StoryPage() {
           setSelectedChapter(storyData.chapters[0]);
         }
         
-        const { data: worldData, error: worldError } = await supabase
-          .from('worlds')
-          .select('id')
-          .eq('story_id', id)
-          .maybeSingle();
+                        const { data: worldData, error: worldError } = await supabase          .from('worlds')          .select('id, name')          .eq('story_id', id)          .limit(1)          .single();
         
-        if (worldError) {
-          console.error('Error fetching world:', worldError);
-        } else if (worldData) {
-          setWorld(worldData);
-        }
+                if (worldError) {          console.error('Error fetching world:', worldError);        } else if (worldData) {          console.log('Found world:', worldData);          setWorld(worldData);        } else {          console.log('No world found for story_id:', id);        }
       } catch (error: any) {
         console.error('Error fetching story:', error.message);
         setError('Failed to load story');
@@ -113,6 +105,11 @@ export default function StoryPage() {
     
     const fetchChapterProgress = async () => {
       try {
+        console.log('=== FETCHING CHAPTER PROGRESS ===');
+        console.log('user.id:', user.id);
+        console.log('world.id:', world.id);
+        console.log('story id from URL:', id);
+        
         const { data, error } = await supabase
           .from('user_chapter_progress')
           .select('*')
@@ -123,6 +120,8 @@ export default function StoryPage() {
           console.error('Error fetching chapter progress:', error);
           return;
         }
+        
+        console.log('Query executed successfully - found', data?.length || 0, 'records');
         
         console.log('FULL CHAPTER PROGRESS DATA FROM DATABASE:');
         console.table(data);
@@ -151,6 +150,49 @@ export default function StoryPage() {
     };
     
     fetchChapterProgress();
+  }, [supabase, user, world, story]);
+
+  // Force refresh progress when page becomes visible (e.g., when returning from a chapter)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && supabase && user && world && story) {
+        // Small delay to ensure any pending updates are processed
+        setTimeout(() => {
+          const fetchChapterProgress = async () => {
+            try {
+              const { data, error } = await supabase
+                .from('user_chapter_progress')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('world_id', world.id);
+                
+              if (error) {
+                console.error('Error refreshing chapter progress:', error);
+                return;
+              }
+              
+              const progressMap: Record<string, boolean> = {};
+              data.forEach((progress: UserChapterProgress) => {
+                progressMap[progress.chapter_id] = progress.is_completed;
+              });
+              
+              setChapterProgress(progressMap);
+              console.log('Chapter progress refreshed on page visibility change');
+            } catch (error: any) {
+              console.error('Error refreshing chapter progress:', error.message);
+            }
+          };
+          
+          fetchChapterProgress();
+        }, 500);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [supabase, user, world, story]);
 
   const handleStartChapter = () => {
@@ -428,7 +470,7 @@ export default function StoryPage() {
                             <div className="ml-2">
                               {isCompleted ? (
                                 <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-900/30 text-green-300 border border-green-700/50">
-                                  Done
+                                  Completed
                                 </span>
                               ) : isPremiumLocked ? (
                                 <span className="inline-block px-2 py-1 rounded-full text-xs bg-amber-900/30 text-amber-300 border border-amber-700/50">
