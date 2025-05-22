@@ -83,11 +83,12 @@ const Layout = ({ children }: LayoutProps) => {
                         pathname === '/account' ? 'bg-[#EC444B]/10 shadow-[0_0_15px_rgba(236,68,75,0.15)]' : ''
                       }`}
                     >
-                      <span className="hidden sm:block px-4 py-2">Account</span>
+                      <span className="hidden sm:flex items-center space-x-2 px-4 py-2">
+                        <span>👤</span>
+                        <span>Account</span>
+                      </span>
                       <span className="sm:hidden w-9 h-9 flex items-center justify-center">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
+                        👤
                       </span>
                     </Link>
 
@@ -96,11 +97,12 @@ const Layout = ({ children }: LayoutProps) => {
                       onClick={() => signOut()}
                       className="bg-transparent border border-[#EC444B] text-white rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10 flex items-center justify-center"
                     >
-                      <span className="hidden sm:block px-4 py-2">Sign Out</span>
+                      <span className="hidden sm:flex items-center space-x-2 px-4 py-2">
+                        <span>🚪</span>
+                        <span>Sign Out</span>
+                      </span>
                       <span className="sm:hidden w-9 h-9 flex items-center justify-center">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
+                        🚪
                       </span>
                     </button>
                   </>
