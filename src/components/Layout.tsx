@@ -45,8 +45,17 @@ const Layout = ({ children }: LayoutProps) => {
                 </div>
               </Link>
               
-              {user && (
-                <nav className="hidden md:flex space-x-6">
+              <nav className="hidden md:flex space-x-6">
+                <Link 
+                  href="/" 
+                  className="relative group flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-[#EC444B]/10"
+                >
+                  <span className="text-[#EC444B] group-hover:scale-110 transition-transform duration-300">✧</span>
+                  <span className="text-gray-300 group-hover:text-white transition-colors duration-300">Explore</span>
+                  <div className="absolute inset-0 border border-[#EC444B]/0 rounded-lg group-hover:border-[#EC444B]/20 transition-all duration-300"></div>
+                </Link>
+                
+                {user && (
                   <Link 
                     href="/stories" 
                     className="relative group flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-[#EC444B]/10"
@@ -55,8 +64,8 @@ const Layout = ({ children }: LayoutProps) => {
                     <span className="text-gray-300 group-hover:text-white transition-colors duration-300">Stories</span>
                     <div className="absolute inset-0 border border-[#EC444B]/0 rounded-lg group-hover:border-[#EC444B]/20 transition-all duration-300"></div>
                   </Link>
-                </nav>
-              )}
+                )}
+              </nav>
             </div>
             
             {!loading && (
