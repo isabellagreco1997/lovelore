@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { syncStripeData } from '@/lib/stripe-sync';
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   try {
     // Verify admin key

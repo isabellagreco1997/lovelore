@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = supabaseAdmin();
     
-    // Let's query the table constraints directly to understand the check constraint
-    const { data: constraints, error: constraintError } = await supabase
-      .from('pg_constraint')
-      .select('*')
-      .ilike('conname', '%messages_role_check%');
-      
-    if (constraintError) {
-      console.error('Error querying constraints:', constraintError);
-      return NextResponse.json({ error: 'Failed to query constraints' }, { status: 500 });
-    }
+    // Removed direct pg_constraint query as it's not available in Vercel deployments
+    // Instead, we'll rely on other methods to test and validate constraints
     
     // Try to get the schema information a different way
     const { data: tableInfo, error: tableError } = await supabase
@@ -89,7 +83,6 @@ export async function GET(request: NextRequest) {
       .eq('id', conversation.id);
       
     return NextResponse.json({
-      schemaConstraints: constraints,
       tableInfo: tableInfo,
       testResults: testResults
     });

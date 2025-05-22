@@ -17,13 +17,12 @@ const nextConfig = {
     // Also ignore ESLint errors during the build
     ignoreDuringBuilds: true,
   },
-  // Enable static page generation for better SEO
+  // Enable standalone output
   output: 'standalone',
   // Improve performance with compression
   compress: true,
-  // Use App Router exclusively
+  // Experimental features
   experimental: {
-    appDir: true,
     serverComponentsExternalPackages: [],
   },
   // Add security headers
