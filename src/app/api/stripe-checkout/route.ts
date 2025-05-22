@@ -28,10 +28,20 @@ export async function POST(request: Request) {
   try {
     // Get body content
     const body = await request.json();
+    // Simplify logging
+    console.log("Checkout initiated");
     const { price_id, success_url, cancel_url, mode } = body;
     
     // Validate required parameters
-    if (!price_id || !success_url || !cancel_url || !mode) {
+    if (!price_id) {
+      console.error("Missing price_id");
+      return NextResponse.json(
+        { error: 'Missing required parameter price_id' },
+        { status: 400 }
+      );
+    }
+    
+    if (!success_url || !cancel_url || !mode) {
       return NextResponse.json(
         { error: 'Missing required parameters' },
         { status: 400 }

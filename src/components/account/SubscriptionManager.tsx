@@ -5,7 +5,7 @@ import useSupabase from '@/hooks/useSupabase';
 import SubscriptionDetails from './SubscriptionDetails';
 
 interface SubscriptionManagerProps {
-  user: User;
+  user: User | null;
 }
 
 interface PriceOption {
@@ -41,10 +41,16 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('yearly');
   const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
+  const [productsCache, setProductsCache] = useState<Plan[] | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        if (productsCache && productsCache.length > 0) {
+          setPlans(productsCache);
+          return;
+        }
+
         const response = await fetch('/api/stripe-products');
         if (!response.ok) {
           throw new Error('Failed to fetch products');
@@ -52,7 +58,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
         
         const products = await response.json();
         
-        // Group products by product ID
         const productMap = new Map();
         
         products
@@ -62,7 +67,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
             const interval = price.recurring?.interval;
             
             if (!productMap.has(product.id)) {
-              // Initialize product in the map
               productMap.set(product.id, {
                 id: product.id,
                 name: product.name,
@@ -79,7 +83,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
               });
             }
             
-            // Add price option based on interval
             const priceOption: PriceOption = {
               id: product.id,
               priceId: price.id,
@@ -97,7 +100,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
             }
           });
           
-        // Add free plan
         productMap.set('free', {
           id: 'free',
           name: 'Free',
@@ -119,23 +121,20 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
           images: []
         });
         
-        // Convert map to array and filter out products without any price options
         const formattedPlans = Array.from(productMap.values())
           .filter((plan: any) => plan.id === 'free' || plan.priceOptions.monthly || plan.priceOptions.yearly);
-          
+        
+        setProductsCache(formattedPlans);
         setPlans(formattedPlans);
       } catch (error: any) {
         console.error('Error fetching products:', error);
         setError('Failed to load subscription plans');
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [productsCache]);
 
-  // Helper function to get features from product or use defaults
   const getFeatures = (product: any, interval: string) => {
     if (product.marketing_features && product.marketing_features.length > 0) {
       return product.marketing_features.map((feature: string) => ({
@@ -161,25 +160,29 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
 
   useEffect(() => {
     const fetchSubscription = async () => {
-      if (!supabase) return;
+      if (!supabase || !user?.id) {
+        setLoading(false);
+        return;
+      }
 
       try {
         setLoading(true);
         
-        // Get the current session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
-          console.error('No session available');
+          console.error('No session available for fetching subscription');
+          setHasActiveSubscription(false);
+          setCurrentPlan(null);
+          setLoading(false);
           return;
         }
         
-        // Fetch subscription directly from Stripe via our API endpoint
         const response = await fetch('/api/stripe-subscription', {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           },
-          credentials: 'include', // This ensures cookies are sent with the request
+          credentials: 'include',
         });
         
         if (!response.ok) {
@@ -187,23 +190,28 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
           throw new Error(errorData.error || 'Failed to fetch subscription data');
         }
         
-        const { subscription, error } = await response.json();
+        const { subscription, error: apiError } = await response.json();
         
-        if (error) throw new Error(error);
+        if (apiError) throw new Error(apiError);
         
         if (subscription && subscription.status === 'active') {
           setCurrentPlan(subscription.price_id);
           setHasActiveSubscription(true);
+        } else {
+          setCurrentPlan(null);
+          setHasActiveSubscription(false);
         }
       } catch (error: any) {
         console.error('Error fetching subscription:', error.message);
+        setCurrentPlan(null);
+        setHasActiveSubscription(false);
       } finally {
         setLoading(false);
       }
     };
 
     fetchSubscription();
-  }, [supabase, user]);
+  }, [supabase, user?.id, productsCache]);
 
   const handleSubscribe = async (priceId: string, mode: 'payment' | 'subscription') => {
     try {
@@ -214,27 +222,30 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
       setLoading(true);
       setError(null);
 
-      console.log(`Initiating checkout for price ID: ${priceId}, mode: ${mode}`);
-
-      // Get the current session for auth token
+      if (!priceId) {
+        throw new Error('Invalid price ID: ' + priceId);
+      }
+      
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
         throw new Error('You must be logged in to subscribe');
       }
 
+      const requestBody = {
+        price_id: priceId,
+        success_url: `${window.location.origin}/account?success=true`,
+        cancel_url: `${window.location.origin}/account?canceled=true`,
+        mode,
+      };
+      
       const response = await fetch('/api/stripe-checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`
         },
-        body: JSON.stringify({
-          price_id: priceId,
-          success_url: `${window.location.origin}/account?success=true`,
-          cancel_url: `${window.location.origin}/account?canceled=true`,
-          mode,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -250,9 +261,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
         throw new Error(stripeError);
       }
 
-      console.log('Redirecting to Stripe checkout...');
-      
-      // Redirect to Stripe checkout URL
       if (url) {
         window.location.href = url;
         return;
@@ -267,12 +275,10 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
     }
   };
 
-  // Get current price option based on selected billing interval
   const getCurrentPriceOption = (plan: Plan) => {
     return plan.priceOptions[billingInterval];
   };
 
-  // Calculate savings percentage when switching from monthly to yearly
   const calculateSavings = (plan: Plan) => {
     const monthly = plan.priceOptions.monthly;
     const yearly = plan.priceOptions.yearly;
@@ -285,7 +291,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
     return Math.round(((monthlyAnnualCost - yearlyCost) / monthlyAnnualCost) * 100);
   };
 
-  // Helper function to get currency symbol
   const getCurrencySymbol = (currency: string): string => {
     const symbols: Record<string, string> = {
       usd: '$',
@@ -299,7 +304,7 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
     return symbols[currency.toLowerCase()] || currency.toUpperCase() + ' ';
   };
 
-  if (loading) {
+  if (loading && plans.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-xl font-semibold text-white mb-8">Subscription Plans</h2>
@@ -321,8 +326,7 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
     );
   }
 
-  // If user has active subscription, show subscription details
-  if (hasActiveSubscription) {
+  if (hasActiveSubscription && user) {
     return (
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
@@ -369,7 +373,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {plans.map((plan) => {
-              // Skip if no price for the selected interval and it's not the free plan
               if (plan.id !== 'free' && !plan.priceOptions[billingInterval]) return null;
               
               const priceOption = getCurrentPriceOption(plan);
@@ -401,9 +404,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
                     <div className="flex justify-between items-start mb-6">
                       <div>
                         <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
-                        {/* {plan.description && (
-                          <p className="text-gray-400 text-sm mb-4">{plan.description}</p>
-                        )} */}
                         {priceOption ? (
                           <div className="flex items-baseline">
                             <span className="text-3xl font-bold text-white">
@@ -453,7 +453,15 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
 
                   {(plan.id === 'free' || priceOption) && (
                     <button
-                      onClick={() => priceOption && handleSubscribe(priceOption.priceId, plan.mode)}
+                      onClick={() => {
+                        if (priceOption && priceOption.priceId) {
+                          handleSubscribe(priceOption.priceId, plan.mode);
+                        } else if (priceOption) {
+                          setError('Invalid price information. Please contact support.');
+                        } else {
+                          setError('No valid price option available for this plan');
+                        }
+                      }}
                       disabled={loading || isCurrentPlan || plan.id === 'free'}
                       className={`w-full py-4 px-6 rounded-xl font-medium text-base transition-all duration-300 ${
                         loading || isCurrentPlan || plan.id === 'free'
@@ -520,7 +528,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {plans.map((plan) => {
-          // Skip if no price for the selected interval and it's not the free plan
           if (plan.id !== 'free' && !plan.priceOptions[billingInterval]) return null;
           
           const priceOption = getCurrentPriceOption(plan);
@@ -552,9 +559,6 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
-                    {/* {plan.description && (
-                      <p className="text-gray-400 text-sm mb-4">{plan.description}</p>
-                    )} */}
                     {priceOption ? (
                       <div className="flex items-baseline">
                         <span className="text-3xl font-bold text-white">
@@ -604,7 +608,15 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
 
               {(plan.id === 'free' || priceOption) && (
                 <button
-                  onClick={() => priceOption && handleSubscribe(priceOption.priceId, plan.mode)}
+                  onClick={() => {
+                    if (priceOption && priceOption.priceId) {
+                      handleSubscribe(priceOption.priceId, plan.mode);
+                    } else if (priceOption) {
+                      setError('Invalid price information. Please contact support.');
+                    } else {
+                      setError('No valid price option available for this plan');
+                    }
+                  }}
                   disabled={loading || isCurrentPlan || plan.id === 'free'}
                   className={`w-full py-4 px-6 rounded-xl font-medium text-base transition-all duration-300 ${
                     loading || isCurrentPlan || plan.id === 'free'

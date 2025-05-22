@@ -150,7 +150,7 @@ AND s.deleted_at IS NULL;
 GRANT SELECT ON stripe_user_subscriptions TO authenticated;
 
 -- View for user orders
-CREATE VIEW stripe_user_orders WITH (security_invoker) AS
+CREATE VIEW stripe_user_orders WITH (security_invoker = true) AS
 SELECT
     c.customer_id,
     o.id as order_id,
@@ -167,3 +167,6 @@ LEFT JOIN stripe_orders o ON c.customer_id = o.customer_id
 WHERE c.user_id = auth.uid()
 AND c.deleted_at IS NULL
 AND o.deleted_at IS NULL;
+
+-- Add grant statement for the orders view
+GRANT SELECT ON stripe_user_orders TO authenticated;

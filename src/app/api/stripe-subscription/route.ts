@@ -88,8 +88,7 @@ export async function GET() {
       customer: customer.customer_id,
       status: 'active',
       expand: [
-        'data.default_payment_method',
-        'data.items.data.price.product'
+        'data.default_payment_method'
       ]
     });
 
@@ -98,7 +97,17 @@ export async function GET() {
       const subscription = subscriptions.data[0];
       const paymentMethod = subscription.default_payment_method as Stripe.PaymentMethod;
       const price = subscription.items.data[0].price;
-      const product = price.product as Stripe.Product;
+      
+      // Get product in a separate call to avoid deep nesting
+      let product;
+      try {
+        if (price && typeof price.product === 'string') {
+          product = await stripe.products.retrieve(price.product);
+        }
+      } catch (error) {
+        console.error('Error retrieving product:', error);
+        product = { name: 'Subscription', description: null };
+      }
       
       return NextResponse.json({
         subscription: {
@@ -116,9 +125,12 @@ export async function GET() {
             interval: price.recurring?.interval || 'month',
             intervalCount: price.recurring?.interval_count || 1
           },
-          product: {
+          product: product ? {
             name: product.name,
             description: product.description
+          } : {
+            name: 'Subscription',
+            description: null
           }
         }
       });
