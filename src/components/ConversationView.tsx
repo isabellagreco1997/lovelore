@@ -796,7 +796,7 @@ Index = italicMatch.index + italicMatch[0].length;
                             const formattedParts = processFormattedText(paragraph);
                             
                             return (
-                              <p key={index} className="text-gray-200 text-sm md:text-base leading-tight md:leading-tight font-light mb-2">
+                              <p key={index} className="text-gray-200 text-sm md:text-base leading-tight md:leading-tight font-light mb-1">
                                 {formattedParts}
                               </p>
                             );
