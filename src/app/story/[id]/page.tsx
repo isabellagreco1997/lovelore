@@ -23,6 +23,31 @@ export default function StoryPage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+
+  useEffect(() => {
+    if (!supabase || !user?.id) return;
+
+    const checkSubscription = async () => {
+      try {
+        const { data: subscription, error } = await supabase
+          .from('stripe_user_subscriptions')
+          .select('subscription_status')
+          .single();
+
+        if (error) {
+          console.error('Error checking subscription:', error);
+          return;
+        }
+
+        setHasActiveSubscription(subscription?.subscription_status === 'active');
+      } catch (error) {
+        console.error('Error checking subscription status:', error);
+      }
+    };
+
+    checkSubscription();
+  }, [supabase, user?.id]);
 
   useEffect(() => {
     if (!supabase || !id) return;
@@ -99,11 +124,9 @@ export default function StoryPage() {
           return;
         }
         
-        // Raw data for debugging
         console.log('FULL CHAPTER PROGRESS DATA FROM DATABASE:');
         console.table(data);
         
-        // Get table structure for chapter_id field
         if (data.length > 0) {
           console.log('First progress record:');
           console.log('chapter_id:', data[0].chapter_id);
@@ -114,12 +137,10 @@ export default function StoryPage() {
         
         const progressMap: Record<string, boolean> = {};
         data.forEach((progress: UserChapterProgress) => {
-          // Store chapter_id exactly as it is in the database
           progressMap[progress.chapter_id] = progress.is_completed;
           console.log(`Adding to progressMap: [${progress.chapter_id}] = ${progress.is_completed}`);
         });
         
-        // Show the final map content
         console.log('FINAL PROGRESS MAP:');
         console.log(progressMap);
 
@@ -145,7 +166,6 @@ export default function StoryPage() {
     try {
       setResetLoading(true);
       
-      // Log more details for debugging
       console.log(`Attempting complete reset/deletion for story ${id} for user ${user.id}`);
       
       const response = await fetch('/api/story-reset', {
@@ -166,33 +186,25 @@ export default function StoryPage() {
         throw new Error(data.error || 'Failed to reset story');
       }
       
-      // Clear progress state
       setChapterProgress({});
       setWorld(null);
       setShowResetConfirm(false);
       
-      // Display success message
       alert(data.message || 'Story progress has been reset successfully!');
       
-      // Add a delay before refreshing to ensure deletion completes
       console.log('Waiting 5 seconds before refreshing...');
       
-      // Increase wait time to 5 seconds to ensure deletion completes
       setTimeout(() => {
         console.log('Refreshing page now...');
-        
-        // Force a hard refresh that bypasses cache
         window.location.href = window.location.href;
       }, 5000);
       
     } catch (error: any) {
       console.error('Error resetting story:', error);
       
-      // Show more detailed error message
       const errorMessage = error.message || 'Unknown error occurred';
       alert(`Failed to reset story: ${errorMessage}\n\nPlease check console for more details.`);
       
-      // Close modal even on error
       setShowResetConfirm(false);
     } finally {
       setResetLoading(false);
@@ -215,6 +227,11 @@ export default function StoryPage() {
   };
 
   const isChapterLocked = (index: number) => {
+    if (index === 0 || index === 1) return false; // First two chapters always free
+    
+    // Premium chapters (index 2 and beyond) require subscription
+    if (index >= 2 && !hasActiveSubscription) return true;
+    
     if (index === 0) return false;
     
     const previousChapterId = String(index - 1);
@@ -352,7 +369,9 @@ export default function StoryPage() {
                         `}
                       >
                         {isChapterLocked(story.chapters.indexOf(selectedChapter))
-                          ? 'Complete Previous Chapter'
+                          ? story.chapters.indexOf(selectedChapter) >= 2 && !hasActiveSubscription
+                            ? 'Upgrade to Premium ⭐'
+                            : 'Complete Previous Chapter'
                           : isChapterCompleted(selectedChapter.chapterName)
                             ? 'Play Again'
                             : 'Start Chapter'}
@@ -365,6 +384,7 @@ export default function StoryPage() {
                     {story.chapters.map((chapter, index) => {
                       const isCompleted = isChapterCompleted(chapter.chapterName);
                       const isLocked = isChapterLocked(index);
+                      const isPremiumLocked = index >= 2 && !hasActiveSubscription;
                       const isSelected = selectedChapter?.chapterName === chapter.chapterName;
                       
                       return (
@@ -383,6 +403,10 @@ export default function StoryPage() {
                               {isCompleted ? (
                                 <div className="w-8 h-8 rounded-full bg-green-900/30 border border-green-500/50 flex items-center justify-center text-green-400 text-sm">
                                   ✓
+                                </div>
+                              ) : isPremiumLocked ? (
+                                <div className="w-8 h-8 rounded-full bg-amber-900/30 border border-amber-500/50 flex items-center justify-center text-amber-400 text-sm">
+                                  ⭐
                                 </div>
                               ) : isLocked ? (
                                 <div className="w-8 h-8 rounded-full bg-gray-800/30 border border-gray-700/50 flex items-center justify-center text-gray-500 text-sm">
@@ -405,6 +429,10 @@ export default function StoryPage() {
                               {isCompleted ? (
                                 <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-900/30 text-green-300 border border-green-700/50">
                                   Done
+                                </span>
+                              ) : isPremiumLocked ? (
+                                <span className="inline-block px-2 py-1 rounded-full text-xs bg-amber-900/30 text-amber-300 border border-amber-700/50">
+                                  Premium
                                 </span>
                               ) : isLocked ? (
                                 <span className="inline-block px-2 py-1 rounded-full text-xs bg-gray-800/30 text-gray-500 border border-gray-700/50">
@@ -449,7 +477,30 @@ export default function StoryPage() {
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-900/50 text-purple-200 border border-purple-700/50">
                       {story.chapters.length} chapters
                     </span>
+                    {!hasActiveSubscription && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-900/50 text-amber-200 border border-amber-700/50">
+                        2 Free Chapters
+                      </span>
+                    )}
                   </div>
+
+                  {!hasActiveSubscription && (
+                    <div className="mb-6 p-4 bg-amber-900/20 rounded-xl border border-amber-700/30">
+                      <div className="flex items-center space-x-2 text-amber-300 mb-2">
+                        <span>⭐</span>
+                        <h3 className="font-medium">Premium Story</h3>
+                      </div>
+                      <p className="text-amber-200/80 text-sm mb-4">
+                        Upgrade to Premium to unlock all chapters and enjoy unlimited access to this story.
+                      </p>
+                      <button
+                        onClick={() => router.push('/account?tab=subscription')}
+                        className="w-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg px-4 py-2 text-sm transition-colors"
+                      >
+                        Upgrade to Premium
+                      </button>
+                    </div>
+                  )}
 
                   {/* Reset Story Button */}
                   <div className="mt-6 pt-6 border-t border-gray-800">
