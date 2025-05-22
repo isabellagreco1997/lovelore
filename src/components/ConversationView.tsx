@@ -663,7 +663,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                     <div className={`flex items-center space-x-2 mb-3
                       ${message.role === 'user' ? 'text-pink-300/60' : 'text-purple-300/60'}`}
                     >
-                      <span className="font-light tracking-wider text-sm">
+                      <span className="font-light tracking-wider text-xs md:text-sm">
                         {message.role === 'user' ? 'You' : 'Storyteller'}
                       </span>
                     </div>
@@ -736,6 +736,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                               italicParts.push(inputText.toString().substring(lastIndex));
                             }
                             
+                            
                             return italicParts;
                           };
                           
@@ -783,9 +784,9 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                             
                             return (
                               <p key={index} className="text-gray-200 leading-relaxed font-light mb-3 pl-4 border-l-2 border-pink-900/30 py-2">
-                                <span className="font-medium text-pink-300">{characterName}:</span>
+                                <span className="font-medium text-pink-300 text-sm md:text-base">{characterName}:</span>
                                 <br />
-                                <span className="block mt-1 pl-2">
+                                <span className="block mt-1 pl-2 text-sm md:text-base leading-relaxed md:leading-relaxed">
                                   {formattedParts}
                                 </span>
                               </p>
@@ -794,7 +795,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                             const formattedParts = processFormattedText(paragraph);
                             
                             return (
-                              <p key={index} className="text-gray-200 leading-relaxed font-light mb-2">
+                              <p key={index} className="text-gray-200 text-sm md:text-base leading-relaxed md:leading-relaxed font-light mb-2">
                                 {formattedParts}
                               </p>
                             );
@@ -804,7 +805,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                         });
                       })()}
                     </div>
-                    <div className={`flex items-center space-x-2 mt-4 text-xs font-light tracking-wider
+                    <div className={`flex items-center space-x-2 mt-4 text-[10px] md:text-xs font-light tracking-wider
                       ${message.role === 'user' ? 'text-pink-400/30' : 'text-purple-400/30'}`}
                     >
                       <time>
@@ -900,3 +901,5 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
 }
 
 export default ConversationView;
+
+export default ConversationView
