@@ -8,12 +8,33 @@ interface SubscriptionModalProps {
 
 const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
   const router = useRouter();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Wait for a short delay to ensure smooth animation
+      const timer = setTimeout(() => {
+        setIsLoaded(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    } else {
+      setIsLoaded(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-gray-900/90 rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-gray-800">
+    <div 
+      className={`fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity duration-300 ${
+        isLoaded ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
+      <div 
+        className={`bg-gray-900/90 rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-gray-800 transition-all duration-500 ${
+          isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+        }`}
+      >
         <div className="flex flex-col md:flex-row">
           {/* Left side - Content */}
           <div className="p-8 md:p-12 flex-1">
