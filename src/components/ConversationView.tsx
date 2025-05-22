@@ -753,7 +753,8 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                           
                           // Process single asterisks (italic)
                           const processItalic = (inputText: React.ReactNode) => {
-                            if (typeof inputText !== 'string') return [inputText];
+                            if (typeof inputText !== 
+                            'string') return [inputText];
                             
                             const italicParts: React.ReactNode[] = [];
                             const italicRegex = /\*([^*]+)\*/g;
@@ -870,13 +871,13 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-pink-900/30 bg-gradient-to-t from-[#1a0a1f] to-black p-8">
+      <div className="border-t border-pink-900/30 bg-gradient-to-t from-[#1a0a1f] to-black p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-end space-x-4">
-            <div className="flex-1 bg-gradient-to-r from-[#0a0a1f] to-[#0a0a2f] rounded-2xl border border-pink-900/30 transition-all duration-300 focus-within:border-pink-800/50 focus-within:shadow-[0_0_30px_rgba(236,72,153,0.1)]">
+          <div className="flex items-end space-x-2 md:space-x-4">
+            <div className="flex-1 bg-gradient-to-r from-[#0a0a1f] to-[#0a0a2f] rounded-xl border border-pink-900/30 transition-all duration-300 focus-within:border-pink-800/50 focus-within:shadow-[0_0_30px_rgba(236,72,153,0.1)]">
               <textarea 
-                className="w-full bg-transparent border-0 rounded-2xl p-6 text-pink-100 placeholder-pink-500/30 resize-none focus:ring-0 font-light tracking-wide"
-                rows={2}
+                className="w-full bg-transparent border-0 rounded-xl p-3 md:p-6 text-pink-100 placeholder-pink-500/30 resize-none focus:ring-0 font-light tracking-wide text-sm md:text-base h-[40px] md:h-auto"
+                rows={1}
                 placeholder="Type your message..."
                 value={userInput}
                 onChange={handleInputChange}
@@ -885,7 +886,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
               />
             </div>
             <button
-              className={`px-8 py-4 rounded-2xl font-light tracking-wider transition-all duration-300
+              className={`px-4 py-2 md:px-8 md:py-4 rounded-xl font-light tracking-wider transition-all duration-300 text-sm md:text-base
                 ${!userInput.trim() || loading || sendingMessage || generatingInitialMessage
                   ? 'bg-gray-900/50 text-gray-600 cursor-not-allowed'
                   : 'bg-gradient-to-r from-[#1a0a1f] to-[#2a0a2f] hover:from-[#2a0a2f] hover:to-[#3a0a3f] text-pink-300 border border-pink-900/30 hover:border-pink-800/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.1)]'
@@ -896,12 +897,12 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
               {sendingMessage ? (
                 <span className="flex items-center space-x-2">
                   <span className="animate-spin rounded-full h-4 w-4 border-2 border-current"></span>
-                  <span>Sending...</span>
+                  <span className="hidden md:inline">Sending...</span>
                 </span>
               ) : generatingInitialMessage ? (
                 <span className="flex items-center space-x-2">
                   <span className="animate-spin rounded-full h-4 w-4 border-2 border-current"></span>
-                  <span>Initializing...</span>
+                  <span className="hidden md:inline">Initializing...</span>
                 </span>
               ) : (
                 <span>Send</span>
