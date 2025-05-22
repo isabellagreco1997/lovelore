@@ -1,31 +1,97 @@
-Here's the fixed version with all closing brackets added:
+import React, { useRef, useState } from 'react';
+import ChapterCompletionModal from './ChapterCompletionModal';
 
-```typescript
-                            return italicParts;
-                          };
-                          
-                          const paragraphs = text.split('\n\n');
-                          paragraphs.forEach((paragraph, index) => {
-                            if (paragraph.trim()) {
-                              const quotedText = processQuotes(paragraph);
-                              const boldText = quotedText.map(part => 
-                                typeof part === 'string' ? processBold(part) : part
-                              ).flat();
-                              const italicText = boldText.map(part =>
-                                typeof part === 'string' ? processItalic(part) : part
-                              ).flat();
-                              
-                              segments.push(
-                                <p key={index} className="mb-4 last:mb-0">
-                                  {italicText}
-                                </p>
-                              );
-                            }
-                          });
-                          
-                          return segments;
-                        };
-                        
+function ConversationView({ messages, userInput, sendingMessage, handleInputChange, handleKeyDown, handleSendMessage, showCompletionModal, setShowCompletionModal, handleMarkChapterCompleted, currentChapterName }) {
+  const messagesEndRef = useRef(null);
+
+  const processFormattedText = (text) => {
+    const segments = [];
+
+    const processQuotes = (text) => {
+      const parts = text.split(/(\"[^\"]*\")/g);
+      return parts.map((part, index) => {
+        if (part.startsWith('"') && part.endsWith('"')) {
+          return <span key={index} className="text-pink-300">{part}</span>;
+        }
+        return part;
+      });
+    };
+
+    const processBold = (text) => {
+      const parts = text.split(/(\*\*[^\*]*\*\*)/g);
+      return parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={index}>{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+    };
+
+    const processItalic = (text) => {
+      const parts = text.split(/(\*[^\*]*\*)/g);
+      const italicParts = parts.map((part, index) => {
+        if (part.startsWith('*') && part.endsWith('*')) {
+          return <em key={index}>{part.slice(1, -1)}</em>;
+        }
+        return part;
+      });
+      return italicParts;
+    };
+
+    const paragraphs = text.split('\n\n');
+    paragraphs.forEach((paragraph, index) => {
+      if (paragraph.trim()) {
+        const quotedText = processQuotes(paragraph);
+        const boldText = quotedText.map(part => 
+          typeof part === 'string' ? processBold(part) : part
+        ).flat();
+        const italicText = boldText.map(part =>
+          typeof part === 'string' ? processItalic(part) : part
+        ).flat();
+        
+        segments.push(
+          <p key={index} className="mb-4 last:mb-0">
+            {italicText}
+          </p>
+        );
+      }
+    });
+
+    return segments;
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-black">
+      {/* Minimal Story Header */}
+      <div className="bg-gradient-to-b from-[#1a0a1f] to-black border-b border-pink-900/30 px-4 md:px-8 py-3 md:py-6">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-xl md:text-2xl font-semibold text-pink-200">
+            {currentChapterName}
+          </h1>
+        </div>
+      </div>
+
+      {/* Messages Area */}
+      <div className="flex-1 overflow-hidden relative">
+        <div className="absolute inset-0 overflow-y-auto">
+          {messages && messages.length > 0 && (
+            <div className="max-w-4xl mx-auto px-4 md:px-8 py-8">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex mb-8 last:mb-0 ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <div
+                    className={`rounded-xl max-w-[80%] md:max-w-[70%] ${
+                      message.role === 'user'
+                        ? 'bg-gradient-to-r from-pink-800 to-purple-800 text-white'
+                        : 'bg-[#1a0a1f] text-pink-200'
+                    } p-4 md:p-6`}
+                  >
+                    <div className="prose prose-invert">
+                      {(() => {
                         return processFormattedText(message.content);
                       })()}
                     </div>
@@ -77,4 +143,3 @@ Here's the fixed version with all closing brackets added:
 }
 
 export default ConversationView;
-```
