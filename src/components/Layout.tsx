@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import useUser from '@/hooks/useUser';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Home, Library, User, LogOut } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -52,6 +53,7 @@ const Layout = ({ children }: LayoutProps) => {
                     isHomePage ? 'text-white bg-[#EC444B]/10 shadow-[0_0_15px_rgba(236,68,75,0.15)]' : 'text-gray-400 hover:text-white hover:bg-[#EC444B]/5'
                   }`}
                 >
+                  <Home className="w-4 h-4" />
                   <span>Explore</span>
                 </Link>
                 
@@ -62,6 +64,7 @@ const Layout = ({ children }: LayoutProps) => {
                       pathname === '/stories' ? 'text-white bg-[#EC444B]/10 shadow-[0_0_15px_rgba(236,68,75,0.15)]' : 'text-gray-400 hover:text-white hover:bg-[#EC444B]/5'
                     }`}
                   >
+                    <Library className="w-4 h-4" />
                     <span>Stories</span>
                   </Link>
                 )}
@@ -84,11 +87,11 @@ const Layout = ({ children }: LayoutProps) => {
                       }`}
                     >
                       <span className="hidden sm:flex items-center space-x-2 px-4 py-2">
-                        <span className="text-white">⚪</span>
+                        <User className="w-4 h-4" />
                         <span>Account</span>
                       </span>
                       <span className="sm:hidden w-9 h-9 flex items-center justify-center">
-                        <span className="text-white">⚪</span>
+                        <User className="w-5 h-5" />
                       </span>
                     </Link>
 
@@ -98,11 +101,11 @@ const Layout = ({ children }: LayoutProps) => {
                       className="bg-transparent border border-[#EC444B] text-white rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10 flex items-center justify-center"
                     >
                       <span className="hidden sm:flex items-center space-x-2 px-4 py-2">
-                        <span className="text-white">⇲</span>
+                        <LogOut className="w-4 h-4" />
                         <span>Sign Out</span>
                       </span>
                       <span className="sm:hidden w-9 h-9 flex items-center justify-center">
-                        <span className="text-white">⇲</span>
+                        <LogOut className="w-5 h-5" />
                       </span>
                     </button>
                   </>
