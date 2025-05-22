@@ -154,7 +154,7 @@ const SubscriptionDetails = ({ userId }: SubscriptionDetailsProps) => {
         {price && (
           <p><strong className="text-gray-400">Price:</strong> {price.amount ? `$${price.amount.toFixed(2)}` : 'N/A'} {price.currency?.toUpperCase()} / {price.interval}</p>
         )}
-        <p><strong className="text-gray-400">Renews on:</strong> {new Date(current_period_end * 1000).toLocaleDateString()}</p>
+        <p><strong className="text-gray-400">{cancel_at_period_end ? 'Expires on' : 'Renews on'}:</strong> {new Date(current_period_end * 1000).toLocaleDateString()}</p>
         {payment_method_brand && payment_method_last4 && (
           <p><strong className="text-gray-400">Payment Method:</strong> {payment_method_brand} ending in {payment_method_last4}</p>
         )}

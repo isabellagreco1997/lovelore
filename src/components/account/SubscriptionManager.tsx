@@ -107,7 +107,7 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
           features: [
             { name: 'Access to free stories', included: true },
             { name: 'Basic AI responses', included: true },
-            { name: 'Limited chapters per day', included: true },
+            { name: 'Limited chapters', included: true },
             { name: 'Premium stories', included: false },
             { name: 'Advanced AI features', included: false },
             { name: 'Unlimited chapters', included: false }
@@ -150,10 +150,10 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
       return [
         { name: 'Access to free stories', included: true },
         { name: 'Basic AI responses', included: true },
-        { name: 'Limited chapters per day', included: true },
+        { name: 'Limited chapters', included: true },
         { name: 'Premium stories', included: true },
         { name: 'Advanced AI features', included: true },
-        { name: 'Unlimited chapters', included: interval === 'year' }
+        { name: 'Unlimited chapters', included: true }
       ];
     }
   };
@@ -304,6 +304,19 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
     return symbols[currency.toLowerCase()] || currency.toUpperCase() + ' ';
   };
 
+  // Calculate the monthly equivalent price for yearly plans
+  const calculateMonthlyPrice = (priceOption: PriceOption | null): number => {
+    if (!priceOption) return 0;
+    
+    if (priceOption.interval === 'year') {
+      // For yearly plan, divide by 12 to get monthly equivalent
+      return priceOption.price / (12 * (priceOption.intervalCount || 1));
+    } else {
+      // For monthly plan, just return the price
+      return priceOption.price / (priceOption.intervalCount || 1);
+    }
+  };
+
   if (loading && plans.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4">
@@ -405,29 +418,42 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
                       <div>
                         <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
                         {priceOption ? (
-                          <div className="flex items-baseline">
-                            <span className="text-3xl font-bold text-white">
-                              {getCurrencySymbol(priceOption.currency)}{priceOption.price}
-                            </span>
-                            <span className="text-gray-400 text-sm ml-2">
-                              /{priceOption.interval}
-                              {priceOption.intervalCount > 1 ? ` (${priceOption.intervalCount} ${priceOption.interval}s)` : ''}
-                            </span>
+                          <div className="flex flex-col">
+                            <div className="flex items-baseline">
+                              <span className="text-3xl font-bold text-white">
+                                {getCurrencySymbol(priceOption.currency)}
+                                {priceOption.interval === 'year' 
+                                  ? calculateMonthlyPrice(priceOption).toFixed(2)
+                                  : priceOption.price}
+                              </span>
+                              <span className="text-gray-400 text-sm ml-2">
+                                {priceOption.interval === 'year' ? '/month' : `/${priceOption.interval}`}
+                                {priceOption.interval !== 'year' && priceOption.intervalCount > 1 
+                                  ? ` (${priceOption.intervalCount} ${priceOption.interval}s)` 
+                                  : ''}
+                              </span>
+                            </div>
+                            
+                            {priceOption.interval === 'year' && (
+                              <div className="text-gray-400 text-sm mt-1">
+                                Billed annually
+                              </div>
+                            )}
+                            
+                            {billingInterval === 'yearly' && savings > 0 && (
+                              <div className="mt-2 text-purple-400 text-sm">
+                                Save {savings}% compared to monthly
+                              </div>
+                            )}
+                            
+                            {priceOption?.trialDays && (
+                              <div className="mt-2 text-green-400 text-sm">
+                                Includes {priceOption.trialDays}-day free trial
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <span className="text-3xl font-bold text-white">Free</span>
-                        )}
-                        
-                        {billingInterval === 'yearly' && savings > 0 && (
-                          <div className="mt-2 text-purple-400 text-sm">
-                            Save {savings}% compared to monthly
-                          </div>
-                        )}
-                        
-                        {priceOption?.trialDays && (
-                          <div className="mt-2 text-green-400 text-sm">
-                            Includes {priceOption.trialDays}-day free trial
-                          </div>
                         )}
                       </div>
                       {isCurrentPlan && (
@@ -560,29 +586,42 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
                   <div>
                     <h3 className="text-xl font-semibold text-white mb-2">{plan.name}</h3>
                     {priceOption ? (
-                      <div className="flex items-baseline">
-                        <span className="text-3xl font-bold text-white">
-                          {getCurrencySymbol(priceOption.currency)}{priceOption.price}
-                        </span>
-                        <span className="text-gray-400 text-sm ml-2">
-                          /{priceOption.interval}
-                          {priceOption.intervalCount > 1 ? ` (${priceOption.intervalCount} ${priceOption.interval}s)` : ''}
-                        </span>
+                      <div className="flex flex-col">
+                        <div className="flex items-baseline">
+                          <span className="text-3xl font-bold text-white">
+                            {getCurrencySymbol(priceOption.currency)}
+                            {priceOption.interval === 'year' 
+                              ? calculateMonthlyPrice(priceOption).toFixed(2)
+                              : priceOption.price}
+                          </span>
+                          <span className="text-gray-400 text-sm ml-2">
+                            {priceOption.interval === 'year' ? '/month' : `/${priceOption.interval}`}
+                            {priceOption.interval !== 'year' && priceOption.intervalCount > 1 
+                              ? ` (${priceOption.intervalCount} ${priceOption.interval}s)` 
+                              : ''}
+                          </span>
+                        </div>
+                        
+                        {priceOption.interval === 'year' && (
+                          <div className="text-gray-400 text-sm mt-1">
+                            Billed annually
+                          </div>
+                        )}
+                        
+                        {billingInterval === 'yearly' && savings > 0 && (
+                          <div className="mt-2 text-purple-400 text-sm">
+                            Save {savings}% compared to monthly
+                          </div>
+                        )}
+                        
+                        {priceOption?.trialDays && (
+                          <div className="mt-2 text-green-400 text-sm">
+                            Includes {priceOption.trialDays}-day free trial
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <span className="text-3xl font-bold text-white">Free</span>
-                    )}
-                    
-                    {billingInterval === 'yearly' && savings > 0 && (
-                      <div className="mt-2 text-purple-400 text-sm">
-                        Save {savings}% compared to monthly
-                      </div>
-                    )}
-                    
-                    {priceOption?.trialDays && (
-                      <div className="mt-2 text-green-400 text-sm">
-                        Includes {priceOption.trialDays}-day free trial
-                      </div>
                     )}
                   </div>
                   {isCurrentPlan && (
