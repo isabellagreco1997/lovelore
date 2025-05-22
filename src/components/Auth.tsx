@@ -91,7 +91,7 @@ const Auth = () => {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-[3.5rem] leading-[1] mb-2 text-white" style={{ fontFamily: 'Archivo Black' }}>
+            <h2 className="text-[3.5rem] leading-[1] mb-2 text-white font-bold tracking-tight">
               Make Your Fantasies True
             </h2>
             <p className="text-xl text-gray-400 font-light">
