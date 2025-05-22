@@ -90,8 +90,8 @@ const Auth = () => {
             />
           </div>
 
-          <div className="mb-6 md:mb-8" class='<div class="bubble-element Text coaChi bubble-r-vertical-center" style="white-space: pre-wrap; overflow: visible; font-family: Pg-Black; font-size: 80px; color: rgb(255, 255, 255); line-height: 0.8; padding: 0px 0px 0px 21px; border-radius: 0px; opacity: 1; align-self: flex-end; min-width: 0px; order: 1; min-height: 0px; height: max-content; flex-grow: 0; flex-shrink: 0; width: calc(100% + 0px); margin: 0px; z-index: 20;"><div>GENERATE
-PERSONALISED<br>STORIES ABOUT</div></div>'>
+          <div className="text-white text-[80px] leading-[0.8] font-black px-[21px] w-full opacity-100 z-20 self-end"
+      style={{ fontFamily: 'Pg-Black' }}>
             <h2 className="text-[2.5rem] leading-[1.1] font-bold text-white mb-2 tracking-tight">
               Make Your Fantasies True
             </h2>
