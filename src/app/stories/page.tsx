@@ -27,10 +27,22 @@ const StoriesPage = () => {
         if (error) throw error;
 
         // Process and filter stories
-        const processedStories = (data || []).map(story => ({
-          ...story,
-          chapters: Array.isArray(story.chapters) ? story.chapters : []
-        }));
+        const processedStories = (data || []).map(story => {
+          // Handle different possible chapter structures
+          let chaptersArray = [];
+          if (story.chapters) {
+            if (story.chapters.chapters && Array.isArray(story.chapters.chapters)) {
+              chaptersArray = story.chapters.chapters;
+            } else if (Array.isArray(story.chapters)) {
+              chaptersArray = story.chapters;
+            }
+          }
+
+          return {
+            ...story,
+            chapters: chaptersArray
+          };
+        });
 
         setStories(processedStories);
 
