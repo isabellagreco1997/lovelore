@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
+
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -90,10 +91,10 @@ const Auth = () => {
           </div>
 
           <div className="mb-6 md:mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+            <h2 className="text-[2.5rem] leading-[1.1] font-bold text-white mb-2 tracking-tight">
               Make Your Fantasies True
             </h2>
-            <p className="text-sm md:text-base text-gray-400">
+            <p className="text-xl text-gray-400 font-light">
               Dive into interactive stories that come alive
             </p>
           </div>
