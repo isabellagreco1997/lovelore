@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import useSupabase from '@/hooks/useSupabase';
 import useUser from '@/hooks/useUser';
 import { Message } from '@/types/database';
-import { getStoryContextFromConversation, streamAIResponse, getPreviousChapterMessages, formatPreviousChapterSummary } from '@/lib/deepseek';
+import { streamAIResponse, getStoryContextFromConversation, getPreviousChapterMessages, formatPreviousChapterSummary } from '@/lib/deepseek';
 import ChapterCompletionModal from './ChapterCompletionModal';
 
 interface ConversationViewProps {
@@ -166,8 +166,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
     fetchStoryAndMessages();
   }, [conversation, supabase, initialMessage]);
   
-  // This effect is a backup to ensure an initial message is generated if needed
-  // The primary generation now happens in fetchStoryAndMessages
   useEffect(() => {
     const shouldGenerateInitialMessage = 
       !loading && 
@@ -200,7 +198,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       console.log('Messages fetched:', data ? data.length : 0);
       setMessages(data || []);
       
-      // Check after setting messages
       return data || [];
     } catch (error: any) {
       console.error('Error fetching messages:', error.message);
@@ -208,136 +205,128 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       return [];
     }
   };
-  
-    const generateInitialMessage = async (currentStoryData: any = null) => {
-      if (!supabase || !conversation || !user) {
-        console.error('Missing required context for generating initial message');
-        return;
-      }
+
+  const generateInitialMessage = async (currentStoryData: any = null) => {
+    if (!supabase || !conversation || !user) {
+      console.error('Missing required context for generating initial message');
+      return;
+    }
+    
+    const storyDataToUse = currentStoryData || storyData;
+    if (!storyDataToUse) {
+      console.error('No story data available for generating initial message');
+      return;
+    }
+    
+    try {
+      setGeneratingInitialMessage(true);
+      console.log('Generating initial message with storyData:', storyDataToUse.world_name);
       
-      const storyDataToUse = currentStoryData || storyData;
-      if (!storyDataToUse) {
-        console.error('No story data available for generating initial message');
-        return;
+      const storyContext = await getStoryContextFromConversation(conversation, storyDataToUse);
+      console.log('Story context for initial message:', storyContext);
+      
+      let streamedContent = '';
+      let result;
+      
+      let previousChapterMessages: Array<{role: string, content: string}> = [];
+      let previousChapterSummary = '';
+      
+      const currentChapterIndex = parseInt(conversation.chapter_id);
+      if (currentChapterIndex > 0) {
+        const prevChapterId = String(currentChapterIndex - 1);
+        console.log(`Fetching previous chapter (${prevChapterId}) messages for initial message`);
+        
+        previousChapterMessages = await getPreviousChapterMessages(
+          supabase,
+          conversation.world_id,
+          user.id,
+          prevChapterId
+        );
+        
+        if (previousChapterMessages.length > 0) {
+          previousChapterSummary = formatPreviousChapterSummary(previousChapterMessages);
+          console.log(`Included previous chapter summary (${previousChapterSummary.length} chars) for initial message`);
+        } else {
+          console.log('No previous chapter messages found for continuity');
+        }
+      } else {
+        console.log('First chapter - no previous context to include');
       }
       
       try {
-        setGeneratingInitialMessage(true);
-        console.log('Generating initial message with storyData:', storyDataToUse.world_name);
-        
-        const storyContext = await getStoryContextFromConversation(conversation, storyDataToUse);
-        console.log('Story context for initial message:', storyContext);
-        
-        // Add more detailed debugging to track deepseek API call
-        console.log('Making deepseek API call to generate initial message...');
-        
-        let streamedContent = '';
-        let result;
-        
-        // Get previous chapter messages if not on first chapter
-        let previousChapterMessages: Array<{role: string, content: string}> = [];
-        let previousChapterSummary = '';
-        
-        const currentChapterIndex = parseInt(conversation.chapter_id);
-        if (currentChapterIndex > 0) {
-          const prevChapterId = String(currentChapterIndex - 1);
-          console.log(`Fetching previous chapter (${prevChapterId}) messages for initial message`);
-          
-          // Get messages from previous chapter
-          previousChapterMessages = await getPreviousChapterMessages(
-            supabase,
-            conversation.world_id,
-            user.id,
-            prevChapterId
-          );
-          
-          // Create a summary from those messages
-          if (previousChapterMessages.length > 0) {
-            previousChapterSummary = formatPreviousChapterSummary(previousChapterMessages);
-            console.log(`Included previous chapter summary (${previousChapterSummary.length} chars) for initial message`);
-          } else {
-            console.log('No previous chapter messages found for continuity');
-          }
-        } else {
-          console.log('First chapter - no previous context to include');
-        }
-        
-        try {
-          result = await streamAIResponse(
-            "Begin the story",
-            storyContext,
-            (chunk) => {
-              streamedContent += chunk;
-              console.log('Received chunk:', chunk.substring(0, 50) + '...');
-            },
-            [],
-            previousChapterSummary,
-            previousChapterMessages
-          );
-          
-          console.log('Full initial message generated:', result.content.substring(0, 100) + '...');
-        } catch (deepseekError: any) {
-          console.error('Error in deepseek API call:', deepseekError);
-          throw new Error(`Failed to generate story: ${deepseekError.message}`);
-        }
-        
-        if (!result) {
-          throw new Error('Failed to generate initial message: No content received from AI');
-        }
-        
-        // Prepare message data
-        const assistantMessage = {
-          conversation_id: conversation.id,
-          role: 'assistant',
-          content: result.content,
-          timestamp: new Date().toISOString()
-        };
-        
-        // Use direct fetch to save message to avoid 406 errors
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        
-        if (!supabaseUrl || !supabaseKey) {
-          throw new Error('Missing Supabase environment variables');
-        }
-        
-        const saveResponse = await fetch(
-          `${supabaseUrl}/rest/v1/messages`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'apikey': supabaseKey,
-              'Authorization': `Bearer ${supabaseKey}`,
-              'Prefer': 'return=representation'
-            },
-            body: JSON.stringify(assistantMessage)
-          }
+        result = await streamAIResponse(
+          "Begin the story",
+          storyContext,
+          (chunk) => {
+            streamedContent += chunk;
+            console.log('Received chunk:', chunk.substring(0, 50) + '...');
+          },
+          [],
+          previousChapterSummary,
+          previousChapterMessages
         );
         
-        if (!saveResponse.ok) {
-          const errorText = await saveResponse.text();
-          console.error('Error saving message:', errorText);
-          throw new Error(`Error saving message: ${saveResponse.status} ${saveResponse.statusText}`);
-        }
-        
-        const savedMessages = await saveResponse.json();
-        if (!savedMessages || !savedMessages[0]) {
-          throw new Error('Failed to save message - no data returned');
-        }
-        
-        const savedAssistantMessage = savedMessages[0];
-        
-        console.log('Initial message saved to database');
-        setMessages([savedAssistantMessage]);
-      } catch (error: any) {
-        console.error('Error generating initial message:', error.message);
-        setError(`Failed to generate initial message: ${error.message}`);
-      } finally {
-        setGeneratingInitialMessage(false);
+        console.log('Full initial message generated:', result.content.substring(0, 100) + '...');
+      } catch (deepseekError: any) {
+        console.error('Error in deepseek API call:', deepseekError);
+        throw new Error(`Failed to generate story: ${deepseekError.message}`);
       }
-    };
+      
+      if (!result) {
+        throw new Error('Failed to generate initial message: No content received from AI');
+      }
+      
+      const assistantMessage = {
+        conversation_id: conversation.id,
+        role: 'assistant',
+        content: result.content,
+        timestamp: new Date().toISOString()
+      };
+      
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Missing Supabase environment variables');
+      }
+      
+      const saveResponse = await fetch(
+        `${supabaseUrl}/rest/v1/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(assistantMessage)
+        }
+      );
+      
+      if (!saveResponse.ok) {
+        const errorText = await saveResponse.text();
+        console.error('Error saving message:', errorText);
+        throw new Error(`Error saving message: ${saveResponse.status} ${saveResponse.statusText}`);
+      }
+      
+      const savedMessages = await saveResponse.json();
+      if (!savedMessages || !savedMessages[0]) {
+        throw new Error('Failed to save message - no data returned');
+      }
+      
+      const savedAssistantMessage = savedMessages[0];
+      
+      console.log('Initial message saved to database');
+      setMessages([savedAssistantMessage]);
+    } catch (error: any) {
+      console.error('Error generating initial message:', error.message);
+      setError(`Failed to generate initial message: ${error.message}`);
+    } finally {
+      setGeneratingInitialMessage(false);
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!userInput.trim() || !conversation || sendingMessage || !supabase || !user) return;
@@ -346,7 +335,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       setSendingMessage(true);
       const userInputText = userInput.trim();
       
-      // Prepare user message
       const userMessage = {
         conversation_id: conversation.id,
         role: 'user',
@@ -354,7 +342,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         timestamp: new Date().toISOString()
       };
       
-      // Get Supabase credentials for direct fetch
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
       
@@ -362,7 +349,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         throw new Error('Missing Supabase environment variables');
       }
       
-      // Save user message with direct fetch
       const userMessageResponse = await fetch(
         `${supabaseUrl}/rest/v1/messages`,
         {
@@ -395,16 +381,13 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       setMessages(updatedMessages);
       setUserInput('');
       
-      // Get story context for AI response
       const storyContext = await getStoryContextFromConversation(conversation, storyData);
       console.log('Story context for response:', storyContext);
       
-      // Set current chapter name for modal
       if (storyContext.chapterName) {
         setCurrentChapterName(storyContext.chapterName);
       }
       
-      // Create temporary message for streaming
       const tempAiMessage: Message = {
         id: `temp-streaming-${Date.now()}`,
         conversation_id: conversation.id,
@@ -422,7 +405,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         content: msg.content
       }));
       
-      // Get previous chapter messages if not on first chapter
       let previousChapterMessages: Array<{role: string, content: string}> = [];
       let previousChapterSummary = '';
       
@@ -431,7 +413,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         const prevChapterId = String(currentChapterIndex - 1);
         console.log(`Fetching previous chapter (${prevChapterId}) messages for continuity`);
         
-        // Get messages from previous chapter
         previousChapterMessages = await getPreviousChapterMessages(
           supabase,
           conversation.world_id,
@@ -439,7 +420,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
           prevChapterId
         );
         
-        // Create a summary from those messages
         if (previousChapterMessages.length > 0) {
           previousChapterSummary = formatPreviousChapterSummary(previousChapterMessages);
           console.log(`Included previous chapter summary (${previousChapterSummary.length} chars) for continuity`);
@@ -450,7 +430,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         console.log('First chapter - no previous context to include');
       }
       
-      // Get AI response
       const result = await streamAIResponse(
         userInputText,
         storyContext,
@@ -467,19 +446,16 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         previousChapterMessages
       );
       
-      // Debug objective completion
       console.log('AI Response completed. Objective status:', {
         objectiveCompleted: result.objectiveCompleted,
         objective: storyContext.chapterObjective
       });
       
-      // Check if objective is completed
       if (result.objectiveCompleted) {
         console.log('Chapter objective completed! Showing completion modal.');
         setShowCompletionModal(true);
       }
       
-      // Prepare AI message
       const assistantMessage = {
         conversation_id: conversation.id,
         role: 'assistant',
@@ -487,7 +463,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         timestamp: new Date().toISOString()
       };
       
-      // Save AI message with direct fetch
       const assistantMessageResponse = await fetch(
         `${supabaseUrl}/rest/v1/messages`,
         {
@@ -516,7 +491,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       
       const savedAssistantMessage = savedAssistantMessageArray[0];
       
-      // Update displayed messages with saved AI message
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === tempAiMessage.id 
@@ -553,9 +527,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
     try {
       if (!user || !conversation) return;
       
-      // Critical: We need to ensure the chapter_id is consistent with how it's used in the story page
-      // In the chapter page, the chapter_id seems to be the chapter index as a string
-      // Let's make sure we're using the exact same format
       const chapterId = conversation.chapter_id;
       
       console.log('Marking chapter as completed:', {
@@ -565,7 +536,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         rawConversationChapterId: conversation.chapter_id
       });
       
-      // Call the chapter-progress API with the exact chapter ID format from the conversation
       const response = await fetch('/api/chapter-progress', {
         method: 'POST',
         headers: {
@@ -587,10 +557,8 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       
       console.log('Chapter marked as completed, ID:', chapterId);
       
-      // Close modal and redirect to story page
       setShowCompletionModal(false);
       
-      // Redirect to story page if we have story data
       if (storyData?.id) {
         router.push(`/story/${storyData.id}`);
       }
@@ -602,20 +570,20 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
   return (
     <div className="flex flex-col h-full bg-black">
       {/* Minimal Story Header */}
-      <div className="bg-gradient-to-b from-[#1a0a1f] to-black border-b border-pink-900/30 px-8 py-6">
+      <div className="bg-gradient-to-b from-[#1a0a1f] to-black border-b border-pink-900/30 px-4 md:px-8 py-3 md:py-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between">
             <button
               onClick={handleBackToChapters}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#1a0a1f] to-[#2a0a2f] hover:from-[#2a0a2f] hover:to-[#3a0a3f] text-pink-300 border border-pink-900/30 hover:border-pink-800/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.1)] transition-all duration-300"
+              className="px-2 md:px-4 py-1.5 md:py-2 rounded-lg bg-gradient-to-r from-[#1a0a1f] to-[#2a0a2f] hover:from-[#2a0a2f] hover:to-[#3a0a3f] text-pink-300 border border-pink-900/30 hover:border-pink-800/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.1)] transition-all duration-300 text-sm md:text-base"
             >
-              ← Back to Chapters
+              ← Back
             </button>
-            <div className="flex flex-col items-center text-center space-y-2">
-              <h1 className="text-2xl font-light text-pink-200 tracking-wider">
+            <div className="flex flex-col items-center text-center space-y-1 md:space-y-2">
+              <h1 className="text-lg md:text-2xl font-light text-pink-200 tracking-wider">
                 {storyData?.world_name || 'Loading story...'}
               </h1>
-              <div className="text-sm text-pink-300/60 font-light tracking-widest uppercase">
+              <div className="text-xs md:text-sm text-pink-300/60 font-light tracking-widest uppercase">
                 {chapterIndex !== null && chapterIndex >= 0 && storyData?.chapters ? (
                   `Chapter ${chapterIndex + 1}: ${storyData.chapters[chapterIndex].chapterName}`
                 ) : (
@@ -623,30 +591,30 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                 )}
               </div>
             </div>
-            <div className="w-[104px]"></div> {/* Spacer to balance the header */}
+            <div className="w-[60px] md:w-[104px]"></div>
           </div>
         </div>
       </div>
 
       {/* Chapter Objective Section */}
       {chapterIndex !== null && chapterIndex >= 0 && storyData?.chapters && storyData.chapters[chapterIndex].objective && (
-        <div className="bg-gradient-to-b from-[#1a0a1f]/80 to-black/80 border-b border-pink-900/30 px-8 py-4">
+        <div className="bg-gradient-to-b from-[#1a0a1f]/80 to-black/80 border-b border-pink-900/30 px-4 md:px-8 py-2 md:py-4">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-pink-900/20 border border-pink-800/30 rounded-xl p-3 flex items-center justify-between">
+            <div className="bg-pink-900/20 border border-pink-800/30 rounded-lg md:rounded-xl p-2 md:p-3 flex items-center justify-between">
               <div className="flex items-center">
-                <div className="w-6 h-6 rounded-full bg-pink-800/40 flex items-center justify-center text-pink-300 mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-pink-800/40 flex items-center justify-center text-pink-300 mr-2 md:mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 md:h-4 md:w-4" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                 </div>
                 <div>
-                  <div className="text-xs text-pink-400 font-medium uppercase tracking-wider mb-1">Chapter Objective</div>
-                  <div className="text-pink-200 font-light">{storyData.chapters[chapterIndex].objective}</div>
+                  <div className="text-[10px] md:text-xs text-pink-400 font-medium uppercase tracking-wider mb-0.5 md:mb-1">Chapter Objective</div>
+                  <div className="text-pink-200 font-light text-xs md:text-sm">{storyData.chapters[chapterIndex].objective}</div>
                 </div>
               </div>
               <button 
                 onClick={() => setShowObjectiveModal(true)}
-                className="ml-4 w-6 h-6 rounded-full bg-pink-800/30 text-pink-300 flex items-center justify-center hover:bg-pink-700/40 transition-all flex-shrink-0"
+                className="ml-2 md:ml-4 w-5 h-5 md:w-6 md:h-6 rounded-full bg-pink-800/30 text-pink-300 flex items-center justify-center hover:bg-pink-700/40 transition-all flex-shrink-0 text-xs md:text-sm"
                 aria-label="More information about objectives"
               >
                 ?
@@ -701,11 +669,9 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                     </div>
                     <div className="prose prose-invert max-w-none">
                       {(() => {
-                        // Function to process text and apply formatting
                         const processFormattedText = (text: string) => {
                           const segments: React.ReactNode[] = [];
                           
-                          // Process quotes first (bold)
                           const processQuotes = (inputText: string) => {
                             const quoteParts: React.ReactNode[] = [];
                             const quoteRegex = /"([^"]+)"/g;
@@ -727,7 +693,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                             return quoteParts;
                           };
                           
-                          // Process double asterisks (bold)
                           const processBold = (inputText: React.ReactNode) => {
                             if (typeof inputText !== 'string') return [inputText];
                             
@@ -751,10 +716,8 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                             return boldParts;
                           };
                           
-                          // Process single asterisks (italic)
                           const processItalic = (inputText: React.ReactNode) => {
-                            if (typeof inputText !== 
-                            'string') return [inputText];
+                            if (typeof inputText !== 'string') return [inputText];
                             
                             const italicParts: React.ReactNode[] = [];
                             const italicRegex = /\*([^*]+)\*/g;
@@ -773,13 +736,12 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                               italicParts.push(inputText.toString().substring(lastIndex));
                             }
                             
-                            return italicParts;
+                            return ital
+                            icParts;
                           };
                           
-                          // Apply formatting in sequence
                           let currentSegments: React.ReactNode[] = [text];
                           
-                          // Process quotes
                           let newSegments: React.ReactNode[] = [];
                           for (const segment of currentSegments) {
                             if (typeof segment === 'string') {
@@ -790,7 +752,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                           }
                           currentSegments = newSegments;
                           
-                          // Process bold
                           newSegments = [];
                           for (const segment of currentSegments) {
                             if (typeof segment === 'string') {
@@ -801,7 +762,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                           }
                           currentSegments = newSegments;
                           
-                          // Process italic
                           newSegments = [];
                           for (const segment of currentSegments) {
                             if (typeof segment === 'string') {
@@ -815,14 +775,11 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                         };
                         
                         return message.content.split('\n').map((paragraph, index) => {
-                          // Check if this paragraph is character dialogue with name (starts with a character name followed by a colon)
                           const namedDialogueMatch = paragraph.match(/^([A-Za-z\s]+):\s*(.+)$/);
                           
                           if (namedDialogueMatch) {
-                            // It's character dialogue with explicit name
                             const [_, characterName, dialogue] = namedDialogueMatch;
                             
-                            // Format the dialogue text
                             const formattedParts = processFormattedText(dialogue);
                             
                             return (
@@ -835,8 +792,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                               </p>
                             );
                           } else if (paragraph.trim()) {
-                            // Regular paragraph with content
-                            // Use the same formatting function for consistency
                             const formattedParts = processFormattedText(paragraph);
                             
                             return (
@@ -845,7 +800,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                               </p>
                             );
                           } else {
-                            // Empty paragraph (just a line break)
                             return <br key={index} />;
                           }
                         });
