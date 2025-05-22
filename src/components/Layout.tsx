@@ -48,20 +48,21 @@ const Layout = ({ children }: LayoutProps) => {
               <nav className="hidden md:flex space-x-6">
                 <Link 
                   href="/" 
-                  className={`relative group flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-[#EC444B]/10 ${isHomePage ? 'after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#EC444B]' : ''}`}
+                  className={`relative group flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${
+                    isHomePage ? 'text-white bg-[#EC444B]/10 shadow-[0_0_15px_rgba(236,68,75,0.15)]' : 'text-gray-400 hover:text-white hover:bg-[#EC444B]/5'
+                  }`}
                 >
-                 
-                  <span className={`transition-colors duration-300 ${isHomePage ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>Explore</span>
-                  <div className="absolute inset-0 border border-[#EC444B]/0 rounded-lg group-hover:border-[#EC444B]/20 transition-all duration-300"></div>
+                  <span>Explore</span>
                 </Link>
                 
                 {user && (
                   <Link 
                     href="/stories" 
-                    className={`relative group flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-[#EC444B]/10 ${pathname === '/stories' ? 'after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#EC444B]' : ''}`}
+                    className={`relative group flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${
+                      pathname === '/stories' ? 'text-white bg-[#EC444B]/10 shadow-[0_0_15px_rgba(236,68,75,0.15)]' : 'text-gray-400 hover:text-white hover:bg-[#EC444B]/5'
+                    }`}
                   >
-                    <span className={`transition-colors duration-300 ${pathname === '/stories' ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>Stories</span>
-                    <div className="absolute inset-0 border border-[#EC444B]/0 rounded-lg group-hover:border-[#EC444B]/20 transition-all duration-300"></div>
+                    <span>Stories</span>
                   </Link>
                 )}
               </nav>
@@ -78,7 +79,9 @@ const Layout = ({ children }: LayoutProps) => {
                     {/* Account Link - Icon on mobile, text on desktop */}
                     <Link 
                       href="/account"
-                      className={`bg-transparent border border-[#EC444B] text-white rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10 flex items-center justify-center ${pathname === '/account' ? 'bg-[#EC444B]/10' : ''}`}
+                      className={`bg-transparent border border-[#EC444B] text-white rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10 flex items-center justify-center ${
+                        pathname === '/account' ? 'bg-[#EC444B]/10 shadow-[0_0_15px_rgba(236,68,75,0.15)]' : ''
+                      }`}
                     >
                       <span className="hidden sm:block px-4 py-2">Account</span>
                       <span className="sm:hidden w-9 h-9 flex items-center justify-center">
