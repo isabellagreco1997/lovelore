@@ -97,7 +97,7 @@ const Auth = () => {
             <div className="absolute left-2 -bottom-2 animate-float-3">🤍</div>
             <div className="absolute right-8 -top-6 animate-float-4">🤍</div>
             
-            <h2 className="text-[3.5rem] leading-[1] mb-2 font-bold tracking-tight uppercase">
+            <h2 className="text-[3.5rem] leading-[0.9] mb-2 font-bold tracking-tight uppercas">
               MAKE YOUR FANTASIES <span className="text-[#EC444B]">TRUE</span>
             </h2>
             <p className="text-sm text-gray-400 font-light">
