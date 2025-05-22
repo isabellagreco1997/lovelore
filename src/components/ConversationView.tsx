@@ -580,7 +580,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
               ← Back
             </button>
             <div className="flex flex-col items-center text-center space-y-1 md:space-y-2">
-              <h1 className="text-lg md:text-2xl font-light text-pink-200 tracking-wider">
+              <h1 className="text-sm md:text-2xl font-light text-pink-200 tracking-wider">
                 {storyData?.world_name || 'Loading story...'}
               </h1>
               <div className="text-xs md:text-sm text-pink-300/60 font-light tracking-widest uppercase">
