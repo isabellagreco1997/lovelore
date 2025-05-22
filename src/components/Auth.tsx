@@ -10,9 +10,36 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordValidation, setPasswordValidation] = useState({
+    length: false,
+    number: false,
+    special: false,
+    uppercase: false
+  });
 
   const { signIn, signUp } = useUser();
   const supabase = useSupabase();
+
+  const validatePassword = (value: string) => {
+    setPasswordValidation({
+      length: value.length >= 8,
+      number: /\d/.test(value),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(value),
+      uppercase: /[A-Z]/.test(value)
+    });
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    if (!isLogin) {
+      validatePassword(value);
+    }
+  };
+
+  const isPasswordValid = () => {
+    return Object.values(passwordValidation).every(Boolean);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +52,9 @@ const Auth = () => {
         if (error) throw error;
         window.location.href = '/';
       } else {
+        if (!isPasswordValid()) {
+          throw new Error('Please meet all password requirements');
+        }
         const { error } = await signUp(email, password);
         if (error) throw error;
       }
@@ -142,23 +172,49 @@ const Auth = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your email address"
-              className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm md:text-base"
+              className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#EC444B] focus:border-transparent text-sm md:text-base"
               required
             />
 
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={isLogin ? "Enter your password" : "Create a password"}
-              className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm md:text-base"
-              required
-            />
+            <div className="space-y-2">
+              <input
+                type="password"
+                value={password}
+                onChange={handlePasswordChange}
+                placeholder={isLogin ? "Enter your password" : "Create a password"}
+                className="w-full bg-black/40 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#EC444B] focus:border-transparent text-sm md:text-base"
+                required
+              />
+
+              {!isLogin && (
+                <div className="space-y-2 text-xs">
+                  <p className="text-gray-400">Password requirements:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className={`flex items-center space-x-2 ${passwordValidation.length ? 'text-[#EC444B]' : 'text-gray-500'}`}>
+                      <span>{passwordValidation.length ? '✓' : '○'}</span>
+                      <span>8+ characters</span>
+                    </div>
+                    <div className={`flex items-center space-x-2 ${passwordValidation.uppercase ? 'text-[#EC444B]' : 'text-gray-500'}`}>
+                      <span>{passwordValidation.uppercase ? '✓' : '○'}</span>
+                      <span>Uppercase letter</span>
+                    </div>
+                    <div className={`flex items-center space-x-2 ${passwordValidation.number ? 'text-[#EC444B]' : 'text-gray-500'}`}>
+                      <span>{passwordValidation.number ? '✓' : '○'}</span>
+                      <span>Number</span>
+                    </div>
+                    <div className={`flex items-center space-x-2 ${passwordValidation.special ? 'text-[#EC444B]' : 'text-gray-500'}`}>
+                      <span>{passwordValidation.special ? '✓' : '○'}</span>
+                      <span>Special character</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-white text-black rounded-xl px-4 py-3 font-medium hover:bg-gray-100 transition-colors text-sm md:text-base"
+              disabled={loading || (!isLogin && !isPasswordValid())}
+              className="w-full bg-white text-black rounded-xl px-4 py-3 font-medium hover:bg-gray-100 transition-colors text-sm md:text-base disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               {loading ? 'Processing...' : 'Continue'}
             </button>
