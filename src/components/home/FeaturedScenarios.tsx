@@ -10,7 +10,7 @@ interface FeaturedScenariosProps {
 const FeaturedScenarios = ({ stories, loading }: FeaturedScenariosProps) => (
   <div className="relative py-24 px-4 sm:px-6 lg:px-8">
     <div className="max-w-7xl mx-auto">
-      <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+      <h2 className="text-[3.5rem] leading-[0.9] mb-2 font-bold tracking-tight uppercase"">
         Try out one of these scenarios
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
