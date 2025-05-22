@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import ChapterCompletionModal from './ChapterCompletionModal';
 
-function ConversationView({ messages, userInput, sendingMessage, handleInputChange, handleKeyDown, handleSendMessage, showCompletionModal, setShowCompletionModal, handleMarkChapterCompleted, currentChapterName }) {
+function ConversationView({ messages, userInput = '', sendingMessage, handleInputChange, handleKeyDown, handleSendMessage, showCompletionModal, setShowCompletionModal, handleMarkChapterCompleted, currentChapterName }) {
   const messagesEndRef = useRef(null);
 
   const processFormattedText = (text) => {
@@ -91,9 +91,7 @@ function ConversationView({ messages, userInput, sendingMessage, handleInputChan
                     } p-4 md:p-6`}
                   >
                     <div className="prose prose-invert">
-                      {(() => {
-                        return processFormattedText(message.content);
-                      })()}
+                      {processFormattedText(message.content)}
                     </div>
                   </div>
                 </div>
@@ -118,9 +116,9 @@ function ConversationView({ messages, userInput, sendingMessage, handleInputChan
             />
             <button
               onClick={handleSendMessage}
-              disabled={!userInput.trim() || sendingMessage}
+              disabled={!userInput?.trim() || sendingMessage}
               className={`px-6 rounded-xl ${
-                userInput.trim() && !sendingMessage
+                userInput?.trim() && !sendingMessage
                   ? 'bg-gradient-to-r from-pink-800 to-purple-800 hover:from-pink-700 hover:to-purple-700 text-white'
                   : 'bg-pink-900/20 text-pink-300/50 cursor-not-allowed'
               } transition-all duration-300`}
