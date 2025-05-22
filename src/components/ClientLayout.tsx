@@ -11,18 +11,23 @@ interface ClientLayoutProps {
 
 const ClientLayout = ({ children }: ClientLayoutProps) => {
   useStripeSync();
-  const { user } = useUser();
+  const { user, loading } = useUser();
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    if (user) {
+    // Only check for modal after authentication is complete
+    if (!loading && user) {
       const hasSeenModal = localStorage.getItem('hasSeenSubscriptionModal');
       if (!hasSeenModal) {
-        setShowModal(true);
-        localStorage.setItem('hasSeenSubscriptionModal', 'true');
+        // Add a small delay to ensure smooth transition
+        const timer = setTimeout(() => {
+          setShowModal(true);
+          localStorage.setItem('hasSeenSubscriptionModal', 'true');
+        }, 1000);
+        return () => clearTimeout(timer);
       }
     }
-  }, [user]);
+  }, [user, loading]);
 
   return (
     <>
