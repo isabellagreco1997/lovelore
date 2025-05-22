@@ -736,8 +736,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                               italicParts.push(inputText.toString().substring(lastIndex));
                             }
                             
-                            return ital
-                            icParts;
+                            return italicParts;
                           };
                           
                           let currentSegments: React.ReactNode[] = [text];
