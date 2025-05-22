@@ -84,11 +84,11 @@ const Layout = ({ children }: LayoutProps) => {
                       }`}
                     >
                       <span className="hidden sm:flex items-center space-x-2 px-4 py-2">
-                        <span>👤</span>
+                        <span className="text-white">⚪</span>
                         <span>Account</span>
                       </span>
                       <span className="sm:hidden w-9 h-9 flex items-center justify-center">
-                        👤
+                        <span className="text-white">⚪</span>
                       </span>
                     </Link>
 
@@ -98,11 +98,11 @@ const Layout = ({ children }: LayoutProps) => {
                       className="bg-transparent border border-[#EC444B] text-white rounded-md text-sm font-medium transition-all duration-300 hover:bg-[#EC444B]/10 flex items-center justify-center"
                     >
                       <span className="hidden sm:flex items-center space-x-2 px-4 py-2">
-                        <span>🚪</span>
+                        <span className="text-white">⇲</span>
                         <span>Sign Out</span>
                       </span>
                       <span className="sm:hidden w-9 h-9 flex items-center justify-center">
-                        🚪
+                        <span className="text-white">⇲</span>
                       </span>
                     </button>
                   </>
