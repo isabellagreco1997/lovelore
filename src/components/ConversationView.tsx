@@ -239,7 +239,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         previousChapterMessages = await getPreviousChapterMessages(
           supabase,
           conversation.world_id,
-          user.id,
+          user!.id,
           prevChapterId
         );
         
@@ -729,7 +729,8 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                                 italicParts.push(inputText.toString().substring(lastIndex, italicMatch.index));
                               }
                               italicParts.push(<em key={`i-${italicMatch.index}`}>{italicMatch[1]}</em>);
-                              lastIndex = italicMatch.index + italicMatch[0].length;
+                              last
+Index = italicMatch.index + italicMatch[0].length;
                             }
                             
                             if (lastIndex < inputText.toString().length) {
@@ -901,5 +902,3 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
 }
 
 export default ConversationView;
-
-export default ConversationView
