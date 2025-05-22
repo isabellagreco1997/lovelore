@@ -91,11 +91,11 @@ const Auth = () => {
           </div>
 
           <div className="mb-8 relative">
-            {/* Floating hearts */}
-            <div className="absolute -left-4 -top-4 animate-float-1">🤍</div>
-            <div className="absolute -right-2 top-2 animate-float-2">🤍</div>
-            <div className="absolute left-2 -bottom-2 animate-float-3">🤍</div>
-            <div className="absolute right-8 -top-6 animate-float-4">🤍</div>
+            {/* Static hearts */}
+            <div className="absolute -left-4 -top-4">🤍</div>
+            <div className="absolute -right-2 top-2">🤍</div>
+            <div className="absolute left-2 -bottom-2">🤍</div>
+            <div className="absolute right-8 -top-6">🤍</div>
             
             <h2 className="text-[3.5rem] leading-[0.9] mb-2 font-bold tracking-tight uppercase">
               MAKE YOUR FANTASIES <span className="text-[#EC444B]">TRUE</span>
