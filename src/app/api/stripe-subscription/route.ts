@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 
+export const dynamic = "force-dynamic";
+
 // Use test keys in development, otherwise use production keys
 const secretKey = process.env.NODE_ENV === 'development'
   ? process.env.STRIPE_TEST_SECRET_KEY

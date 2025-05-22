@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/Layout';
 import useUser from '@/hooks/useUser';
@@ -10,19 +10,31 @@ import SubscriptionManager from '@/components/account/SubscriptionManager';
 import AccountSecurity from '@/components/account/AccountSecurity';
 import ProfileSection from '@/components/account/ProfileSection';
 
-const AccountPage = () => {
-  const { user, loading } = useUser();
-  const supabase = useSupabase();
+// Extract the part that uses useSearchParams into a separate component
+const TabHandler = ({ setActiveTab }: { setActiveTab: (tab: 'profile' | 'subscription' | 'security') => void }) => {
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'profile' | 'subscription' | 'security'>('profile');
-
+  
   // Read tab parameter from URL
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam === 'subscription' || tabParam === 'security' || tabParam === 'profile') {
       setActiveTab(tabParam);
     }
-  }, [searchParams]);
+  }, [searchParams, setActiveTab]);
+  
+  return null; // This component doesn't render anything
+};
+
+const AccountPage = () => {
+  const { user, loading } = useUser();
+  const supabase = useSupabase();
+  const [activeTab, setActiveTab] = useState<'profile' | 'subscription' | 'security'>('profile');
+
+  // Suspense boundary around the component that uses useSearchParams
+  useEffect(() => {
+    // Set default tab (in case there's no URL param)
+    setActiveTab('profile');
+  }, []);
 
   if (loading) {
     return (
@@ -40,6 +52,9 @@ const AccountPage = () => {
 
   return (
     <Layout>
+      <Suspense fallback={null}>
+        <TabHandler setActiveTab={setActiveTab} />
+      </Suspense>
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 overflow-hidden">
           <div className="border-b border-gray-800">
