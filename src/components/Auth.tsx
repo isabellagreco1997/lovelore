@@ -94,7 +94,7 @@ const Auth = () => {
             {/* Static hearts and chat bubble */}
             <div className="absolute -left-4 -top-4">🤍</div>
             <div className="absolute -right-2 top-2">💭</div>
-            <div className="absolute left-2 -bottom-3">🤍</div>
+            <div className="absolute left-2 -bottom-6">🤍</div>
             <div className="absolute right-8 -top-6">🤍</div>
             
             <h2 className="text-[3.5rem] leading-[0.9] mb-2 font-bold tracking-tight uppercase">
