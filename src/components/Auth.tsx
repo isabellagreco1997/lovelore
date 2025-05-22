@@ -101,7 +101,7 @@ const Auth = () => {
               MAKE YOUR FANTASIES <span className="text-[#EC444B]">TRUE</span>
             </h2>
             <p className="text-sm text-gray-400 font-light">
-              Dive into interactive stories that come alive
+              Dive into interactive stories that come alive - instantly create captivation fiction with our AI story writer
             </p>
           </div>
 
