@@ -90,9 +90,8 @@ const Auth = () => {
             />
           </div>
 
-          <div className="text-white text-[80px] leading-[0.8] font-black px-[21px] w-full opacity-100 z-20 self-end"
-      style={{ fontFamily: 'Pg-Black' }}>
-            <h2 className="text-[2.5rem] leading-[1.1] font-bold text-white mb-2 tracking-tight">
+          <div className="mb-8">
+            <h2 className="text-[3.5rem] leading-[1] mb-2 text-white" style={{ fontFamily: 'Archivo Black' }}>
               Make Your Fantasies True
             </h2>
             <p className="text-xl text-gray-400 font-light">
