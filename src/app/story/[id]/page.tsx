@@ -440,7 +440,7 @@ export default function StoryPage() {
                                 </span>
                               ) : (
                                 <span className="inline-block px-2 py-1 rounded-full text-xs bg-purple-900/30 text-purple-300 border border-purple-700/50">
-                                  Ready
+                                  Not Completed
                                 </span>
                               )}
                             </div>
