@@ -50,7 +50,7 @@ const Layout = ({ children }: LayoutProps) => {
                   href="/" 
                   className={`relative group flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-[#EC444B]/10 ${isHomePage ? 'after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-[#EC444B]' : ''}`}
                 >
-                  <span className="text-[#EC444B] group-hover:scale-110 transition-transform duration-300">✧</span>
+                 
                   <span className={`transition-colors duration-300 ${isHomePage ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>Explore</span>
                   <div className="absolute inset-0 border border-[#EC444B]/0 rounded-lg group-hover:border-[#EC444B]/20 transition-all duration-300"></div>
                 </Link>
