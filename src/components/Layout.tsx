@@ -48,7 +48,7 @@ const Layout = ({ children }: LayoutProps) => {
               {user && (
                 <nav className="hidden md:flex space-x-6">
                   <Link 
-                    href="/story" 
+                    href="/stories" 
                     className="relative group flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-[#EC444B]/10"
                   >
                     <span className="text-[#EC444B] group-hover:scale-110 transition-transform duration-300">✦</span>
@@ -148,7 +148,7 @@ const Layout = ({ children }: LayoutProps) => {
                 <h3 className="text-white font-semibold mb-4">Quick Links</h3>
                 <ul className="space-y-2">
                   <li>
-                    <Link href="/story" className="text-gray-400 hover:text-white transition-colors">
+                    <Link href="/stories" className="text-gray-400 hover:text-white transition-colors">
                       Browse Stories
                     </Link>
                   </li>
