@@ -65,34 +65,52 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
 
   if (loading) {
     return (
-      <div className="space-y-8 animate-pulse">
+      <div className="space-y-8">
         <div className="flex items-center">
           <div className="w-8 h-8 rounded-full bg-[#EC444B]/20"></div>
-          <div className="h-8 w-48 bg-gray-800 rounded ml-3"></div>
+          <div className="ml-3 h-6 w-36 bg-gray-800/50 rounded"></div>
         </div>
         
         <div className="bg-black/40 border border-gray-800 rounded-xl p-6">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-lg bg-[#EC444B]/10"></div>
-            <div className="flex-1 space-y-3">
-              <div className="h-4 w-24 bg-gray-800 rounded"></div>
-              <div className="h-5 w-48 bg-gray-800 rounded"></div>
+            <div className="p-3 bg-[#EC444B]/10 rounded-lg">
+              <div className="w-6 h-6 bg-[#EC444B]/20 rounded"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-24 bg-gray-800/50 rounded"></div>
+              <div className="h-5 w-48 bg-gray-800/50 rounded"></div>
             </div>
           </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[1, 2].map((i) => (
-            <div key={i} className="bg-black/40 border border-gray-800 rounded-xl p-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-lg bg-[#EC444B]/10"></div>
-                <div className="flex-1 space-y-3">
-                  <div className="h-4 w-24 bg-gray-800 rounded"></div>
-                  <div className="h-5 w-36 bg-gray-800 rounded"></div>
-                </div>
+          <div className="bg-black/40 border border-gray-800 rounded-xl p-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-[#EC444B]/10 rounded-lg">
+                <div className="w-6 h-6 bg-[#EC444B]/20 rounded"></div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-24 bg-gray-800/50 rounded"></div>
+                <div className="h-5 w-36 bg-gray-800/50 rounded"></div>
               </div>
             </div>
-          ))}
+          </div>
+          
+          <div className="bg-black/40 border border-gray-800 rounded-xl p-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-[#EC444B]/10 rounded-lg">
+                <div className="w-6 h-6 bg-[#EC444B]/20 rounded"></div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-24 bg-gray-800/50 rounded"></div>
+                <div className="h-5 w-36 bg-gray-800/50 rounded"></div>
+              </div>
+            </div>
+            <div className="mt-4 space-y-2">
+              <div className="h-6 w-24 bg-gray-800/50 rounded-full"></div>
+              <div className="h-4 w-32 bg-gray-800/50 rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
