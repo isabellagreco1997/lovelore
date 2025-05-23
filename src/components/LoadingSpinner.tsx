@@ -314,4 +314,4 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return null;
 };
 
-export default LoadingSpinner; 
+export default LoadingSpinner;
