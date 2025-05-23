@@ -64,8 +64,15 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
   };
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold text-white mb-6">Profile Information</h2>
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+        <span className="w-8 h-8 mr-3 rounded-full bg-[#EC444B] flex items-center justify-center shadow-sm">
+          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </span>
+        Profile Information
+      </h2>
       
       {/* Email Card */}
       <div className="bg-black/40 border border-gray-800 rounded-xl p-6 mb-6 hover:border-[#EC444B]/50 transition-colors duration-300">
