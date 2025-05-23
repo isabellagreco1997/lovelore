@@ -1,5 +1,5 @@
-import { User } from '@supabase/supabase-js';
 import { useState, useEffect } from 'react';
+import { User } from '@supabase/supabase-js';
 import useSupabase from '@/hooks/useSupabase';
 import LoadingSpinner from '../LoadingSpinner';
 
@@ -63,6 +63,41 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-8 animate-pulse">
+        <div className="flex items-center">
+          <div className="w-8 h-8 rounded-full bg-[#EC444B]/20"></div>
+          <div className="h-8 w-48 bg-gray-800 rounded ml-3"></div>
+        </div>
+        
+        <div className="bg-black/40 border border-gray-800 rounded-xl p-6">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-lg bg-[#EC444B]/10"></div>
+            <div className="flex-1 space-y-3">
+              <div className="h-4 w-24 bg-gray-800 rounded"></div>
+              <div className="h-5 w-48 bg-gray-800 rounded"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-black/40 border border-gray-800 rounded-xl p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-lg bg-[#EC444B]/10"></div>
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-24 bg-gray-800 rounded"></div>
+                  <div className="h-5 w-36 bg-gray-800 rounded"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
@@ -74,7 +109,6 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
         Profile Information
       </h2>
       
-      {/* Email Card */}
       <div className="bg-black/40 border border-gray-800 rounded-xl p-6 mb-6 hover:border-[#EC444B]/50 transition-colors duration-300">
         <div className="flex items-center space-x-4">
           <div className="p-3 bg-[#EC444B]/10 rounded-lg">
@@ -92,7 +126,6 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Member Since Card */}
         <div className="bg-black/40 border border-gray-800 rounded-xl p-6 hover:border-[#EC444B]/50 transition-colors duration-300">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-[#EC444B]/10 rounded-lg">
@@ -113,7 +146,6 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
           </div>
         </div>
 
-        {/* Subscription Status Card */}
         <div className="bg-black/40 border border-gray-800 rounded-xl p-6 hover:border-[#EC444B]/50 transition-colors duration-300">
           <div className="flex items-center space-x-4 mb-3">
             <div className="p-3 bg-[#EC444B]/10 rounded-lg">
@@ -123,29 +155,13 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
             </div>
             <div>
               <div className="text-sm text-gray-400 mb-1">Subscription</div>
-              {loading ? (
-                <LoadingSpinner
-                  variant="pulse"
-                  size="sm"
-                  className="h-5 w-20"
-                />
-              ) : (
-                <div className="text-white font-medium">
-                  {subscription ? 'Active Plan' : 'No Active Plan'}
-                </div>
-              )}
+              <div className="text-white font-medium">
+                {subscription ? 'Active Plan' : 'No Active Plan'}
+              </div>
             </div>
           </div>
 
-          {loading ? (
-            <LoadingSpinner
-              variant="pulse"
-              size="md"
-              className="h-10 w-full"
-            />
-          ) : error ? (
-            <div className="text-red-400 text-sm">Failed to load subscription status</div>
-          ) : subscription ? (
+          {subscription ? (
             <div className="space-y-2">
               <div className={`text-sm px-3 py-1 rounded-full inline-block ${getStatusColor(subscription.subscription_status)}`}>
                 {subscription.subscription_status.charAt(0).toUpperCase() + subscription.subscription_status.slice(1)}

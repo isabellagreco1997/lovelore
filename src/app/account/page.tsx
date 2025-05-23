@@ -36,13 +36,28 @@ const AccountPage = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen flex justify-center items-center">
-          <LoadingSpinner
-            variant="spinner"
-            size="xl"
-            theme="pink"
-            center={true}
-          />
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 overflow-hidden">
+            <div className="border-b border-gray-800">
+              <nav className="flex animate-pulse">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="px-4 py-3">
+                    <div className="h-4 w-20 bg-gray-800 rounded"></div>
+                  </div>
+                ))}
+              </nav>
+            </div>
+            <div className="p-6">
+              <LoadingSpinner
+                variant="skeleton"
+                skeleton={{
+                  lines: 4,
+                  height: "h-[400px]"
+                }}
+                className="bg-black/40 rounded-xl border border-gray-800"
+              />
+            </div>
+          </div>
         </div>
       </Layout>
     );
