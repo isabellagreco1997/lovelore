@@ -173,8 +173,9 @@ export default function Home() {
         const { data, error } = await supabase
           .from('stripe_user_subscriptions')
           .select('subscription_status')
-          .eq('user_id', user.id)
           .single();
+
+          console.log('subscription_status', data?.subscription_status);
 
         if (error && error.code !== 'PGRST116') {
           console.error('Error checking subscription:', error);
