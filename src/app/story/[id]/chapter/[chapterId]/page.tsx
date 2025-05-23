@@ -30,6 +30,39 @@ export default function ChapterPage() {
   const [worldCreationInProgress, setWorldCreationInProgress] = useState(false);
   const [processingStep, setProcessingStep] = useState<'loading' | 'creating-world' | 'initializing' | 'generating'>('loading');
   const isCreatingWorldRef = useRef(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [chapterProgress, setChapterProgress] = useState<Record<string, boolean>>({});
+
+  // Animation state for cycling phrases
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  
+  const generatingPhrases = [
+    'Curating Your Story',
+    'Dressing your main character in today\'s drama',
+    'Whispering secrets to your favorite character',
+    'Assigning star signs to your cast',
+    'Giving your heroine her signature hairstyle',
+    'Spawning emotional damage for character growth',
+    'Writing flirty comebacks for your love interest',
+    'Selecting enemies to lovers intensity level',
+    'Testing if your sidekick is chaotic good or just chaotic'
+  ];
+
+  // Cycle through phrases every 3 seconds when in generating step
+  useEffect(() => {
+    if (processingStep !== 'generating') return;
+    
+    const interval = setInterval(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentPhraseIndex((prev) => (prev + 1) % generatingPhrases.length);
+        setIsAnimating(false);
+      }, 150); // Half of the transition time for smooth effect
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [processingStep]);
 
   useEffect(() => {
     if (!supabase || !id || dataFetched || userLoading) return;
@@ -61,6 +94,19 @@ export default function ChapterPage() {
         const chaptersArray = Array.isArray(story.chapters) 
           ? story.chapters 
           : (story.chapters?.chapters || []);
+
+        // Check if user can access this chapter
+        const chapterIdValue = Array.isArray(chapterId) ? chapterId[0] : chapterId;
+        const currentChapterIndex = parseInt(chapterIdValue);
+        
+        // Validate chapter index
+        if (isNaN(currentChapterIndex) || currentChapterIndex < 0 || currentChapterIndex >= chaptersArray.length) {
+          throw new Error('Invalid chapter');
+        }
+        
+        // Check chapter access (will be validated again after progress is loaded)
+        // This is just a basic check - full validation happens later
+        console.log(`Accessing chapter ${currentChapterIndex} of ${chaptersArray.length} total chapters`);
 
         setStoryData({ ...story, chapters: chaptersArray });
 
@@ -215,8 +261,10 @@ export default function ChapterPage() {
           const existingConvo = existingConvos[0];
           console.log('Found existing conversation:', existingConvo.id);
           setConversation(existingConvo);
-          setHasExistingMessages(existingConvo.messages?.length > 0);
+          const hasMessages = existingConvo.messages?.length > 0;
+          setHasExistingMessages(hasMessages);
           setIsInitialLoad(false);
+          setGeneratingInitialMessage(false);
           return;
         }
 
@@ -339,12 +387,118 @@ export default function ChapterPage() {
     initializeConversation();
   }, [supabase, worldId, user, chapterId, storyData, dataFetched, conversation]);
 
-  if (userLoading || loading || (isInitialLoad && !hasExistingMessages)) {
+  // Check subscription status
+  useEffect(() => {
+    if (!supabase || !user?.id) return;
+
+    const checkSubscription = async () => {
+      try {
+        const { data: subscription, error } = await supabase
+          .from('stripe_user_subscriptions')
+          .select('subscription_status')
+          .single();
+
+        if (error) {
+          console.error('Error checking subscription:', error);
+          return;
+        }
+
+        setHasActiveSubscription(subscription?.subscription_status === 'active');
+      } catch (error) {
+        console.error('Error checking subscription status:', error);
+      }
+    };
+
+    checkSubscription();
+  }, [supabase, user?.id]);
+
+  // Fetch chapter progress for access validation
+  useEffect(() => {
+    if (!supabase || !user || !worldId || !storyData) return;
+    
+    const fetchChapterProgress = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_chapter_progress')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('world_id', worldId);
+          
+        if (error) {
+          console.error('Error fetching chapter progress:', error);
+          return;
+        }
+        
+        const progressMap: Record<string, boolean> = {};
+        data.forEach((progress: any) => {
+          progressMap[progress.chapter_id] = progress.is_completed;
+        });
+        
+        setChapterProgress(progressMap);
+      } catch (error: any) {
+        console.error('Error processing chapter progress:', error.message);
+      }
+    };
+    
+    fetchChapterProgress();
+  }, [supabase, user, worldId, storyData]);
+
+  // Validate chapter access
+  useEffect(() => {
+    // Only run validation when ALL required data is loaded
+    if (!storyData || !user || !worldId) {
+      return;
+    }
+    
+    // Special case: if we have worldId but no progress data loaded yet, wait for progress
+    if (Object.keys(chapterProgress).length === 0) {
+      return;
+    }
+    
+    const chapterIdValue = Array.isArray(chapterId) ? chapterId[0] : chapterId;
+    const currentChapterIndex = parseInt(chapterIdValue);
+    
+    // Chapter locking logic (same as story page)
+    const isChapterLocked = (index: number) => {
+      // First chapter is always unlocked
+      if (index === 0) {
+        return false;
+      }
+      
+      // Check if previous chapter is completed (sequential unlocking)
+      const previousChapterId = String(index - 1);
+      const isPrevChapterCompleted = !!chapterProgress[previousChapterId];
+      
+      // If previous chapter is not completed, this chapter is locked
+      if (!isPrevChapterCompleted) {
+        return true;
+      }
+      
+      // If previous chapter is completed, check premium requirements
+      // Premium chapters (index 4 and beyond) require subscription
+      if (index >= 4 && !hasActiveSubscription) {
+        return true;
+      }
+      
+      // Chapter is unlocked if previous is completed and premium requirements are met
+      return false;
+    };
+    
+    const isLocked = isChapterLocked(currentChapterIndex);
+    
+    if (isLocked) {
+      router.push(`/story/${id}`);
+      return;
+    }
+  }, [storyData, chapterProgress, hasActiveSubscription, user, chapterId, id, router, worldId]);
+
+  if (userLoading || loading || (isInitialLoad && !hasExistingMessages) || generatingInitialMessage) {
     const getLoadingTitle = () => {
       if (userLoading) return 'Authenticating';
       if (processingStep === 'loading') return 'Loading Your Story';
       if (processingStep === 'creating-world') return 'Creating Your Story World';
       if (processingStep === 'initializing') return 'Preparing Your Adventure';
+      if (processingStep === 'generating') return generatingPhrases[currentPhraseIndex];
       return 'Generating Your Story';
     };
 
@@ -353,16 +507,18 @@ export default function ChapterPage() {
       if (processingStep === 'loading') return 'Loading story data...';
       if (processingStep === 'creating-world') return 'Please wait while we prepare your adventure world...';
       if (processingStep === 'initializing') return 'Setting up your story experience...';
-      return 'Please wait while we craft your unique narrative experience...';
+      if (processingStep === 'generating') return '';
+      return 'Please wait while we prepare your story...';
     };
 
     return (
       <LoadingSpinner
         variant="fullscreen"
-        theme="purple"
+        theme="pink"
         fullscreenTitle={getLoadingTitle()}
         fullscreenSubtitle={getLoadingSubtitle()}
         showDots={true}
+        titleClassName={`transition-all duration-300 ease-in-out ${isAnimating ? 'text-fade-out' : 'text-fade-in'}`}
       />
     );
   }

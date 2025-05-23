@@ -39,11 +39,12 @@ const AccountPage = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="flex justify-center items-center h-64">
+        <div className="min-h-screen flex justify-center items-center">
           <LoadingSpinner
             variant="spinner"
-            size="lg"
-            theme="purple"
+            size="xl"
+            theme="pink"
+            center={true}
           />
         </div>
       </Layout>

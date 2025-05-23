@@ -22,6 +22,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
   const [userInput, setUserInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [waitingForAI, setWaitingForAI] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [storyData, setStoryData] = useState<any>(null);
   const [chapterIndex, setChapterIndex] = useState<number | null>(null);
@@ -29,10 +30,40 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
   const [showObjectiveModal, setShowObjectiveModal] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [currentChapterName, setCurrentChapterName] = useState('');
+  const [isChapterCompleted, setIsChapterCompleted] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Check if current chapter is completed
+  useEffect(() => {
+    if (!supabase || !user || !conversation) return;
+
+    const checkChapterProgress = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_chapter_progress')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('world_id', conversation.world_id)
+          .eq('chapter_id', conversation.chapter_id);
+
+        if (error) {
+          console.error('Error checking chapter progress:', error);
+          return;
+        }
+
+        // Check if any record exists with is_completed = true
+        const isCompleted = data && data.length > 0 && data.some(progress => progress.is_completed);
+        setIsChapterCompleted(isCompleted);
+      } catch (error: any) {
+        console.error('Error checking chapter completion:', error.message);
+      }
+    };
+
+    checkChapterProgress();
+  }, [supabase, user, conversation]);
 
   useEffect(() => {
     if (!conversation || !supabase) return;
@@ -381,6 +412,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       const updatedMessages = [...messages, savedUserMessage];
       setMessages(updatedMessages);
       setUserInput('');
+      setWaitingForAI(true);
       
       const storyContext = await getStoryContextFromConversation(conversation, storyData);
       console.log('Story context for response:', storyContext);
@@ -388,23 +420,6 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       if (storyContext.chapterName) {
         setCurrentChapterName(storyContext.chapterName);
       }
-      
-      const tempAiMessage: Message = {
-        id: `temp-streaming-${Date.now()}`,
-        conversation_id: conversation.id,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date().toISOString()
-      };
-      
-      setMessages([...updatedMessages, tempAiMessage]);
-      
-      let streamedContent = '';
-      
-      const conversationHistory = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
       
       let previousChapterMessages: Array<{role: string, content: string}> = [];
       let previousChapterSummary = '';
@@ -430,11 +445,32 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       } else {
         console.log('First chapter - no previous context to include');
       }
+
+      const tempAiMessage: Message = {
+        id: `temp-streaming-${Date.now()}`,
+        conversation_id: conversation.id,
+        role: 'assistant',
+        content: 'typing-indicator',
+        timestamp: new Date().toISOString()
+      };
+      
+      // Add the temp message with typing indicator immediately
+      setMessages((prev) => [...prev, tempAiMessage]);
+      
+      let streamedContent = '';
+      
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
       
       const result = await streamAIResponse(
         userInputText,
         storyContext,
         (chunk) => {
+          if (waitingForAI) {
+            setWaitingForAI(false);
+          }
           streamedContent += chunk;
           setMessages((prev) =>
             prev.map((msg) =>
@@ -452,7 +488,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         objective: storyContext.chapterObjective
       });
       
-      if (result.objectiveCompleted) {
+      if (result.objectiveCompleted && !isChapterCompleted) {
         console.log('Chapter objective completed! Showing completion modal.');
         setShowCompletionModal(true);
       }
@@ -504,6 +540,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       setError(`Failed to send message: ${error.message}`);
     } finally {
       setSendingMessage(false);
+      setWaitingForAI(false);
     }
   };
 
@@ -537,18 +574,34 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         rawConversationChapterId: conversation.chapter_id
       });
       
+      console.log('=== DETAILED CHAPTER COMPLETION DATA ===');
+      console.log('user object:', user);
+      console.log('conversation object:', conversation);
+      console.log('conversation.world_id type:', typeof conversation.world_id);
+      console.log('conversation.chapter_id type:', typeof conversation.chapter_id);
+      
+      const requestBody = {
+        user_id: user.id,
+        world_id: conversation.world_id,
+        chapter_id: chapterId,
+        is_completed: true
+      };
+      
+      console.log('Request body being sent to API:', requestBody);
+      
       const response = await fetch('/api/chapter-progress', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          user_id: user.id,
-          world_id: conversation.world_id,
-          chapter_id: chapterId,
-          is_completed: true
-        })
+        body: JSON.stringify(requestBody)
       });
+      
+      console.log('API response status:', response.status);
+      console.log('API response ok:', response.ok);
+      
+      const responseData = await response.json();
+      console.log('API response data:', responseData);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -559,10 +612,8 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       console.log('Chapter marked as completed, ID:', chapterId);
       
       setShowCompletionModal(false);
+      setIsChapterCompleted(true);
       
-      if (storyData?.id) {
-        router.push(`/story/${storyData.id}`);
-      }
     } catch (error: any) {
       console.error('Error marking chapter as completed:', error);
     }
@@ -571,20 +622,20 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
   return (
     <div className="flex flex-col h-full bg-black">
       {/* Minimal Story Header */}
-      <div className="bg-gradient-to-b from-[#1a0a1f] to-black border-b border-pink-900/30 px-4 md:px-8 py-3 md:py-6">
+      <div className="bg-black border-b border-[#EC444B] px-4 md:px-8 py-3 md:py-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between">
             <button
               onClick={handleBackToChapters}
-              className="px-2 md:px-4 py-1.5 md:py-2 rounded-lg bg-gradient-to-r from-[#1a0a1f] to-[#2a0a2f] hover:from-[#2a0a2f] hover:to-[#3a0a3f] text-pink-300 border border-pink-900/30 hover:border-pink-800/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.1)] transition-all duration-300 text-sm md:text-base"
+              className="px-2 md:px-4 py-1.5 md:py-2 rounded-lg bg-transparent border border-[#EC444B] text-white hover:bg-[#EC444B]/10 transition-all duration-300 text-sm md:text-base"
             >
               ← Back
             </button>
             <div className="flex flex-col items-center text-center space-y-1 md:space-y-2">
-              <h1 className="text-sm md:text-2xl font-light text-pink-200 tracking-wider">
+              <h1 className="text-sm md:text-2xl font-light text-white tracking-wider">
                 {storyData?.world_name || 'Loading story...'}
               </h1>
-              <div className="text-xs md:text-sm text-pink-300/60 font-light tracking-widest uppercase">
+              <div className="text-xs md:text-sm text-gray-400 font-light tracking-widest uppercase">
                 {chapterIndex !== null && chapterIndex >= 0 && storyData?.chapters ? (
                   `Chapter ${chapterIndex + 1}: ${storyData.chapters[chapterIndex].chapterName}`
                 ) : (
@@ -599,23 +650,38 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
 
       {/* Chapter Objective Section */}
       {chapterIndex !== null && chapterIndex >= 0 && storyData?.chapters && storyData.chapters[chapterIndex].objective && (
-        <div className="bg-gradient-to-b from-[#1a0a1f]/80 to-black/80 border-b border-pink-900/30 px-4 md:px-8 py-2 md:py-4">
+        <div className="bg-black border-b border-gray-800 px-4 md:px-8 py-2 md:py-4">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-pink-900/20 border border-pink-800/30 rounded-lg md:rounded-xl p-2 md:p-3 flex items-center justify-between">
+            <div className="bg-gray-800/30 border border-gray-700 rounded-lg md:rounded-xl p-2 md:p-3 flex items-center justify-between">
               <div className="flex items-center">
-                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-pink-800/40 flex items-center justify-center text-pink-300 mr-2 md:mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 md:h-4 md:w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
+                <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-gray-800 border border-[#EC444B] flex items-center justify-center text-[#EC444B] mr-2 md:mr-3">
+                  {isChapterCompleted ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 md:h-4 md:w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 md:h-4 md:w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  )}
                 </div>
                 <div>
-                  <div className="text-[10px] md:text-xs text-pink-400 font-medium uppercase tracking-wider mb-0.5 md:mb-1">Chapter Objective</div>
-                  <div className="text-pink-200 font-light text-xs md:text-sm">{storyData.chapters[chapterIndex].objective}</div>
+                  {isChapterCompleted ? (
+                    <>
+                      <div className="text-[10px] md:text-xs text-[#EC444B] font-medium uppercase tracking-wider mb-0.5 md:mb-1">Chapter Completed</div>
+                      <div className="text-gray-300 font-light text-xs md:text-sm">Keep chatting here or go back to proceed to the next chapter</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-[10px] md:text-xs text-[#EC444B] font-medium uppercase tracking-wider mb-0.5 md:mb-1">Chapter Objective</div>
+                      <div className="text-gray-300 font-light text-xs md:text-sm">{storyData.chapters[chapterIndex].objective}</div>
+                    </>
+                  )}
                 </div>
               </div>
               <button 
                 onClick={() => setShowObjectiveModal(true)}
-                className="ml-2 md:ml-4 w-5 h-5 md:w-6 md:h-6 rounded-full bg-pink-800/30 text-pink-300 flex items-center justify-center hover:bg-pink-700/40 transition-all flex-shrink-0 text-xs md:text-sm"
+                className="ml-2 md:ml-4 w-5 h-5 md:w-6 md:h-6 rounded-full bg-gray-800 border border-gray-600 text-gray-400 flex items-center justify-center hover:bg-gray-700 hover:text-white transition-all flex-shrink-0 text-xs md:text-sm"
                 aria-label="More information about objectives"
               >
                 ?
@@ -630,7 +696,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
         <div className="max-w-4xl mx-auto">
           {loading || generatingInitialMessage ? (
             <div className="flex justify-center items-center h-full">
-              <div className="text-pink-300/50 italic font-light tracking-wider">
+              <div className="text-gray-400 italic font-light tracking-wider">
                 Loading conversation...
               </div>
             </div>
@@ -643,7 +709,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
             </div>
           ) : messages.length === 0 ? (
             <div className="text-center">
-              <p className="text-pink-300/50 italic font-light tracking-wider">
+              <p className="text-gray-400 italic font-light tracking-wider">
                 Begin your journey...
               </p>
             </div>
@@ -657,19 +723,25 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                   <div 
                     className={`max-w-[80%] rounded-3xl p-6 backdrop-blur-sm transition-all duration-300
                       ${message.role === 'user'
-                        ? 'bg-gradient-to-br from-[#1a0a1f] to-[#0a0a1f] border border-pink-900/30 hover:border-pink-800/30'
-                        : 'bg-gradient-to-br from-[#0a0a1f] to-[#0a0a2f] border border-purple-900/30 hover:border-purple-800/30'
+                        ? 'bg-gray-800/50 border border-gray-700 hover:border-gray-600'
+                        : 'bg-gray-900/50 border border-gray-700 hover:border-gray-600'
                       }`}
                   >
                     <div className={`flex items-center space-x-2 mb-3
-                      ${message.role === 'user' ? 'text-pink-300/60' : 'text-purple-300/60'}`}
+                      ${message.role === 'user' ? 'text-gray-400' : 'text-gray-400'}`}
                     >
                       <span className="font-light tracking-wider text-xs md:text-sm">
-                        {message.role === 'user' ? 'You' : 'Storyteller'}
+                        {message.role === 'user' ? '♡ You' : '♡ Storyteller'}
                       </span>
                     </div>
                     <div className="prose prose-invert max-w-none">
-                      {(() => {
+                      {message.content === 'typing-indicator' ? (
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-[#EC444B] rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-[#EC444B] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-[#EC444B] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      ) : ((() => {
                         const processFormattedText = (text: string) => {
                           const segments: React.ReactNode[] = [];
                           
@@ -783,8 +855,8 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                             const formattedParts = processFormattedText(dialogue);
                             
                             return (
-                              <p key={index} className="text-gray-200 leading-relaxed font-light mb-3 pl-4 border-l-2 border-pink-900/30 py-2">
-                                <span className="font-medium text-pink-300 text-sm md:text-base">{characterName}:</span>
+                              <p key={index} className="text-gray-200 leading-relaxed font-light mb-3 pl-4 border-l-2 border-[#EC444B]/30 py-2">
+                                <span className="font-medium text-[#EC444B] text-sm md:text-base">{characterName}:</span>
                                 <br />
                                 <span className="block mt-1 pl-2 text-sm md:text-base leading-relaxed md:leading-relaxed">
                                   {formattedParts}
@@ -803,10 +875,10 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                             return <br key={index} />;
                           }
                         });
-                      })()}
+                      })())}
                     </div>
                     <div className={`flex items-center space-x-2 mt-4 text-[10px] md:text-xs font-light tracking-wider
-                      ${message.role === 'user' ? 'text-pink-400/30' : 'text-purple-400/30'}`}
+                      ${message.role === 'user' ? 'text-gray-500' : 'text-gray-500'}`}
                     >
                       <time>
                         {new Date(message.timestamp).toLocaleTimeString([], {
@@ -818,6 +890,7 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                   </div>
                 </div>
               ))}
+              
               <div ref={messagesEndRef} />
             </div>
           )}
@@ -825,28 +898,28 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-pink-900/30 bg-gradient-to-t from-[#1a0a1f] to-black p-4 md:p-8">
+      <div className="border-t border-[#EC444B] bg-black p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end space-x-2 md:space-x-4">
-            <div className="flex-1 bg-gradient-to-r from-[#0a0a1f] to-[#0a0a2f] rounded-xl border border-pink-900/30 transition-all duration-300 focus-within:border-pink-800/50 focus-within:shadow-[0_0_30px_rgba(236,72,153,0.1)]">
+            <div className="flex-1 bg-gray-800/50 rounded-xl border border-gray-700 transition-all duration-300 focus-within:border-[#EC444B] focus-within:shadow-[0_0_15px_rgba(236,68,75,0.15)]">
               <textarea 
-                className="w-full bg-transparent border-0 rounded-xl p-3 md:p-6 text-pink-100 placeholder-pink-500/30 resize-none focus:ring-0 font-light tracking-wide text-sm md:text-base h-[40px] md:h-auto"
+                className="w-full bg-transparent border-0 rounded-xl p-3 md:p-6 text-white placeholder-gray-400 resize-none focus:ring-0 font-light tracking-wide text-sm md:text-base h-[40px] md:h-auto"
                 rows={1}
                 placeholder="Type your message..."
                 value={userInput}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                disabled={loading || sendingMessage || generatingInitialMessage}
+                disabled={loading || sendingMessage || generatingInitialMessage || waitingForAI}
               />
             </div>
             <button
               className={`px-4 py-2 md:px-8 md:py-4 rounded-xl font-light tracking-wider transition-all duration-300 text-sm md:text-base
-                ${!userInput.trim() || loading || sendingMessage || generatingInitialMessage
-                  ? 'bg-gray-900/50 text-gray-600 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-[#1a0a1f] to-[#2a0a2f] hover:from-[#2a0a2f] hover:to-[#3a0a3f] text-pink-300 border border-pink-900/30 hover:border-pink-800/50 hover:shadow-[0_0_30px_rgba(236,72,153,0.1)]'
+                ${!userInput.trim() || loading || sendingMessage || generatingInitialMessage || waitingForAI
+                  ? 'bg-gray-800/50 text-gray-600 cursor-not-allowed'
+                  : 'bg-[#EC444B] hover:bg-[#d83a40] text-white'
                 }`}
               onClick={handleSendMessage}
-              disabled={!userInput.trim() || loading || sendingMessage || generatingInitialMessage}
+              disabled={!userInput.trim() || loading || sendingMessage || generatingInitialMessage || waitingForAI}
             >
               {sendingMessage ? (
                 <span className="flex items-center space-x-2">
@@ -857,6 +930,16 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                     inline={true}
                   />
                   <span className="hidden md:inline">Sending...</span>
+                </span>
+              ) : waitingForAI ? (
+                <span className="flex items-center space-x-2">
+                  <LoadingSpinner
+                    variant="spinner"
+                    size="sm"
+                    theme="current"
+                    inline={true}
+                  />
+                  <span className="hidden md:inline">Thinking...</span>
                 </span>
               ) : generatingInitialMessage ? (
                 <span className="flex items-center space-x-2">
@@ -887,18 +970,18 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
       {/* Objective Modal */}
       {showObjectiveModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gradient-to-b from-[#2a0a2f] to-[#1a0a1f] max-w-md rounded-2xl border border-pink-800/40 shadow-[0_0_30px_rgba(236,72,153,0.1)] p-6 m-4">
-            <h3 className="text-xl text-pink-300 mb-3 font-medium">Chapter Objectives</h3>
-            <p className="text-pink-100/90 mb-4">
+          <div className="bg-black border border-[#EC444B] max-w-md rounded-2xl shadow-lg p-6 m-4">
+            <h3 className="text-xl text-white mb-3 font-medium">Chapter Objectives</h3>
+            <p className="text-gray-300 mb-4">
               The story for this chapter will continue until you achieve the objective. When completed, the next chapter will be unlocked.
             </p>
-            <p className="text-pink-100/90 mb-4">
+            <p className="text-gray-300 mb-4">
               If you prefer to keep playing in this chapter, you can do so. When you eventually start the next chapter, it will take into account what happened in previous chapters.
             </p>
             <div className="flex justify-end">
               <button 
                 onClick={() => setShowObjectiveModal(false)}
-                className="px-4 py-2 bg-pink-900/40 hover:bg-pink-800/40 text-pink-300 rounded-xl transition-colors"
+                className="px-4 py-2 bg-[#EC444B] hover:bg-[#d83a40] text-white rounded-xl transition-colors"
               >
                 Got it
               </button>

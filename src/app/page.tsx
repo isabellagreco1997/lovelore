@@ -164,6 +164,7 @@ export default function Home() {
   const [recentStoriesLoading, setRecentStoriesLoading] = useState(true);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [showTikTokBanner, setShowTikTokBanner] = useState(true);
+  const [hasActualRecentlyViewed, setHasActualRecentlyViewed] = useState(false);
 
   // Check if user has a subscription
   useEffect(() => {
@@ -307,37 +308,9 @@ export default function Home() {
         if (conversationsError) throw conversationsError;
         
         if (!conversationsData || conversationsData.length === 0) {
-          // Fallback: get stories with worlds created
-          const { data: worldStories, error: worldsError } = await supabase
-            .from('stories')
-            .select(`
-              id,
-              world_name,
-              story_context,
-              created_at,
-              image,
-              logo_image,
-              description,
-              chapters,
-              genre
-            `)
-            .not('world_name', 'is', null)
-            .limit(5);
-            
-          if (worldsError) throw worldsError;
-          
-          const formattedStories = (worldStories || []).map(story => ({
-            id: story.id,
-            world_name: story.world_name,
-            story_context: story.story_context,
-            created_at: story.created_at,
-            image: story.image,
-            logo_image: story.logo_image,
-            description: story.description,
-            chapters: Array.isArray(story.chapters) ? story.chapters : []
-          }));
-          
-          setRecentlyViewedStories(formattedStories);
+          // No conversations found - don't show any recently viewed content
+          setRecentlyViewedStories([]);
+          setHasActualRecentlyViewed(false);
           setRecentStoriesLoading(false);
           return;
         }
@@ -357,6 +330,7 @@ export default function Home() {
         const storyIds = worldsData.map(world => world.story_id).filter(Boolean);
         
         if (storyIds.length === 0) {
+          setHasActualRecentlyViewed(false);
           setRecentStoriesLoading(false);
           return;
         }
@@ -407,8 +381,10 @@ export default function Home() {
           }));
         
         setRecentlyViewedStories(sortedStories);
+        setHasActualRecentlyViewed(true); // User has actual recently viewed content
       } catch (error: any) {
         console.error('Error fetching recently viewed stories:', error.message);
+        setHasActualRecentlyViewed(false);
       } finally {
         setRecentStoriesLoading(false);
       }
@@ -426,12 +402,13 @@ export default function Home() {
     return (
       <Layout>
         <TikTokBrowserBanner onClose={handleCloseTikTokBanner} />
-        <div className="flex justify-center items-center h-64">
+        <div className="min-h-screen flex justify-center items-center">
           <LoadingSpinner
             variant="spinner"
-            size="lg"
-            theme="purple"
-            text="Loading..."
+            size="xl"
+            theme="pink"
+            text="Loading"
+            center={true}
           />
         </div>
       </Layout>
@@ -443,6 +420,9 @@ export default function Home() {
       <Layout>
         <TikTokBrowserBanner onClose={handleCloseTikTokBanner} />
         <div className="relative min-h-screen flex flex-col">
+
+
+          
           <div className="w-full">
             <Auth />
           </div>
@@ -528,27 +508,29 @@ export default function Home() {
         </div>
         
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          {/* New tagline banner - should show for all logged-in users */}
+          {user && (
+            <div className="text-center mb-6 md:mb-10 relative py-4 md:py-8">
+              {/* Floating hearts */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="heart-1 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-slow" style={{top: '10%', left: '15%'}}>❤️</div>
+                <div className="heart-2 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-medium" style={{top: '60%', left: '5%'}}>❤️</div>
+                <div className="heart-3 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-fast" style={{top: '20%', left: '75%'}}>❤️</div>
+                <div className="heart-4 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-slow" style={{top: '70%', left: '85%'}}>❤️</div>
+              </div>
+              
+              <h2 className="font-bold text-white text-2xl sm:text-3xl uppercase tracking-wider leading-none mb-0">
+                New Stories Added Every Week
+              </h2>
+              <p className="font-bold text-white text-2xl sm:text-3xl uppercase tracking-wider leading-none -mt-2">
+                Your <span className="text-[#EC444B]">fantasies</span> come to life
+              </p>
+            </div>
+          )}
+          
           {/* Recently Viewed Stories Section */}
           {user && (
             <>
-              {/* New tagline banner */}
-              <div className="text-center mb-6 md:mb-10 relative py-4 md:py-8">
-                {/* Floating hearts */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <div className="heart-1 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-slow" style={{top: '10%', left: '15%'}}>❤️</div>
-                  <div className="heart-2 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-medium" style={{top: '60%', left: '5%'}}>❤️</div>
-                  <div className="heart-3 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-fast" style={{top: '20%', left: '75%'}}>❤️</div>
-                  <div className="heart-4 absolute w-4 h-4 text-[#EC444B] opacity-60 animate-float-slow" style={{top: '70%', left: '85%'}}>❤️</div>
-                </div>
-                
-                <h2 className="font-bold text-white text-2xl sm:text-3xl uppercase tracking-wider leading-none mb-0">
-                  New Stories Added Every Week
-                </h2>
-                <p className="font-bold text-white text-2xl sm:text-3xl uppercase tracking-wider leading-none -mt-2">
-                  Your <span className="text-[#EC444B]">fantasies</span> come to life
-                </p>
-              </div>
-              
               <div className="rounded-xl p-6 relative overflow-hidden">
                 <div className="absolute inset-0 z-0"></div>
                 <div className="relative z-10">
@@ -558,90 +540,111 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </span>
-                    {recentlyViewedStories.length > 0 ? "RECENTLY VIEWED" : "WORLDS TO EXPLORE"}
+                    {hasActualRecentlyViewed ? "RECENTLY VIEWED" : "WELCOME TO LOVELORE"}
                   </h2>
                   <div className="flex items-center justify-between">
                     <p className="text-gray-400 text-sm max-w-md">
-                      {recentlyViewedStories.length > 0 
+                      {hasActualRecentlyViewed 
                         ? "Continue where you left off" 
-                        : "Discover stories with created worlds"}
+                        : "Let the fun begin! Pick a story below to start your adventure"}
                     </p>
                   </div>
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {recentStoriesLoading ? (
-                  Array(4).fill(0).map((_, index) => (
-                    <LoadingSpinner
-                      key={index}
-                      variant="skeleton"
-                      skeleton={{
-                        image: true,
-                        lines: 2,
-                        height: "h-44"
-                      }}
-                      className="bg-gray-800/50 rounded-xl overflow-hidden shadow-lg h-72"
-                    />
-                  ))
-                ) : (
-                  recentlyViewedStories.map((story) => (
-                    <div 
-                      key={story.id}
-                      onClick={() => router.push(`/story/${story.id}`)}
-                      className="group relative bg-gradient-to-br from-gray-800/80 to-gray-900/90 rounded-xl overflow-hidden shadow-lg cursor-pointer transform transition-all duration-500 hover:shadow-[0_0_15px_rgba(236,68,75,0.3)] hover:-translate-y-1"
-                    >
-                      {/* Decorative elements */}
-                      <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-[#EC444B]/10 to-purple-900/20 rounded-bl-3xl"></div>
-                      <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-[#EC444B]/10 to-purple-900/20 rounded-tr-3xl"></div>
-                      
-                      {/* Image container with gradient overlay */}
-                      <div className="h-44 w-full relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60 z-10"></div>
-                        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-transparent to-gray-900 opacity-60 z-10"></div>
+              {hasActualRecentlyViewed ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {recentStoriesLoading ? (
+                    Array(4).fill(0).map((_, index) => (
+                      <LoadingSpinner
+                        key={index}
+                        variant="skeleton"
+                        skeleton={{
+                          image: true,
+                          lines: 2,
+                          height: "h-44"
+                        }}
+                        className="bg-gray-800/50 rounded-xl overflow-hidden shadow-lg h-72"
+                      />
+                    ))
+                  ) : (
+                    recentlyViewedStories.map((story) => (
+                      <div 
+                        key={story.id}
+                        onClick={() => router.push(`/story/${story.id}`)}
+                        className="group relative bg-gradient-to-br from-gray-800/80 to-gray-900/90 rounded-xl overflow-hidden shadow-lg cursor-pointer transform transition-all duration-500 hover:shadow-[0_0_15px_rgba(236,68,75,0.3)] hover:-translate-y-1"
+                      >
+                        {/* Decorative elements */}
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-[#EC444B]/10 to-purple-900/20 rounded-bl-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-[#EC444B]/10 to-purple-900/20 rounded-tr-3xl"></div>
                         
-                        {story.image ? (
-                          <img 
-                            src={story.image} 
-                            alt={story.world_name} 
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-900">
-                            <span className="text-white text-3xl opacity-50">📚</span>
+                        {/* Image container with gradient overlay */}
+                        <div className="h-44 w-full relative overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60 z-10"></div>
+                          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/40 via-transparent to-gray-900 opacity-60 z-10"></div>
+                          
+                          {story.image ? (
+                            <img 
+                              src={story.image} 
+                              alt={story.world_name} 
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-900">
+                              <span className="text-white text-3xl opacity-50">📚</span>
+                            </div>
+                          )}
+                          
+                          {/* Continue badge */}
+                          <div className="absolute top-3 right-3 z-20 bg-[#EC444B]/90 text-white text-xs font-bold py-1 px-2 rounded-full shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0">
+                            Continue
                           </div>
-                        )}
-                        
-                        {/* Continue badge */}
-                        <div className="absolute top-3 right-3 z-20 bg-[#EC444B]/90 text-white text-xs font-bold py-1 px-2 rounded-full shadow-md transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0">
-                          Continue
+                          
+                          {story.logo_image && (
+                            <div className="absolute bottom-3 left-3 h-10 w-auto z-20 drop-shadow-lg">
+                              <img 
+                                src={story.logo_image} 
+                                alt={`${story.world_name} logo`} 
+                                className="h-full w-auto object-contain"
+                              />
+                            </div>
+                          )}
                         </div>
                         
-                        {story.logo_image && (
-                          <div className="absolute bottom-3 left-3 h-10 w-auto z-20 drop-shadow-lg">
-                            <img 
-                              src={story.logo_image} 
-                              alt={`${story.world_name} logo`} 
-                              className="h-full w-auto object-contain"
-                            />
-                          </div>
-                        )}
+                        {/* Content with subtle decoration */}
+                        <div className="p-4 border-t border-gray-700/30 relative">
+                          <h3 className="text-white font-bold truncate text-lg group-hover:text-[#EC444B] transition-colors duration-300">
+                            {story.world_name}
+                          </h3>
+                        </div>
                       </div>
-                      
-                      {/* Content with subtle decoration */}
-                      <div className="p-4 border-t border-gray-700/30 relative">
-                        <h3 className="text-white font-bold truncate text-lg group-hover:text-[#EC444B] transition-colors duration-300">
-                          {story.world_name}
-                        </h3>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-gradient-to-br from-[#EC444B]/20 to-purple-900/20 mb-6">
+                    <span className="text-4xl">🌟</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-3">Ready for Your First Adventure?</h3>
+                  <p className="text-gray-400 max-w-md mx-auto mb-6">
+                    Dive into immersive interactive stories where your choices shape the narrative. 
+                    Your journey begins with a single click below!
+                  </p>
+                  <div className="flex justify-center">
+                    <button 
+                      onClick={() => document.getElementById('stories-section')?.scrollIntoView({ behavior: 'smooth' })}
+                      className="bg-[#EC444B] hover:bg-[#d83a40] text-white px-6 py-3 rounded-lg font-medium transition-colors duration-300 transform hover:scale-105"
+                    >
+                      Explore Stories
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           )}
 
-          <div className="rounded-xl p-6 relative overflow-hidden">
+          <div id="stories-section" className="rounded-xl p-6 relative overflow-hidden">
             <div className="absolute inset-0 z-0"></div>
             <div className="relative z-10">
               <h2 className="text-2xl font-bold text-white flex items-center mb-2">

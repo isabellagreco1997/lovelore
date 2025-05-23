@@ -40,7 +40,7 @@ const StoryList = () => {
         
         // Filter out anime stories and format the data
         const filteredStories = (data || [])
-          .filter(story => story.worlds?.genre !== 'anime')
+          .filter(story => story.genre !== 'anime')
           .map(story => ({
             id: story.id,
             world_name: story.world_name,
@@ -67,12 +67,13 @@ const StoryList = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="min-h-[60vh] flex justify-center items-center">
         <LoadingSpinner
           variant="spinner"
           size="lg"
-          theme="purple"
+          theme="pink"
           text="Loading your stories..."
+          center={true}
         />
       </div>
     );

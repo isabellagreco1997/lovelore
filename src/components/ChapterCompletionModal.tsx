@@ -16,18 +16,12 @@ const ChapterCompletionModal: React.FC<ChapterCompletionModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-indigo-950 bg-opacity-80 overflow-y-auto h-full w-full z-50 flex justify-center items-center backdrop-blur-sm">
-      <div className="relative mx-auto p-5 border border-indigo-600 w-full max-w-md shadow-lg rounded-md bg-indigo-900 text-white">
-        {/* Decorative elements */}
-        <div className="absolute top-2 left-2 w-1 h-1 rounded-full bg-purple-400 opacity-60"></div>
-        <div className="absolute top-4 right-4 w-1 h-1 rounded-full bg-blue-300 opacity-60"></div>
-        <div className="absolute bottom-4 left-10 w-1 h-1 rounded-full bg-purple-300 opacity-60"></div>
-        <div className="absolute top-10 right-2 w-1 h-1 rounded-full bg-blue-300 opacity-60"></div>
-        
-        <div className="mt-3 text-center">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-purple-800 border border-purple-400">
+    <div className="fixed inset-0 bg-black bg-opacity-80 overflow-y-auto h-full w-full z-50 flex justify-center items-center backdrop-blur-sm">
+      <div className="relative mx-auto p-6 border border-[#EC444B] w-full max-w-md shadow-lg rounded-lg bg-black text-white">
+        <div className="text-center">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full border border-[#EC444B] mb-4">
             <svg
-              className="h-8 w-8 text-purple-300"
+              className="h-6 w-6 text-[#EC444B]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -42,29 +36,31 @@ const ChapterCompletionModal: React.FC<ChapterCompletionModalProps> = ({
             </svg>
           </div>
           
-          <h3 className="text-xl leading-6 font-medium text-purple-200 mt-4 flex items-center justify-center">
-            <span className="mr-2">✦</span> Chapter Objective Completed! <span className="ml-2">✦</span>
+          <h3 className="text-lg font-medium text-white mb-3">
+            Chapter Completed!
           </h3>
           
-          <div className="mt-4 px-7 py-3 bg-indigo-800 rounded-lg">
-            <p className="text-purple-100">
-              Congratulations! You've successfully completed the objective for "{chapterName}".
-            </p>
-          </div>
+          <p className="text-gray-300 mb-4">
+            You've completed "{chapterName}".
+          </p>
           
-          <div className="flex justify-center gap-4 mt-5">
+          <p className="text-sm text-gray-400 mb-6">
+            If you continue talking in this chapter, I'll remember our conversation and carry it into the next chapter.
+          </p>
+          
+          <div className="flex justify-center gap-3">
             <button
-              onClick={onClose}
-              className="px-4 py-2 bg-indigo-700 text-indigo-200 text-base font-medium rounded-md shadow-sm hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 border border-indigo-600 transition-colors"
+              onClick={onConfirm}
+              className="px-4 py-2 bg-transparent border border-gray-600 text-gray-300 text-sm font-medium rounded-md hover:bg-gray-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-300"
             >
-              Continue Playing
+              Continue
             </button>
             
             <button
               onClick={onConfirm}
-              className="px-4 py-2 bg-purple-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 border border-purple-500 transition-colors"
+              className="px-4 py-2 bg-[#EC444B] text-white text-sm font-medium rounded-md hover:bg-[#d83a40] focus:outline-none focus:ring-2 focus:ring-[#EC444B] transition-all duration-300"
             >
-              Mark Completed & Continue
+              Mark Complete
             </button>
           </div>
         </div>

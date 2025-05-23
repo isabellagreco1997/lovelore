@@ -172,11 +172,12 @@ export default function DebugProgressPage() {
   if (userLoading) {
     return (
       <Layout>
-        <div className="flex justify-center items-center h-[80vh]">
+        <div className="min-h-screen flex justify-center items-center">
           <LoadingSpinner
             variant="spinner"
             size="lg"
             theme="purple"
+            center={true}
           />
         </div>
       </Layout>

@@ -102,7 +102,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 // Spinner with text
 <LoadingSpinner 
   variant="spinner" 
-  size="lg" 
+  size="sm" 
   theme="purple" 
   text="Loading..." 
 />

@@ -25,6 +25,7 @@ export default function StoryPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const [showDescriptionModal, setShowDescriptionModal] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [progressLoading, setProgressLoading] = useState(true);
 
   useEffect(() => {
     if (!supabase || !user?.id) return;
@@ -51,7 +52,7 @@ export default function StoryPage() {
   }, [supabase, user?.id]);
 
   useEffect(() => {
-    if (!supabase || !id) return;
+    if (!supabase || !id || !user) return;
 
     const fetchStory = async () => {
       try {
@@ -87,9 +88,25 @@ export default function StoryPage() {
           setSelectedChapter(storyData.chapters[0]);
         }
         
-                        const { data: worldData, error: worldError } = await supabase          .from('worlds')          .select('id, name')          .eq('story_id', id)          .limit(1)          .single();
+        // Get the world that belongs to this user for this story
+        const { data: worldData, error: worldError } = await supabase
+          .from('worlds')
+          .select('id, name')
+          .eq('story_id', id)
+          .eq('user_id', user.id)  // This is the crucial fix - filter by user_id
+          .limit(1)
+          .single();
         
-                if (worldError) {          console.error('Error fetching world:', worldError);        } else if (worldData) {          console.log('Found world:', worldData);          setWorld(worldData);        } else {          console.log('No world found for story_id:', id);        }
+        if (worldError) {
+          console.error('Error fetching world:', worldError);
+          // Set world to null to indicate no world exists yet
+          setWorld(null);
+        } else if (worldData) {
+          setWorld(worldData);
+        } else {
+          // No world found - this is normal for first-time story access
+          setWorld(null);
+        }
       } catch (error: any) {
         console.error('Error fetching story:', error.message);
         setError('Failed to load story');
@@ -99,17 +116,19 @@ export default function StoryPage() {
     };
 
     fetchStory();
-  }, [supabase, id]);
+  }, [supabase, id, user]);
   
   useEffect(() => {
-    if (!supabase || !user || !world || !story) return;
+    if (!supabase || !user || !story) return;
     
     const fetchChapterProgress = async () => {
       try {
-        console.log('=== FETCHING CHAPTER PROGRESS ===');
-        console.log('user.id:', user.id);
-        console.log('world.id:', world.id);
-        console.log('story id from URL:', id);
+        // If no world exists yet (first-time story access), set empty progress
+        if (!world) {
+          setChapterProgress({});
+          setProgressLoading(false);
+          return;
+        }
         
         const { data, error } = await supabase
           .from('user_chapter_progress')
@@ -119,34 +138,26 @@ export default function StoryPage() {
           
         if (error) {
           console.error('Error fetching chapter progress:', error);
+          // Don't return early - still need to set progressLoading to false
+          setChapterProgress({});
           return;
         }
         
-        console.log('Query executed successfully - found', data?.length || 0, 'records');
-        
-        console.log('FULL CHAPTER PROGRESS DATA FROM DATABASE:');
-        console.table(data);
-        
-        if (data.length > 0) {
-          console.log('First progress record:');
-          console.log('chapter_id:', data[0].chapter_id);
-          console.log('chapter_id type:', typeof data[0].chapter_id);
-          console.log('is_completed:', data[0].is_completed);
-          console.log('is_completed type:', typeof data[0].is_completed);
-        }
-        
         const progressMap: Record<string, boolean> = {};
-        data.forEach((progress: UserChapterProgress) => {
-          progressMap[progress.chapter_id] = progress.is_completed;
-          console.log(`Adding to progressMap: [${progress.chapter_id}] = ${progress.is_completed}`);
-        });
+        if (data && data.length > 0) {
+          data.forEach((progress: UserChapterProgress) => {
+            progressMap[progress.chapter_id] = progress.is_completed;
+          });
+        }
+        // If no data, progressMap stays empty {} which is correct for first-time access
         
-        console.log('FINAL PROGRESS MAP:');
-        console.log(progressMap);
-
         setChapterProgress(progressMap);
       } catch (error: any) {
         console.error('Error processing chapter progress:', error.message);
+        // Set empty progress map for first-time access
+        setChapterProgress({});
+      } finally {
+        setProgressLoading(false);
       }
     };
     
@@ -161,6 +172,8 @@ export default function StoryPage() {
         setTimeout(() => {
           const fetchChapterProgress = async () => {
             try {
+              setProgressLoading(true);
+              
               const { data, error } = await supabase
                 .from('user_chapter_progress')
                 .select('*')
@@ -169,18 +182,23 @@ export default function StoryPage() {
                 
               if (error) {
                 console.error('Error refreshing chapter progress:', error);
+                setChapterProgress({});
                 return;
               }
               
               const progressMap: Record<string, boolean> = {};
-              data.forEach((progress: UserChapterProgress) => {
-                progressMap[progress.chapter_id] = progress.is_completed;
-              });
+              if (data && data.length > 0) {
+                data.forEach((progress: UserChapterProgress) => {
+                  progressMap[progress.chapter_id] = progress.is_completed;
+                });
+              }
               
               setChapterProgress(progressMap);
-              console.log('Chapter progress refreshed on page visibility change');
             } catch (error: any) {
               console.error('Error refreshing chapter progress:', error.message);
+              setChapterProgress({});
+            } finally {
+              setProgressLoading(false);
             }
           };
           
@@ -209,8 +227,6 @@ export default function StoryPage() {
     try {
       setResetLoading(true);
       
-      console.log(`Attempting complete reset/deletion for story ${id} for user ${user.id}`);
-      
       const response = await fetch('/api/story-reset', {
         method: 'POST',
         headers: {
@@ -223,7 +239,6 @@ export default function StoryPage() {
       });
       
       const data = await response.json();
-      console.log('Reset response:', data);
       
       if (!response.ok) {
         throw new Error(data.error || 'Failed to reset story');
@@ -235,18 +250,15 @@ export default function StoryPage() {
       
       alert(data.message || 'Story progress has been reset successfully!');
       
-      console.log('Waiting 5 seconds before refreshing...');
-      
       setTimeout(() => {
-        console.log('Refreshing page now...');
         window.location.href = window.location.href;
-      }, 5000);
+      }, 2000);
       
     } catch (error: any) {
       console.error('Error resetting story:', error);
       
       const errorMessage = error.message || 'Unknown error occurred';
-      alert(`Failed to reset story: ${errorMessage}\n\nPlease check console for more details.`);
+      alert(`Failed to reset story: ${errorMessage}`);
       
       setShowResetConfirm(false);
     } finally {
@@ -261,41 +273,41 @@ export default function StoryPage() {
     if (chapterIndex === -1) return false;
     
     const rawChapterId = String(chapterIndex);
-    
-    console.log(`Chapter check "${chapterName}" (index ${chapterIndex}):`);
-    console.log(`- chapterProgress["${rawChapterId}"] =`, chapterProgress[rawChapterId]);
-    console.log(`- all chapterProgress keys:`, Object.keys(chapterProgress));
-    
     return !!chapterProgress[rawChapterId];
   };
 
   const isChapterLocked = (index: number) => {
-    if (index === 0 || index === 1) return false; // First two chapters always free
-    
-    // Premium chapters (index 2 and beyond) require subscription
-    if (index >= 2 && !hasActiveSubscription) return true;
-    
+    // First chapter is always unlocked
     if (index === 0) return false;
     
+    // Check if previous chapter is completed (sequential unlocking)
     const previousChapterId = String(index - 1);
     const isPrevChapterCompleted = !!chapterProgress[previousChapterId];
     
-    console.log(`Chapter lock check for index ${index}:`);
-    console.log(`- Previous chapter index: ${index - 1}`);
-    console.log(`- previousChapterId: "${previousChapterId}"`);
-    console.log(`- Has completion status: ${isPrevChapterCompleted}`);
+    // If previous chapter is not completed, this chapter is locked
+    if (!isPrevChapterCompleted) {
+      return true;
+    }
     
-    return !isPrevChapterCompleted;
+    // If previous chapter is completed, check premium requirements
+    // Premium chapters (index 4 and beyond) require subscription
+    if (index >= 4 && !hasActiveSubscription) {
+      return true;
+    }
+    
+    // Chapter is unlocked if previous is completed and premium requirements are met
+    return false;
   };
 
   if (userLoading || loading) {
     return (
       <Layout>
-        <div className="flex justify-center items-center h-[80vh]">
+        <div className="min-h-screen flex justify-center items-center">
           <LoadingSpinner
             variant="spinner"
             size="xl"
-            theme="purple"
+            theme="pink"
+            center={true}
           />
         </div>
       </Layout>
@@ -410,87 +422,137 @@ export default function StoryPage() {
                           }
                         `}
                       >
-                        {isChapterLocked(story.chapters.indexOf(selectedChapter))
-                          ? story.chapters.indexOf(selectedChapter) >= 2 && !hasActiveSubscription
-                            ? 'Upgrade to Premium ⭐'
-                            : 'Complete Previous Chapter'
-                          : isChapterCompleted(selectedChapter.chapterName)
-                            ? 'Play Again'
-                            : 'Start Chapter'}
+                        {(() => {
+                          const selectedIndex = story.chapters.indexOf(selectedChapter);
+                          if (!isChapterLocked(selectedIndex)) {
+                            return isChapterCompleted(selectedChapter.chapterName) ? 'Play Again' : 'Start Chapter';
+                          }
+                          
+                          // Chapter is locked - determine why
+                          if (selectedIndex > 0) {
+                            const previousChapterId = String(selectedIndex - 1);
+                            const isPrevChapterCompleted = !!chapterProgress[previousChapterId];
+                            
+                            if (!isPrevChapterCompleted) {
+                              return 'Complete Previous Chapter';
+                            }
+                            
+                            // Previous chapter is completed, so this must be a premium lock
+                            if (selectedIndex >= 4 && !hasActiveSubscription) {
+                              return 'Upgrade to Premium ⭐';
+                            }
+                          }
+                          
+                          return 'Locked';
+                        })()}
                       </button>
                     </div>
                   )}
 
                   {/* Chapter List - Mobile Optimized */}
-                  <div className="space-y-3">
-                    {story.chapters.map((chapter, index) => {
-                      const isCompleted = isChapterCompleted(chapter.chapterName);
-                      const isLocked = isChapterLocked(index);
-                      const isPremiumLocked = index >= 2 && !hasActiveSubscription;
-                      const isSelected = selectedChapter?.chapterName === chapter.chapterName;
-                      
-                      return (
-                        <button 
-                          key={index}
-                          onClick={() => !isLocked && setSelectedChapter(chapter)}
-                          className={`
-                            w-full text-left p-3 rounded-xl transition-all
-                            ${isLocked ? 'bg-gray-800/30' : 'active:scale-98'}
-                            ${isSelected ? 'bg-purple-900/20 border-l-4 border-purple-500' : 'border-l-4 border-transparent'}
-                          `}
-                          disabled={isLocked}
-                        >
-                          <div className="flex items-center">
-                            <div className="mr-3">
-                              {isCompleted ? (
-                                <div className="w-8 h-8 rounded-full bg-green-900/30 border border-green-500/50 flex items-center justify-center text-green-400 text-sm">
-                                  ✓
-                                </div>
-                              ) : isPremiumLocked ? (
-                                <div className="w-8 h-8 rounded-full bg-amber-900/30 border border-amber-500/50 flex items-center justify-center text-amber-400 text-sm">
-                                  ⭐
-                                </div>
-                              ) : isLocked ? (
-                                <div className="w-8 h-8 rounded-full bg-gray-800/30 border border-gray-700/50 flex items-center justify-center text-gray-500 text-sm">
-                                  🔒
-                                </div>
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-purple-900/30 border border-purple-500/50 flex items-center justify-center text-purple-400 text-sm">
-                                  {index + 1}
-                                </div>
-                              )}
+                  {progressLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <LoadingSpinner
+                        variant="spinner"
+                        size="md"
+                        theme="pink"
+                        center={true}
+                      />
+                      <span className="ml-3 text-gray-400 text-sm">Loading chapter progress...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {story.chapters.map((chapter, index) => {
+                        const isCompleted = isChapterCompleted(chapter.chapterName);
+                        const isLocked = isChapterLocked(index);
+                        const isPremiumChapter = index >= 4 && !hasActiveSubscription;
+                        
+                        // Determine the specific reason for locking
+                        let lockReason = 'unlocked';
+                        if (isLocked && index > 0) {
+                          const previousChapterId = String(index - 1);
+                          const isPrevChapterCompleted = !!chapterProgress[previousChapterId];
+                          
+                          if (!isPrevChapterCompleted) {
+                            lockReason = 'progression'; // Previous chapter not completed
+                          } else if (isPremiumChapter) {
+                            lockReason = 'premium'; // Premium required
+                          }
+                        }
+                        
+                        // For display purposes, premium chapters should show premium styling even when unlocked
+                        const displayAsPremium = isPremiumChapter && !isCompleted;
+                        
+                        const isSelected = selectedChapter?.chapterName === chapter.chapterName;
+                        
+                        return (
+                          <button 
+                            key={index}
+                            onClick={() => !isLocked && setSelectedChapter(chapter)}
+                            className={`
+                              w-full text-left p-3 rounded-xl transition-all
+                              ${isLocked ? 'bg-gray-800/30' : 'active:scale-98'}
+                              ${isSelected ? 'bg-purple-900/20 border-l-4 border-purple-500' : 'border-l-4 border-transparent'}
+                            `}
+                            disabled={isLocked}
+                          >
+                            <div className="flex items-center">
+                              <div className="mr-3">
+                                {isCompleted ? (
+                                  <div className="w-8 h-8 rounded-full bg-green-900/30 border border-green-500/50 flex items-center justify-center text-green-400 text-sm">
+                                    ✓
+                                  </div>
+                                ) : displayAsPremium ? (
+                                  <div className="w-8 h-8 rounded-full bg-amber-900/30 border border-amber-500/50 flex items-center justify-center text-amber-400 text-sm">
+                                    ⭐
+                                  </div>
+                                ) : lockReason === 'progression' ? (
+                                  <div className="w-8 h-8 rounded-full bg-gray-800/30 border border-gray-700/50 flex items-center justify-center text-gray-500 text-sm">
+                                    🔒
+                                  </div>
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-purple-900/30 border border-purple-500/50 flex items-center justify-center text-purple-400 text-sm">
+                                    {index + 1}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="flex-1 min-w-0">
+                                <h3 className={`font-medium text-sm truncate ${isLocked ? 'text-gray-500' : 'text-white'}`}>
+                                  {chapter.chapterName}
+                                </h3>
+                                {lockReason === 'progression' && (
+                                  <p className="text-xs text-gray-400 mt-1">
+                                    Complete the chapter before to unlock
+                                  </p>
+                                )}
+                              </div>
+                              
+                              <div className="ml-2">
+                                {isCompleted ? (
+                                  <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-900/30 text-green-300 border border-green-700/50">
+                                    Completed
+                                  </span>
+                                ) : displayAsPremium ? (
+                                  <span className="inline-block px-2 py-1 rounded-full text-xs bg-amber-900/30 text-amber-300 border border-amber-700/50">
+                                    Premium
+                                  </span>
+                                ) : lockReason === 'progression' ? (
+                                  <span className="inline-block px-2 py-1 rounded-full text-xs bg-gray-800/30 text-gray-500 border border-gray-700/50">
+                                    Locked
+                                  </span>
+                                ) : (
+                                  <span className="inline-block px-2 py-1 rounded-full text-xs bg-purple-900/30 text-purple-300 border border-purple-700/50">
+                                    Not Completed
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <h3 className={`font-medium text-sm truncate ${isLocked ? 'text-gray-500' : 'text-white'}`}>
-                                {chapter.chapterName}
-                              </h3>
-                            </div>
-                            
-                            <div className="ml-2">
-                              {isCompleted ? (
-                                <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-900/30 text-green-300 border border-green-700/50">
-                                  Completed
-                                </span>
-                              ) : isPremiumLocked ? (
-                                <span className="inline-block px-2 py-1 rounded-full text-xs bg-amber-900/30 text-amber-300 border border-amber-700/50">
-                                  Premium
-                                </span>
-                              ) : isLocked ? (
-                                <span className="inline-block px-2 py-1 rounded-full text-xs bg-gray-800/30 text-gray-500 border border-gray-700/50">
-                                  Locked
-                                </span>
-                              ) : (
-                                <span className="inline-block px-2 py-1 rounded-full text-xs bg-purple-900/30 text-purple-300 border border-purple-700/50">
-                                  Not Completed
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -521,7 +583,7 @@ export default function StoryPage() {
                     </span>
                     {!hasActiveSubscription && (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-900/50 text-amber-200 border border-amber-700/50">
-                        2 Free Chapters
+                        4 Free Chapters
                       </span>
                     )}
                   </div>
