@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import useSupabase from '@/hooks/useSupabase';
 import { Story } from '@/types/database';
 import Link from 'next/link';
+import LoadingSpinner from './LoadingSpinner';
 
 interface StoryWithGenre extends Story {
   genre: string;
@@ -67,10 +68,12 @@ const StoryList = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
-          <p className="mt-4 text-gray-600 animate-pulse">Loading your stories...</p>
-        </div>
+        <LoadingSpinner
+          variant="spinner"
+          size="lg"
+          theme="purple"
+          text="Loading your stories..."
+        />
       </div>
     );
   }

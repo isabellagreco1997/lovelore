@@ -15,6 +15,7 @@ import FAQSection from '@/components/home/FAQSection';
 import TikTokBrowserBanner from '@/components/home/TikTokBrowserBanner';
 import Script from 'next/script';
 import Head from 'next/head';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 // Add this CSS at the top level of your component or in a global CSS file
 const shadowGlowStyle = `
@@ -426,10 +427,12 @@ export default function Home() {
       <Layout>
         <TikTokBrowserBanner onClose={handleCloseTikTokBanner} />
         <div className="flex justify-center items-center h-64">
-          <div className="flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
-            <p className="mt-4 text-gray-600 animate-pulse">Loading...</p>
-          </div>
+          <LoadingSpinner
+            variant="spinner"
+            size="lg"
+            theme="purple"
+            text="Loading..."
+          />
         </div>
       </Layout>
     );
@@ -570,9 +573,16 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {recentStoriesLoading ? (
                   Array(4).fill(0).map((_, index) => (
-                    <div key={index} className="bg-gray-800/50 rounded-xl overflow-hidden shadow-lg h-72 animate-pulse">
-                      <div className="h-full w-full bg-gray-700/50"></div>
-                    </div>
+                    <LoadingSpinner
+                      key={index}
+                      variant="skeleton"
+                      skeleton={{
+                        image: true,
+                        lines: 2,
+                        height: "h-44"
+                      }}
+                      className="bg-gray-800/50 rounded-xl overflow-hidden shadow-lg h-72"
+                    />
                   ))
                 ) : (
                   recentlyViewedStories.map((story) => (

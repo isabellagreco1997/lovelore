@@ -5,6 +5,7 @@ import useUser from '@/hooks/useUser';
 import { Message } from '@/types/database';
 import { streamAIResponse, getStoryContextFromConversation, getPreviousChapterMessages, formatPreviousChapterSummary } from '@/lib/deepseek';
 import ChapterCompletionModal from './ChapterCompletionModal';
+import LoadingSpinner from './LoadingSpinner';
 
 interface ConversationViewProps {
   conversation: any;
@@ -849,12 +850,22 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
             >
               {sendingMessage ? (
                 <span className="flex items-center space-x-2">
-                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-current"></span>
+                  <LoadingSpinner
+                    variant="spinner"
+                    size="sm"
+                    theme="current"
+                    inline={true}
+                  />
                   <span className="hidden md:inline">Sending...</span>
                 </span>
               ) : generatingInitialMessage ? (
                 <span className="flex items-center space-x-2">
-                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-current"></span>
+                  <LoadingSpinner
+                    variant="spinner"
+                    size="sm"
+                    theme="current"
+                    inline={true}
+                  />
                   <span className="hidden md:inline">Initializing...</span>
                 </span>
               ) : (

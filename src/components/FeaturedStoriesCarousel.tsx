@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Story } from '@/types/database';
 import ImageWithLoading from './ImageWithLoading';
+import LoadingSpinner from './LoadingSpinner';
 
 interface FeaturedStoriesCarouselProps {
   stories: Story[];
@@ -50,20 +51,15 @@ const FeaturedStoriesCarousel = ({ stories, loading }: FeaturedStoriesCarouselPr
       {loading ? (
         <div className="absolute inset-0 bg-black/90 transition-opacity duration-500">
           <div className="h-full flex flex-col items-center justify-center">
-            <div className="space-y-8 w-full max-w-2xl px-4">
-              {/* Loading title */}
-              <div className="h-12 bg-gray-800/50 rounded-lg animate-pulse"></div>
-              
-              {/* Loading description */}
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-800/50 rounded animate-pulse"></div>
-                <div className="h-4 bg-gray-800/50 rounded animate-pulse w-5/6"></div>
-                <div className="h-4 bg-gray-800/50 rounded animate-pulse w-4/6"></div>
-              </div>
-              
-              {/* Loading button */}
-              <div className="h-12 bg-gray-800/50 rounded-lg w-1/3 animate-pulse"></div>
-            </div>
+            <LoadingSpinner
+              variant="skeleton"
+              skeleton={{
+                lines: 4,
+                button: true,
+                height: "h-12"
+              }}
+              className="w-full max-w-2xl px-4"
+            />
           </div>
         </div>
       ) : featuredStories.length === 0 ? (

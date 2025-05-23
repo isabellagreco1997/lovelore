@@ -3,6 +3,7 @@ import useSupabase from '@/hooks/useSupabase';
 import { User } from '@supabase/supabase-js'; // Keep if used elsewhere, or for User type context
 // Stripe type can be removed if not directly used for constructing Stripe objects here
 // import Stripe from 'stripe'; 
+import LoadingSpinner from '../LoadingSpinner';
 
 interface SubscriptionDetailsProps {
   userId: string;
@@ -117,13 +118,15 @@ const SubscriptionDetails = ({ userId }: SubscriptionDetailsProps) => {
 
   if (loading) {
     return (
-      <div className="bg-black/20 border border-gray-800 p-6 rounded-xl shadow-lg animate-pulse">
-        <div className="h-6 bg-gray-700 rounded w-1/3 mb-4"></div>
-        <div className="h-4 bg-gray-700 rounded w-1/2 mb-2"></div>
-        <div className="h-4 bg-gray-700 rounded w-1/2 mb-2"></div>
-        <div className="h-4 bg-gray-700 rounded w-1/3 mb-4"></div>
-        <div className="h-10 bg-gray-700 rounded w-full mt-4"></div>
-      </div>
+      <LoadingSpinner
+        variant="skeleton"
+        skeleton={{
+          lines: 4,
+          button: true,
+          height: "h-6"
+        }}
+        className="bg-black/20 border border-gray-800 p-6 rounded-xl shadow-lg"
+      />
     );
   }
 

@@ -7,6 +7,7 @@ import ConversationView from '@/components/ConversationView';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
 import { streamAIResponse, getStoryContextFromConversation, getPreviousChapterMessages, formatPreviousChapterSummary } from '@/lib/deepseek';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function ChapterPage() {
   const params = useParams();
@@ -339,45 +340,30 @@ export default function ChapterPage() {
   }, [supabase, worldId, user, chapterId, storyData, dataFetched, conversation]);
 
   if (userLoading || loading || (isInitialLoad && !hasExistingMessages)) {
+    const getLoadingTitle = () => {
+      if (userLoading) return 'Authenticating';
+      if (processingStep === 'loading') return 'Loading Your Story';
+      if (processingStep === 'creating-world') return 'Creating Your Story World';
+      if (processingStep === 'initializing') return 'Preparing Your Adventure';
+      return 'Generating Your Story';
+    };
+
+    const getLoadingSubtitle = () => {
+      if (userLoading) return 'Please wait while we verify your credentials...';
+      if (processingStep === 'loading') return 'Loading story data...';
+      if (processingStep === 'creating-world') return 'Please wait while we prepare your adventure world...';
+      if (processingStep === 'initializing') return 'Setting up your story experience...';
+      return 'Please wait while we craft your unique narrative experience...';
+    };
+
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-        <div className="text-center">
-          <div className="mb-8">
-            <div className="w-20 h-20 border-t-4 border-b-4 border-purple-500 rounded-full animate-spin mx-auto"></div>
-          </div>
-          
-          <div className="space-y-3">
-            <h2 className="text-2xl font-bold text-white">
-              {userLoading 
-                ? 'Authenticating' 
-                : processingStep === 'loading' 
-                  ? 'Loading Your Story'
-                  : processingStep === 'creating-world' 
-                    ? 'Creating Your Story World'
-                    : processingStep === 'initializing' 
-                      ? 'Preparing Your Adventure'
-                      : 'Generating Your Story'}
-            </h2>
-            <p className="text-purple-300">
-              {userLoading 
-                ? 'Please wait while we verify your credentials...'
-                : processingStep === 'loading' 
-                  ? 'Loading story data...'
-                  : processingStep === 'creating-world' 
-                    ? 'Please wait while we prepare your adventure world...'
-                    : processingStep === 'initializing' 
-                      ? 'Setting up your story experience...'
-                      : 'Please wait while we craft your unique narrative experience...'}
-            </p>
-          </div>
-          
-          <div className="mt-6 flex justify-center space-x-2">
-            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse animation-delay-200"></div>
-            <div className="w-2 h-2 bg-purple-300 rounded-full animate-pulse animation-delay-400"></div>
-          </div>
-        </div>
-      </div>
+      <LoadingSpinner
+        variant="fullscreen"
+        theme="purple"
+        fullscreenTitle={getLoadingTitle()}
+        fullscreenSubtitle={getLoadingSubtitle()}
+        showDots={true}
+      />
     );
   }
 

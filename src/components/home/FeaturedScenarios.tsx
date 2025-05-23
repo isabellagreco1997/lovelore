@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Story } from '@/types/database';
 import { useRouter } from 'next/navigation';
+import LoadingSpinner from '../LoadingSpinner';
 
 interface FeaturedScenariosProps {
   stories: Story[];
@@ -140,9 +141,16 @@ const FeaturedScenarios = ({ stories, loading }: FeaturedScenariosProps) => {
         {loading ? (
           <div className="flex gap-4 px-4 hide-scrollbar overflow-x-auto">
             {[...Array(4)].map((_, index) => (
-              <div 
+              <LoadingSpinner
                 key={index}
-                className="min-w-[calc(50%-8px)] sm:min-w-[calc(50%-8px)] md:min-w-[280px] h-[280px] sm:h-[320px] md:h-[350px] bg-gray-800/50 rounded-xl flex-shrink-0 animate-pulse"
+                variant="skeleton"
+                skeleton={{
+                  image: true,
+                  lines: 3,
+                  button: true,
+                  height: "h-32"
+                }}
+                className="min-w-[calc(50%-8px)] sm:min-w-[calc(50%-8px)] md:min-w-[280px] h-[280px] sm:h-[320px] md:h-[350px] bg-gray-800/50 rounded-xl flex-shrink-0"
               />
             ))}
             <div className="min-w-[80px] flex-shrink-0"></div>

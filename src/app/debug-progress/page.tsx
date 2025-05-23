@@ -5,6 +5,7 @@ import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
 import Layout from '@/components/Layout';
 import Auth from '@/components/Auth';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface ProgressRecord {
   id: string;
@@ -172,7 +173,11 @@ export default function DebugProgressPage() {
     return (
       <Layout>
         <div className="flex justify-center items-center h-[80vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+          <LoadingSpinner
+            variant="spinner"
+            size="lg"
+            theme="purple"
+          />
         </div>
       </Layout>
     );

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import useSupabase from '@/hooks/useSupabase';
 import { Story } from '@/types/database';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const StoriesPage = () => {
   const supabase = useSupabase();
@@ -109,7 +110,17 @@ const StoriesPage = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
-              <div key={index} className="bg-gray-900/50 rounded-xl h-[400px] animate-pulse"></div>
+              <LoadingSpinner
+                key={index}
+                variant="skeleton"
+                skeleton={{
+                  image: true,
+                  lines: 3,
+                  button: true,
+                  height: "h-64"
+                }}
+                className="bg-gray-900/50 rounded-xl h-[400px]"
+              />
             ))}
           </div>
         ) : (

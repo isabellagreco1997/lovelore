@@ -1,6 +1,7 @@
 import { User } from '@supabase/supabase-js';
 import { useState, useEffect } from 'react';
 import useSupabase from '@/hooks/useSupabase';
+import LoadingSpinner from '../LoadingSpinner';
 
 interface ProfileSectionProps {
   user: User;
@@ -118,7 +119,11 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
             <div>
               <div className="text-sm text-gray-400">Subscription</div>
               {loading ? (
-                <div className="h-5 bg-gray-800 rounded w-20 animate-pulse"></div>
+                <LoadingSpinner
+                  variant="pulse"
+                  size="sm"
+                  className="h-5 w-20"
+                />
               ) : (
                 <div className="text-white font-medium">
                   {subscription ? 'Active Plan' : 'No Active Plan'}
@@ -128,7 +133,11 @@ const ProfileSection = ({ user }: ProfileSectionProps) => {
           </div>
 
           {loading ? (
-            <div className="animate-pulse h-10 bg-gray-800 rounded w-full"></div>
+            <LoadingSpinner
+              variant="pulse"
+              size="md"
+              className="h-10 w-full"
+            />
           ) : error ? (
             <div className="text-red-400 text-sm">Failed to load subscription status</div>
           ) : subscription ? (

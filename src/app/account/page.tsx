@@ -9,6 +9,7 @@ import Auth from '@/components/Auth';
 import SubscriptionManager from '@/components/account/SubscriptionManager';
 import AccountSecurity from '@/components/account/AccountSecurity';
 import ProfileSection from '@/components/account/ProfileSection';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 // Extract the part that uses useSearchParams into a separate component
 const TabHandler = ({ setActiveTab }: { setActiveTab: (tab: 'profile' | 'subscription' | 'security') => void }) => {
@@ -39,7 +40,11 @@ const AccountPage = () => {
     return (
       <Layout>
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+          <LoadingSpinner
+            variant="spinner"
+            size="lg"
+            theme="purple"
+          />
         </div>
       </Layout>
     );

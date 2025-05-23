@@ -3,6 +3,7 @@ import { User } from '@supabase/supabase-js';
 import { loadStripe } from '@stripe/stripe-js';
 import useSupabase from '@/hooks/useSupabase';
 import SubscriptionDetails from './SubscriptionDetails';
+import LoadingSpinner from '../LoadingSpinner';
 
 interface SubscriptionManagerProps {
   user: User | null;
@@ -323,16 +324,16 @@ const SubscriptionManager = ({ user }: SubscriptionManagerProps) => {
         <h2 className="text-xl font-semibold text-white mb-8">Subscription Plans</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {[1, 2].map((i) => (
-            <div key={i} className="rounded-xl border border-gray-800 bg-black/40 p-8 animate-pulse">
-              <div className="h-8 bg-gray-800 rounded w-1/3 mb-4"></div>
-              <div className="h-12 bg-gray-800 rounded w-1/2 mb-8"></div>
-              <div className="space-y-4 mb-8">
-                {[1, 2, 3, 4].map((j) => (
-                  <div key={j} className="h-6 bg-gray-800 rounded w-full"></div>
-                ))}
-              </div>
-              <div className="h-12 bg-gray-800 rounded w-full"></div>
-            </div>
+            <LoadingSpinner
+              key={i}
+              variant="skeleton"
+              skeleton={{
+                lines: 4,
+                button: true,
+                height: "h-8"
+              }}
+              className="rounded-xl border border-gray-800 bg-black/40 p-8"
+            />
           ))}
         </div>
       </div>

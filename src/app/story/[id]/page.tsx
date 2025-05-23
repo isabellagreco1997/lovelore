@@ -7,6 +7,7 @@ import Auth from '@/components/Auth';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
 import { Story, Chapter, UserChapterProgress } from '@/types/database';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function StoryPage() {
   const { id } = useParams();
@@ -291,12 +292,11 @@ export default function StoryPage() {
     return (
       <Layout>
         <div className="flex justify-center items-center h-[80vh]">
-          <div className="relative">
-            <div className="h-24 w-24 rounded-full border-t-4 border-b-4 border-purple-500 animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-12 w-12 rounded-full border-t-4 border-b-4 border-purple-300 animate-spin"></div>
-            </div>
-          </div>
+          <LoadingSpinner
+            variant="spinner"
+            size="xl"
+            theme="purple"
+          />
         </div>
       </Layout>
     );

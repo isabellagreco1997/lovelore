@@ -85,4 +85,87 @@ loveloreapp/
 
 ## License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License.
+
+## LoadingSpinner Component
+
+The `LoadingSpinner` component is a unified loading component that handles all loading states throughout the application. It replaces multiple custom loading implementations with a single, consistent component.
+
+### Usage
+
+```tsx
+import LoadingSpinner from '@/components/LoadingSpinner';
+
+// Basic spinner
+<LoadingSpinner />
+
+// Spinner with text
+<LoadingSpinner 
+  variant="spinner" 
+  size="lg" 
+  theme="purple" 
+  text="Loading..." 
+/>
+
+// Fullscreen loading
+<LoadingSpinner
+  variant="fullscreen"
+  theme="purple"
+  fullscreenTitle="Loading Your Story"
+  fullscreenSubtitle="Please wait while we prepare your adventure..."
+  showDots={true}
+/>
+
+// Skeleton loading
+<LoadingSpinner
+  variant="skeleton"
+  skeleton={{
+    image: true,
+    lines: 3,
+    button: true,
+    height: "h-64"
+  }}
+  className="bg-gray-800/50 rounded-xl"
+/>
+
+// Inline loading
+<LoadingSpinner
+  variant="inline"
+  size="sm"
+  theme="current"
+  text="Sending..."
+/>
+```
+
+### Props
+
+- `variant`: 'spinner' | 'pulse' | 'skeleton' | 'fullscreen' | 'inline'
+- `size`: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+- `theme`: 'purple' | 'pink' | 'blue' | 'gray' | 'current'
+- `text`: Optional text to display with the spinner
+- `fullscreenTitle`: Title for fullscreen variant
+- `fullscreenSubtitle`: Subtitle for fullscreen variant
+- `showDots`: Show animated dots for fullscreen variant
+- `skeleton`: Configuration for skeleton loading
+- `inline`: Whether to render inline
+- `center`: Whether to center the content
+- `className`: Additional CSS classes
+
+### Variants
+
+1. **Spinner**: Basic spinning loader
+2. **Pulse**: Simple pulsing animation
+3. **Skeleton**: Placeholder content with shimmer effect
+4. **Fullscreen**: Full-screen loading overlay
+5. **Inline**: Inline loading for buttons and small spaces
+
+### Migration
+
+All existing loading states have been migrated to use this component:
+- Chapter page complex loading screens
+- Story list loading
+- Account page loading
+- Debug page loading
+- Conversation view inline spinners
+- Skeleton loading cards
+- Subscription manager loading states 
