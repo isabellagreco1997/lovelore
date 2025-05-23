@@ -125,6 +125,19 @@ export default function DebugPage() {
               Test Console Logs
             </button>
           </div>
+          
+          {/* Error Testing Section */}
+          <div className="mt-4 p-4 bg-gray-700 rounded-lg">
+            <h3 className="font-semibold mb-2">🧪 Error Testing</h3>
+            <p className="text-sm mb-3">Test how the debugging tools handle errors and crashes:</p>
+            <a 
+              href="/debug/error-test"
+              className="inline-block bg-yellow-600 hover:bg-yellow-700 px-3 py-2 rounded text-sm transition-colors"
+            >
+              🚨 Open Error Test Page
+            </a>
+          </div>
+          
           <div className="mt-4 p-4 bg-gray-700 rounded-lg">
             <p className="text-sm">
               <strong>Instructions for iOS Safari:</strong><br/>
@@ -135,6 +148,9 @@ export default function DebugPage() {
             </p>
             <div className="mt-3 text-xs text-yellow-300">
               <strong>Production Mode:</strong> Add <code className="bg-gray-600 px-1 rounded">?debug=true</code> to any URL to enable debugging
+            </div>
+            <div className="mt-2 text-xs text-red-300">
+              <strong>Error Recovery:</strong> If app crashes, debug tools will auto-enable to help with troubleshooting
             </div>
           </div>
         </div>
