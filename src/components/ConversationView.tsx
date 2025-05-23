@@ -729,14 +729,12 @@ function ConversationView({ conversation, initialMessage }: ConversationViewProp
                                 italicParts.push(inputText.toString().substring(lastIndex, italicMatch.index));
                               }
                               italicParts.push(<em key={`i-${italicMatch.index}`}>{italicMatch[1]}</em>);
-                              last
-Index = italicMatch.index + italicMatch[0].length;
+                              lastIndex = italicMatch.index + italicMatch[0].length;
                             }
                             
                             if (lastIndex < inputText.toString().length) {
                               italicParts.push(inputText.toString().substring(lastIndex));
                             }
-                            
                             
                             return italicParts;
                           };
