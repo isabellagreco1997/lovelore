@@ -4,6 +4,8 @@
   "description": "An interactive storytelling application",
   "scripts": {
     "dev": "next dev",
+    "dev:mobile": "next dev -H 0.0.0.0",
+    "dev:debug": "next dev -H 0.0.0.0 --port 3000",
     "clean": "rimraf .next",
     "build": "npm run clean && cross-env NEXT_DISABLE_TYPECHECK=1 NEXT_DISABLE_ESLINT=1 NEXT_TYPESCRIPT_CHECK=false next build --no-verify-types",
     "start": "next start",
@@ -23,6 +25,7 @@
     "@tailwindcss/typography": "^0.5.10",
     "autoprefixer": "^10.4.17",
     "axios": "^1.6.7",
+    "eruda": "^3.4.1",
     "framer-motion": "^10.18.0",
     "i18next": "^25.2.0",
     "i18next-browser-languagedetector": "^8.1.0",
