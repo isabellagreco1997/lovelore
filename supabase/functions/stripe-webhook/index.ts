@@ -93,8 +93,8 @@ Deno.serve(async (req) => {
     let event: Stripe.Event;
 
     try {
-      // Do not use constructEventAsync - use the synchronous version for better compatibility
-      event = stripe.webhooks.constructEvent(rawBody, signature, stripeWebhookSecret);
+      // Use constructEventAsync for newer Stripe library versions that require async crypto operations
+      event = await stripe.webhooks.constructEventAsync(rawBody, signature, stripeWebhookSecret);
       console.log('Successfully constructed webhook event:', event.id);
     } catch (error: any) {
       console.error(`Webhook signature verification failed:`, error);
