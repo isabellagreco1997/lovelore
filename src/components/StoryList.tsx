@@ -68,7 +68,7 @@ const StoryList = () => {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+          <div className="text-[#EC444B] text-4xl animate-pulse">❤️</div>
           <p className="mt-4 text-gray-600 animate-pulse">Loading your stories...</p>
         </div>
       </div>
