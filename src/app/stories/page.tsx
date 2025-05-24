@@ -6,6 +6,8 @@ import Layout from '@/components/Layout';
 import useSupabase from '@/hooks/useSupabase';
 import { Story } from '@/types/database';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { Metadata } from 'next';
+import Head from 'next/head';
 
 const StoriesPage = () => {
   const supabase = useSupabase();
@@ -14,6 +16,37 @@ const StoriesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<string>('all');
   const [genres, setGenres] = useState<string[]>([]);
+
+  // JSON-LD structured data for the stories page
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Interactive Romance Stories',
+    description: 'Browse our collection of AI-powered interactive romance stories. Choose your path, make decisions, and shape your romantic destiny.',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'}/stories`,
+    mainEntity: {
+      '@type': 'ItemList',
+      name: 'Romance Stories Collection',
+      numberOfItems: stories.length,
+      itemListElement: stories.slice(0, 10).map((story, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'CreativeWork',
+          '@id': `${process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'}/story/${story.id}`,
+          name: story.world_name,
+          description: story.description,
+          url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'}/story/${story.id}`,
+          image: story.image,
+          genre: (story as any).genre || 'Romance',
+          author: {
+            '@type': 'Organization',
+            name: 'LoveLore'
+          }
+        }
+      }))
+    }
+  };
 
   useEffect(() => {
     if (!supabase) return;
@@ -48,7 +81,7 @@ const StoriesPage = () => {
         setStories(processedStories);
 
         // Extract unique genres
-        const uniqueGenres = [...new Set(processedStories.map(story => story.genre || 'Other'))];
+        const uniqueGenres = Array.from(new Set(processedStories.map(story => (story as any).genre || 'Other')));
         setGenres(uniqueGenres);
       } catch (error) {
         console.error('Error fetching stories:', error);
@@ -64,12 +97,15 @@ const StoriesPage = () => {
   const filteredStories = stories.filter(story => {
     const matchesSearch = story.world_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          story.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGenre = selectedGenre === 'all' || story.genre === selectedGenre;
+    const matchesGenre = selectedGenre === 'all' || (story as any).genre === selectedGenre;
     return matchesSearch && matchesGenre;
   });
 
   return (
     <Layout>
+      <Head>
+        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+      </Head>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Search and Filter Section */}
         <div className="mb-8 space-y-4">
@@ -149,7 +185,7 @@ const StoriesPage = () => {
                 <div className="absolute inset-0 p-6 flex flex-col justify-between">
                   <div>
                     <span className="inline-block bg-[#EC444B]/90 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      {story.genre || 'Other'}
+                      {(story as any).genre || 'Other'}
                     </span>
                   </div>
 

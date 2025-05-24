@@ -94,39 +94,101 @@ const CountdownTimer = () => {
 
 // JSON-LD structured data for SEO
 const StructuredData = ({ stories }: { stories: Story[] }) => {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app';
+  
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'LoveLore',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app',
+    alternateName: 'LoveLore - AI Love Stories',
+    url: baseUrl,
     potentialAction: {
       '@type': 'SearchAction',
-      target: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'}/stories?search={search_term_string}`,
+      target: `${baseUrl}/stories?search={search_term_string}`,
       'query-input': 'required name=search_term_string'
     },
-    description: 'Immerse yourself in interactive romance stories with AI-powered narratives that respond to your choices'
+    description: 'Experience interactive romance stories where AI brings your choices to life. Fall in love, choose your path, and shape your story.',
+    keywords: 'ai love, ai boyfriends, ai love stories, interactive stories, romance stories, AI storytelling, choose your own adventure, narrative games'
   };
 
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'LoveLore',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app',
-    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'}/images/logo.png`
+    url: baseUrl,
+    logo: `${baseUrl}/images/logo.png`,
+    description: 'Interactive AI-powered romance storytelling platform',
+    sameAs: [
+      'https://www.tiktok.com/@lovelore.ai',
+      'https://www.instagram.com/lovelore.stories/'
+    ]
+  };
+
+  // Site navigation schema to help with sitelinks
+  const siteNavigationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SiteNavigationElement',
+    name: 'Main Navigation',
+    url: baseUrl,
+    hasPart: [
+      {
+        '@type': 'WebPage',
+        '@id': `${baseUrl}/`,
+        name: 'Home',
+        url: `${baseUrl}/`,
+        description: 'Discover interactive AI love stories and start your romantic adventure'
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${baseUrl}/stories`,
+        name: 'Stories',
+        url: `${baseUrl}/stories`,
+        description: 'Browse our collection of interactive romance stories'
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${baseUrl}/login`,
+        name: 'Sign In',
+        url: `${baseUrl}/login`,
+        description: 'Sign in to access your personalized story experience'
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${baseUrl}/help`,
+        name: 'Help',
+        url: `${baseUrl}/help`,
+        description: 'Get help and support for using LoveLore'
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${baseUrl}/contact`,
+        name: 'Contact',
+        url: `${baseUrl}/contact`,
+        description: 'Get in touch with the LoveLore team'
+      }
+    ]
   };
 
   const storiesSchema = stories.length > 0 ? {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
+    name: 'Featured Stories',
+    description: 'Interactive romance stories on LoveLore',
     itemListElement: stories.map((story, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       item: {
         '@type': 'CreativeWork',
+        '@id': `${baseUrl}/story/${story.id}`,
         name: story.world_name,
         description: story.description || story.story_context,
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'}/story/${story.id}`,
-        image: story.image
+        url: `${baseUrl}/story/${story.id}`,
+        image: story.image,
+        genre: 'Romance',
+        author: {
+          '@type': 'Organization',
+          name: 'LoveLore'
+        }
       }
     }))
   } : null;
@@ -140,6 +202,10 @@ const StructuredData = ({ stories }: { stories: Story[] }) => {
       <script 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script 
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNavigationSchema) }}
       />
       {storiesSchema && (
         <script 

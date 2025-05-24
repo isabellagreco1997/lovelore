@@ -5,6 +5,7 @@ import useUser from '@/hooks/useUser';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Library, User, LogOut, Menu, X } from 'lucide-react';
+import Breadcrumbs from './Breadcrumbs';
 
 interface LayoutProps {
   children: ReactNode;
@@ -232,6 +233,7 @@ const Layout = ({ children }: LayoutProps) => {
       
       {/* Main content */}
       <main className={`flex-grow z-10 ${isLoginPage ? '' : isHomePage ? 'mb-8' : 'my-8 mx-4 md:mx-8'}`}>
+        {!isLoginPage && <Breadcrumbs />}
         {children}
       </main>
       
