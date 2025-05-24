@@ -14,16 +14,16 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'LoveLore - Interactive Storytelling',
-  description: 'Immerse yourself in interactive romance stories with AI-powered narratives that respond to your choices',
-  keywords: 'interactive stories, romance stories, AI storytelling, choose your own adventure, narrative games',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'),
+  title: 'Lovelore - AI Love Stories',
+  description: 'Experience interactive romance stories where AI brings your choices to life. Fall in love, choose your path, and shape your story.',
+  keywords: 'ai love, ai boyfriends, ai love stories, interactive stories, romance stories, AI storytelling, choose your own adventure, narrative games',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.ai'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'LoveLore - Interactive Storytelling',
-    description: 'Immerse yourself in interactive romance stories with AI-powered narratives that respond to your choices',
+    title: 'Lovelore - AI Love Stories',
+    description: 'Experience interactive romance stories where AI brings your choices to life. Fall in love, choose your path, and shape your story.',
     url: 'https://lovelore.app',
     siteName: 'LoveLore',
     images: [
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
         url: '/images/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'LoveLore - Interactive Storytelling',
+        alt: 'Lovelore - Interactive Storytelling',
       },
     ],
     locale: 'en_US',
@@ -39,8 +39,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LoveLore - Interactive Storytelling',
-    description: 'Immerse yourself in interactive romance stories with AI-powered narratives that respond to your choices',
+    title:'Lovelore - AI Love Stories',
+    description: 'Experience interactive romance stories where AI brings your choices to life. Fall in love, choose your path, and shape your story.',
     images: ['/images/og-image.jpg'],
   },
   robots: {

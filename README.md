@@ -8,6 +8,23 @@ An interactive storytelling platform that allows users to engage with AI-generat
 - Interact with stories through natural language conversations
 - Experience adaptive storylines that respond to your choices
 - Multiple chapters with different narrative objectives
+- **Interactive Storytelling**: Create and participate in dynamic, AI-generated stories
+- **User Authentication**: Secure signup and login with email confirmation
+- **Account Management**: User profiles and settings
+- **Story Management**: Create, save, and continue stories
+- **AI Integration**: Powered by AI for story generation
+
+## Authentication Flow
+
+### Email Confirmation
+When users create a new account:
+1. User fills out the signup form with email and password
+2. Account is created but requires email verification
+3. User receives a confirmation email (check spam folder if not found)
+4. User clicks the confirmation link in the email
+5. Account is activated and user can sign in
+
+**Note**: Email confirmation is required before users can sign in to their account.
 
 ## Setup
 

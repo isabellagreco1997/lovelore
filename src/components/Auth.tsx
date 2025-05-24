@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Mail } from 'lucide-react';
 import useUser from '@/hooks/useUser';
 import useSupabase from '@/hooks/useSupabase';
 
@@ -48,6 +49,7 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
 
     try {
       if (isLogin) {
@@ -60,6 +62,14 @@ const Auth = () => {
         }
         const { error } = await signUp(email, password);
         if (error) throw error;
+        
+        // Show success message for email confirmation
+        setSuccess('Check your email to confirm your account');
+        // Clear the form
+        setEmail('');
+        setPassword('');
+        // Switch to login mode after successful signup
+        setIsLogin(true);
       }
     } catch (error: any) {
       setError(error.message || 'An error occurred during authentication');
@@ -164,14 +174,18 @@ const Auth = () => {
           </div>
 
           {error && (
-            <div className="bg-red-900/20 border border-red-500/20 text-red-400 p-4 rounded-lg mb-6 text-sm">
+            <div className="bg-black/40 border border-red-500/30 text-red-400 p-4 rounded-xl mb-6 text-sm backdrop-blur-sm">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="bg-green-900/20 border border-green-500/20 text-green-400 p-4 rounded-lg mb-6 text-sm">
-              {success}
+            <div className="bg-black/40 border border-[#EC444B]/30 text-center p-6 rounded-xl mb-6 backdrop-blur-sm">
+              <div className="flex justify-center mb-3">
+                <Mail className="w-8 h-8 text-[#EC444B]" />
+              </div>
+              <div className="text-white font-medium">{success}</div>
+              <div className="text-gray-400 text-xs mt-2">Check your spam folder too</div>
             </div>
           )}
 
