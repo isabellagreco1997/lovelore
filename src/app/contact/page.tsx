@@ -11,19 +11,34 @@ const ContactPage = () => {
     message: ''
   });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('sending');
+    setErrorMessage('');
 
     try {
-      // Here you would typically send the email using your preferred method
-      // For now, we'll simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setStatus('success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setStatus('error');
+        setErrorMessage(result.error || 'Failed to send message');
+      }
     } catch (error) {
       setStatus('error');
+      setErrorMessage('Network error. Please try again.');
     }
   };
 
@@ -136,7 +151,7 @@ const ContactPage = () => {
 
               {status === 'error' && (
                 <div className="bg-red-900/20 border border-red-500/20 text-red-400 p-4 rounded-xl">
-                  Something went wrong. Please try again or email us directly.
+                  {errorMessage}
                 </div>
               )}
             </form>
