@@ -230,16 +230,21 @@ export default function Home() {
   const [storiesLoading, setStoriesLoading] = useState(true);
   const [recentStoriesLoading, setRecentStoriesLoading] = useState(true);
   const [hasSubscription, setHasSubscription] = useState(false);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const [showTikTokBanner, setShowTikTokBanner] = useState(true);
   const [hasActualRecentlyViewed, setHasActualRecentlyViewed] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   // Check if user has a subscription
   useEffect(() => {
-    if (!supabase || !user) return;
+    if (!supabase || !user) {
+      setSubscriptionLoading(false);
+      return;
+    }
 
     const checkSubscription = async () => {
       try {
+        setSubscriptionLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
@@ -271,6 +276,8 @@ export default function Home() {
       } catch (error: any) {
         console.error('Error checking subscription status:', error.message);
         setHasSubscription(false);
+      } finally {
+        setSubscriptionLoading(false);
       }
     };
 
@@ -555,7 +562,7 @@ export default function Home() {
        
         <Layout>
           {showTikTokBanner && <TikTokBrowserBanner onClose={handleCloseTikTokBanner} />}
-        {!hasSubscription && (
+        {!subscriptionLoading && !hasSubscription && (
           <div className="w-screen relative left-1/2 right-1/2 -mx-[50vw]">
             <div className="bg-gradient-to-r from-indigo-900 via-[#EC444B] to-purple-900 shadow-lg relative overflow-hidden">
               <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
