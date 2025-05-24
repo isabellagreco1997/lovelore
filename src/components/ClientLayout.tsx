@@ -4,7 +4,6 @@ import { ReactNode, useState, useEffect } from 'react';
 import useStripeSync from '@/hooks/useStripeSync';
 import useUser from '@/hooks/useUser';
 import SubscriptionModal from './SubscriptionModal';
-import MobileDebugger from './MobileDebugger';
 import ErrorBoundary from './ErrorBoundary';
 
 interface ClientLayoutProps {
@@ -38,7 +37,6 @@ const ClientLayout = ({ children }: ClientLayoutProps) => {
         isOpen={showModal} 
         onClose={() => setShowModal(false)} 
       />
-      <MobileDebugger />
     </ErrorBoundary>
   );
 };

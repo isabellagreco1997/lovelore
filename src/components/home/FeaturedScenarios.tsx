@@ -150,7 +150,7 @@ const FeaturedScenarios = ({ stories, loading }: FeaturedScenariosProps) => {
                   button: true,
                   height: "h-32"
                 }}
-                className="min-w-[calc(50%-8px)] sm:min-w-[calc(50%-8px)] md:min-w-[280px] h-[280px] sm:h-[320px] md:h-[350px] bg-gray-800/50 rounded-xl flex-shrink-0"
+                className="min-w-[85%] sm:min-w-[70%] md:min-w-[280px] h-[280px] sm:h-[320px] md:h-[350px] bg-gray-800/50 rounded-xl flex-shrink-0"
               />
             ))}
             <div className="min-w-[80px] flex-shrink-0"></div>
@@ -186,7 +186,7 @@ const FeaturedScenarios = ({ stories, loading }: FeaturedScenariosProps) => {
                   key={story.id}
                   data-carousel-item
                   onClick={() => router.push(`/login`)}
-                  className="min-w-[calc(50%-8px)] sm:min-w-[calc(50%-8px)] md:min-w-[280px] h-[280px] sm:h-[320px] md:h-[350px] rounded-xl overflow-hidden flex-shrink-0 relative group cursor-pointer transform transition-all duration-300 hover:scale-[1.02] snap-start"
+                  className="min-w-[85%] sm:min-w-[70%] md:min-w-[280px] h-[280px] sm:h-[320px] md:h-[350px] rounded-xl overflow-hidden flex-shrink-0 relative group cursor-pointer transform transition-all duration-300 hover:scale-[1.02] snap-start"
                 >
                   {/* Image */}
                   {story.image ? (

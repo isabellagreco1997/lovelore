@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight, Home } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import useSupabase from '@/hooks/useSupabase';
 
 interface BreadcrumbItem {
   label: string;
@@ -15,9 +17,52 @@ interface BreadcrumbsProps {
 
 const Breadcrumbs = ({ customBreadcrumbs }: BreadcrumbsProps) => {
   const pathname = usePathname();
+  const supabase = useSupabase();
+  const [storyNames, setStoryNames] = useState<Record<string, string>>({});
 
   // Don't show breadcrumbs on home page
   if (pathname === '/') return null;
+
+  // Fetch story names for story pages
+  useEffect(() => {
+    if (!supabase) return;
+
+    const fetchStoryNames = async () => {
+      const pathSegments = pathname.split('/').filter(Boolean);
+      const storyIds: string[] = [];
+
+      // Find story IDs in the path
+      pathSegments.forEach((segment, index) => {
+        if (pathSegments[index - 1] === 'story') {
+          storyIds.push(segment);
+        }
+      });
+
+      if (storyIds.length > 0) {
+        try {
+          const { data, error } = await supabase
+            .from('stories')
+            .select('id, world_name')
+            .in('id', storyIds);
+
+          if (error) {
+            console.error('Error fetching story names:', error);
+            return;
+          }
+
+          const nameMap: Record<string, string> = {};
+          data.forEach(story => {
+            nameMap[story.id] = story.world_name;
+          });
+          setStoryNames(nameMap);
+        } catch (error) {
+          console.error('Error fetching story names:', error);
+        }
+      }
+    };
+
+    fetchStoryNames();
+  }, [pathname, supabase]);
 
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
     if (customBreadcrumbs) return customBreadcrumbs;
@@ -33,15 +78,22 @@ const Breadcrumbs = ({ customBreadcrumbs }: BreadcrumbsProps) => {
       
       // Map segments to readable labels
       let label = segment;
+      let href = currentPath;
+      
       switch (segment) {
         case 'stories':
           label = 'Stories';
           break;
         case 'story':
           label = 'Story';
+          // Link to stories list instead of non-existent /story page
+          href = '/stories';
           break;
         case 'chapter':
           label = 'Chapter';
+          // For chapter breadcrumb, link back to the story page
+          const storyId = pathSegments[index - 1];
+          href = `/story/${storyId}`;
           break;
         case 'account':
           label = 'Account';
@@ -62,19 +114,32 @@ const Breadcrumbs = ({ customBreadcrumbs }: BreadcrumbsProps) => {
           label = 'Privacy Policy';
           break;
         default:
-          // For dynamic segments like IDs, try to make them more readable
-          if (segment.length > 10 && segment.includes('-')) {
-            label = segment.split('-').map(word => 
-              word.charAt(0).toUpperCase() + word.slice(1)
-            ).join(' ');
+          // Check if this is a story ID and we have the story name
+          if (pathSegments[index - 1] === 'story' && storyNames[segment]) {
+            label = storyNames[segment];
+          } else if (pathSegments[index - 1] === 'chapter') {
+            // For chapter IDs, show as "Chapter X"
+            const chapterNumber = parseInt(segment);
+            if (!isNaN(chapterNumber)) {
+              label = `Chapter ${chapterNumber + 1}`;
+            } else {
+              label = `Chapter ${segment}`;
+            }
           } else {
-            label = segment.charAt(0).toUpperCase() + segment.slice(1);
+            // For dynamic segments like IDs, try to make them more readable
+            if (segment.length > 10 && segment.includes('-')) {
+              label = segment.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+              ).join(' ');
+            } else {
+              label = segment.charAt(0).toUpperCase() + segment.slice(1);
+            }
           }
       }
 
       breadcrumbs.push({
         label,
-        href: currentPath
+        href
       });
     });
 

@@ -486,15 +486,14 @@ export default function StoryPage() {
                         const isSelected = selectedChapter?.chapterName === chapter.chapterName;
                         
                         return (
-                          <button 
+                          <div 
                             key={index}
                             onClick={() => !isLocked && setSelectedChapter(chapter)}
                             className={`
-                              w-full text-left p-3 rounded-xl transition-all
-                              ${isLocked ? 'bg-gray-800/30' : 'active:scale-98'}
+                              w-full text-left p-3 rounded-xl transition-all cursor-pointer
+                              ${isLocked ? 'bg-gray-800/30 cursor-not-allowed' : 'active:scale-98 hover:bg-gray-800/50'}
                               ${isSelected ? 'bg-purple-900/20 border-l-4 border-purple-500' : 'border-l-4 border-transparent'}
                             `}
-                            disabled={isLocked}
                           >
                             <div className="flex items-center">
                               <div className="mr-3">
@@ -534,9 +533,25 @@ export default function StoryPage() {
                                     Completed
                                   </span>
                                 ) : displayAsPremium ? (
-                                  <span className="inline-block px-2 py-1 rounded-full text-xs bg-amber-900/30 text-amber-300 border border-amber-700/50">
-                                    Premium
-                                  </span>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      console.log('Upgrade Premium button clicked!');
+                                      console.log('Router:', router);
+                                      try {
+                                        router.push('/account?tab=subscription');
+                                        console.log('Router.push called successfully');
+                                      } catch (error) {
+                                        console.error('Router.push failed:', error);
+                                        // Fallback to window.location
+                                        window.location.href = '/account?tab=subscription';
+                                      }
+                                    }}
+                                    className="inline-block px-3 py-1.5 rounded-full text-xs bg-amber-900/40 text-amber-300 border border-amber-700/60 hover:bg-amber-900/60 hover:border-amber-600/80 hover:text-amber-200 transition-all duration-200 cursor-pointer active:scale-95 shadow-sm"
+                                  >
+                                    ⭐ Upgrade Premium
+                                  </button>
                                 ) : lockReason === 'progression' ? (
                                   <span className="inline-block px-2 py-1 rounded-full text-xs bg-gray-800/30 text-gray-500 border border-gray-700/50">
                                     Locked
@@ -548,7 +563,7 @@ export default function StoryPage() {
                                 )}
                               </div>
                             </div>
-                          </button>
+                          </div>
                         );
                       })}
                     </div>

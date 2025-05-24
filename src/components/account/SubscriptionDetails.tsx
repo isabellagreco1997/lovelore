@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js'; // Keep if used elsewhere, or for 
 // Stripe type can be removed if not directly used for constructing Stripe objects here
 // import Stripe from 'stripe'; 
 import LoadingSpinner from '../LoadingSpinner';
+import { Crown } from 'lucide-react';
 
 interface SubscriptionDetailsProps {
   userId: string;
@@ -77,6 +78,12 @@ const SubscriptionDetails = ({ userId }: SubscriptionDetailsProps) => {
       }
     };
     fetchSubscriptionDetails();
+
+    // Cleanup function to ensure loading state is reset
+    return () => {
+      setLoading(false);
+      setError(null);
+    };
   }, [supabase, userId]);
 
   const handleManageBilling = async () => {
@@ -116,26 +123,28 @@ const SubscriptionDetails = ({ userId }: SubscriptionDetailsProps) => {
     }
   };
 
-  if (loading) {
+  if (loading  ) {
     return (
-      <LoadingSpinner
-        variant="skeleton"
-        skeleton={{
-          lines: 4,
-          button: true,
-          height: "h-6"
-        }}
-        className="bg-black/20 border border-gray-800 p-6 rounded-xl shadow-lg"
-      />
+      <div className="subscription-details-container">
+        <LoadingSpinner
+          key="subscription-skeleton"
+          variant="skeleton"
+          skeleton={{
+            lines: 4,
+            button: true
+          }}
+          className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl shadow-xl"
+        />
+      </div>
     );
   }
 
   if (error && !subscription) { // Only show general error if no subscription data could be loaded
-    return <div className="text-red-400 bg-red-900/30 p-4 rounded-md">Error loading subscription: {error}</div>;
+    return <div className="text-red-400 bg-red-900/30 backdrop-blur-sm p-6 rounded-xl border border-red-800/50 shadow-xl">Error loading subscription: {error}</div>;
   }
 
   if (!subscription) {
-    return <div className="text-gray-300 p-6 rounded-xl bg-black/20 border border-gray-800">You do not have an active subscription. Please choose a plan.</div>;
+    return <div className="text-gray-300 p-8 rounded-2xl bg-gray-900/50 backdrop-blur-sm border border-gray-800 shadow-xl">You do not have an active subscription. Please choose a plan.</div>;
   }
 
   const { 
@@ -149,31 +158,106 @@ const SubscriptionDetails = ({ userId }: SubscriptionDetailsProps) => {
   } = subscription;
 
   return (
-    <div className="bg-black/20 border border-gray-800 p-6 rounded-xl shadow-lg text-white">
-      <h3 className="text-2xl font-semibold mb-6 text-[#EC444B]">{product?.name || 'Your Subscription'}</h3>
+    <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 p-8 rounded-2xl shadow-xl text-white transition-all duration-300 hover:border-gray-700/50">
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
+          <span className="text-xs sm:text-sm font-bold tracking-tight uppercase text-gray-400">
+            Active Subscription
+          </span>
+        </div>
+        <h3 className="text-lg sm:text-xl font-bold text-[#EC444B] leading-tight">
+          {product?.name || 'Premium Plan'}
+        </h3>
+      </div>
       
-      <div className="space-y-3 mb-6">
-        <p><strong className="text-gray-400">Status:</strong> <span className={`capitalize px-2 py-1 rounded-full text-xs font-medium ${status === 'active' ? 'bg-green-600/20 text-green-300' : 'bg-yellow-600/20 text-yellow-300'}`}>{status}</span></p>
+      <div className="space-y-6 mb-8">
+        <div className="flex items-center justify-between py-3 px-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
+          <span className="text-gray-400 font-medium text-sm">Status</span>
+          <span className={`capitalize px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 text-sm ${
+            status === 'active' 
+              ? 'bg-green-600/20 text-green-300 border border-green-600/30' 
+              : 'bg-yellow-600/20 text-yellow-300 border border-yellow-600/30'
+          }`}>
+            {status}
+          </span>
+        </div>
+
         {price && (
-          <p><strong className="text-gray-400">Price:</strong> {price.amount ? `$${price.amount.toFixed(2)}` : 'N/A'} {price.currency?.toUpperCase()} / {price.interval}</p>
+          <div className="flex items-center justify-between py-3 px-4 bg-gray-800/30 rounded-lg text-sm border border-gray-700/50">
+            <span className="text-gray-400 font-medium">Price</span>
+            <span className="text-white font-semibold text-sm">
+              {price.amount ? `$${price.amount.toFixed(2)}` : 'N/A'} {price.currency?.toUpperCase()} / {price.interval}
+            </span>
+          </div>
         )}
-        <p><strong className="text-gray-400">{cancel_at_period_end ? 'Expires on' : 'Renews on'}:</strong> {new Date(current_period_end * 1000).toLocaleDateString()}</p>
+
+        <div className="flex items-center justify-between py-3 px-4 bg-gray-800/30 rounded-lg border border-gray-700/50 text-sm">
+          <span className="text-gray-400  text-sm font-medium">{cancel_at_period_end ? 'Expires on' : 'Renews on'}</span>
+          <span className="text-white font-semibold text-sm">
+            {new Date(current_period_end * 1000).toLocaleDateString()}
+          </span>
+        </div>
+
         {payment_method_brand && payment_method_last4 && (
-          <p><strong className="text-gray-400">Payment Method:</strong> {payment_method_brand} ending in {payment_method_last4}</p>
+          <div className="flex items-center justify-between py-3 px-4 bg-gray-800/30 rounded-lg border border-gray-700/50">
+            <span className="text-gray-400 font-medium text-sm">Payment Method</span>
+            <span className="text-white font-semibold flex items-center space-x-2 text-sm">
+              <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+              </svg>
+              <span>{payment_method_brand} ending in {payment_method_last4}</span>
+            </span>
+          </div>
         )}
+
         {cancel_at_period_end && (
-          <p className="text-yellow-400">Your subscription will be canceled at the end of the current period ({new Date(current_period_end * 1000).toLocaleDateString()}).</p>
+          <div className="p-4 bg-yellow-600/10 border border-yellow-600/30 rounded-lg backdrop-blur-sm">
+            <div className="flex items-start space-x-3">
+              <svg className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+              </svg>
+              <p className="text-yellow-300 text-xs">
+                Your subscription will be canceled at the end of the current period ({new Date(current_period_end * 1000).toLocaleDateString()}).
+              </p>
+            </div>
+          </div>
         )}
       </div>
 
       <button 
         onClick={handleManageBilling}
         disabled={portalLoading}
-        className="w-full bg-[#EC444B] hover:bg-[#d83a40] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-[#EC444B] hover:bg-[#d83a40] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:shadow-[#EC444B]/20 flex items-center justify-center space-x-2 text-sm"
       >
-        {portalLoading ? 'Redirecting to Billing...' : 'Manage Billing & Payment'}
+        {portalLoading ? (
+          <>
+            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Redirecting to Billing...</span>
+          </>
+        ) : (
+          <>
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            <span>Manage Billing & Payment</span>
+          </>
+        )}
       </button>
-      {portalError && <p className="text-red-400 mt-3 text-sm">Error: {portalError}</p>}
+      
+      {portalError && (
+        <div className="mt-4 p-3 bg-red-900/30 border border-red-800/50 rounded-lg backdrop-blur-sm">
+          <p className="text-red-400 text-sm flex items-center space-x-2">
+            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+            </svg>
+            <span>Error: {portalError}</span>
+          </p>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Gem, HeartCrack, Heart } from 'lucide-react';
+import useSupabase from '@/hooks/useSupabase';
+import useUser from '@/hooks/useUser';
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -22,11 +24,67 @@ interface DisplayPlanInfo {
 
 const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
   const router = useRouter();
+  const supabase = useSupabase();
+  const { user } = useUser();
   const [isLoaded, setIsLoaded] = useState(false);
   // Changed state to hold an array of plans
   const [displayedPlans, setDisplayedPlans] = useState<DisplayPlanInfo[]>([]);
   const [loadingPrices, setLoadingPrices] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
+  const [checkingSubscription, setCheckingSubscription] = useState(true);
+
+  // Check subscription status when modal opens
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      if (!isOpen || !supabase || !user?.id) {
+        setCheckingSubscription(false);
+        return;
+      }
+
+      try {
+        setCheckingSubscription(true);
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.error('No session available for checking subscription');
+          setHasActiveSubscription(false);
+          setCheckingSubscription(false);
+          return;
+        }
+        
+        const response = await fetch('/api/stripe-subscription', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to fetch subscription data');
+          setHasActiveSubscription(false);
+          setCheckingSubscription(false);
+          return;
+        }
+        
+        const { subscription } = await response.json();
+        
+        if (subscription && subscription.status === 'active') {
+          setHasActiveSubscription(true);
+        } else {
+          setHasActiveSubscription(false);
+        }
+      } catch (error: any) {
+        console.error('Error checking subscription status:', error.message);
+        setHasActiveSubscription(false);
+      } finally {
+        setCheckingSubscription(false);
+      }
+    };
+
+    checkSubscriptionStatus();
+  }, [isOpen, supabase, user?.id]);
 
   useEffect(() => {
     if (isOpen) {
@@ -106,16 +164,15 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
     fetchAndProcessPrices();
   }, [isOpen, displayedPlans.length]); // Re-run if isOpen changes or plans are reset
 
-  if (!isOpen) return null;
+  // Don't show modal if not open, if checking subscription, or if user has active subscription
+  if (!isOpen || checkingSubscription || hasActiveSubscription) return null;
 
-  
   const formatPrice = (amount: number, currency: string): string => {
     return new Intl.NumberFormat('en-US', { // Adjust locale as needed
       style: 'currency',
       currency: currency,
     }).format(amount / 100);
   };
-
 
   return (
     <div 

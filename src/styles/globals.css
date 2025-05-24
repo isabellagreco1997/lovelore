@@ -74,6 +74,46 @@
   .image-placeholder {
     @apply bg-gray-800/50 animate-pulse;
   }
+
+  /* Lovelore skeleton loading components - scoped to prevent global interference */
+  .lovelore-skeleton {
+    @apply relative overflow-hidden;
+    isolation: isolate;
+  }
+
+  .lovelore-skeleton * {
+    pointer-events: none;
+  }
+
+  .lovelore-skeleton-image,
+  .lovelore-skeleton-line,
+  .lovelore-skeleton-button {
+    @apply relative;
+  }
+
+  .lovelore-skeleton-image::before,
+  .lovelore-skeleton-line::before,
+  .lovelore-skeleton-button::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-gray-600/20 to-transparent;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Subscription details container isolation */
+  .subscription-details-container {
+    @apply relative;
+    isolation: isolate;
+    contain: layout style;
+  }
 }
 
 .animate-fade-in {

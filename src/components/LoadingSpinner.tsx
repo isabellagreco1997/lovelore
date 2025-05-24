@@ -93,19 +93,32 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   // Skeleton element
   const skeletonElement = skeleton ? (
-    <div className={`${skeleton.height || 'h-64'} ${className} animate-pulse`}>
+    <div className={`lovelore-skeleton ${skeleton.height || 'h-auto'} ${className} animate-pulse`}>
       {skeleton.image && (
-        <div className="h-32 bg-gray-700/50 rounded-t-xl mb-4"></div>
+        <div className="lovelore-skeleton-image h-32 bg-gray-700/50 rounded-t-xl mb-4"></div>
       )}
-      <div className="p-4 space-y-3">
-        {Array.from({ length: skeleton.lines || 3 }).map((_, i) => (
-          <div 
-            key={i} 
-            className={`h-4 bg-gray-700/50 rounded ${i === skeleton.lines! - 1 ? 'w-3/4' : 'w-full'}`}
-          ></div>
-        ))}
+      <div className="lovelore-skeleton-content space-y-4">
+        {/* Title skeleton */}
+        <div className="lovelore-skeleton-title space-y-2">
+          <div className="lovelore-skeleton-line h-6 bg-gray-700/50 rounded w-2/3"></div>
+          <div className="lovelore-skeleton-line h-5 bg-gray-700/50 rounded w-1/2"></div>
+        </div>
+        
+        {/* Content lines skeleton */}
+        <div className="lovelore-skeleton-lines space-y-3 my-6">
+          {Array.from({ length: skeleton.lines || 3 }).map((_, i) => (
+            <div 
+              key={i} 
+              className="lovelore-skeleton-row flex items-center justify-between py-3 px-4 bg-gray-800/30 rounded-lg border border-gray-700/50"
+            >
+              <div className="lovelore-skeleton-line h-4 bg-gray-700/50 rounded w-1/4"></div>
+              <div className="lovelore-skeleton-line h-4 bg-gray-700/50 rounded w-1/3"></div>
+            </div>
+          ))}
+        </div>
+        
         {skeleton.button && (
-          <div className="h-10 bg-gray-600/50 rounded-lg w-1/2 mt-4"></div>
+          <div className="lovelore-skeleton-button h-12 bg-gray-600/50 rounded-xl w-full mt-6"></div>
         )}
       </div>
     </div>
