@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 // Set your production URL
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.app'
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.ai'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Main priority pages that should appear as sitelinks
