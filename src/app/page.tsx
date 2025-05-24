@@ -13,6 +13,7 @@ import FeaturesGrid from '@/components/home/FeaturesGrid';
 import FeaturedScenarios from '@/components/home/FeaturedScenarios';
 import FAQSection from '@/components/home/FAQSection';
 import TikTokBrowserBanner from '@/components/home/TikTokBrowserBanner';
+import SubscriptionModal from '@/components/SubscriptionModal';
 import Script from 'next/script';
 import Head from 'next/head';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -231,6 +232,7 @@ export default function Home() {
   const [hasSubscription, setHasSubscription] = useState(false);
   const [showTikTokBanner, setShowTikTokBanner] = useState(true);
   const [hasActualRecentlyViewed, setHasActualRecentlyViewed] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   // Check if user has a subscription
   useEffect(() => {
@@ -258,6 +260,18 @@ export default function Home() {
 
     checkSubscription();
   }, [supabase, user]);
+
+  // Show subscription modal when user visits homepage
+  useEffect(() => {
+    if (user && !loading) {
+      // Add a small delay to ensure the page has loaded
+      const timer = setTimeout(() => {
+        setShowSubscriptionModal(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [user, loading]);
 
   // Fetch stories for showcase
   useEffect(() => {
@@ -729,6 +743,12 @@ export default function Home() {
           
           <StoryList />
         </div>
+        
+        {/* Subscription Modal */}
+        <SubscriptionModal 
+          isOpen={showSubscriptionModal} 
+          onClose={() => setShowSubscriptionModal(false)} 
+        />
       </Layout>
     </>
   );

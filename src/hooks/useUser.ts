@@ -46,7 +46,20 @@ const useUser = () => {
 
   const signUp = async (email: string, password: string) => {
     if (!supabase) return { error: 'Supabase client not initialized' };
-    return await supabase.auth.signUp({ email, password });
+    
+    // Get the correct redirect URL based on environment
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const redirectUrl = isDevelopment 
+      ? `${window.location.origin}/login`
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://lovelore.ai');
+    
+    return await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        emailRedirectTo: `${redirectUrl}/login`
+      }
+    });
   };
 
   const signOut = async () => {

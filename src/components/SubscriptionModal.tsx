@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Gem, HeartCrack, Heart } from 'lucide-react';
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -63,7 +64,7 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
           .map((price: any) => {
             let intervalDisplay = '';
             if (price.recurring.interval === 'month') {
-              intervalDisplay = price.recurring.interval_count === 1 ? '1 Month' : `${price.recurring.interval_count} Months`;
+              intervalDisplay = price.recurring.interval_count === 1 ? 'Monthly Subscription' : `${price.recurring.interval_count} Months`;
             } else if (price.recurring.interval === 'year') {
               intervalDisplay = price.recurring.interval_count === 1 ? '1 Year' : `${price.recurring.interval_count} Years`;
             } else {
@@ -107,15 +108,6 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
 
   if (!isOpen) return null;
 
-  const getCurrencySymbol = (currencyCode: string): string => {
-    // Basic mapping, extend as needed or use a library for full support
-    const symbols: { [key: string]: string } = {
-      USD: '$',
-      EUR: '€',
-      GBP: '£',
-    };
-    return symbols[currencyCode.toUpperCase()] || currencyCode;
-  };
   
   const formatPrice = (amount: number, currency: string): string => {
     return new Intl.NumberFormat('en-US', { // Adjust locale as needed
@@ -132,18 +124,23 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
       }`}
     >
       <div 
-        className={`bg-gray-900/90 rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-gray-800 transition-all duration-500 ${
+        className={`bg-gradient-to-br from-gray-900 via-black to-gray-900 border border-[#EC444B] rounded-xl max-w-4xl w-full overflow-hidden shadow-2xl transition-all duration-500 ${
           isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
         }`}
       >
         <div className="flex flex-col md:flex-row max-h-[90vh] md:max-h-[80vh] overflow-auto">
           {/* Left side - Content */}
-          <div className="p-6 md:p-12 flex-1 overflow-y-auto">
-            <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4 text-[#EC444B]">
-              Get Premium Access Today!
+          <div className="p-6 md:p-12 flex-1 overflow-y-auto border-r border-[#EC444B]/20 md:border-r">
+            <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4 uppercase">
+              <span className="text-white">Get </span>
+              <span className="bg-gradient-to-r from-[#EC444B] via-[#ff5a61] to-[#EC444B] bg-clip-text text-transparent">
+                Premium Access 
+              </span>
+              <span className="text-white"> Today! 💭</span>
+              
             </h2>
             <p className="text-base md:text-lg text-gray-300 mb-5 md:mb-8">
-              Unlock all features and get the best experience. {/* Updated subtitle */}
+              Unlock all features and get the best experience.
             </p>
 
             {/* Pricing Plans - Now Dynamic */}
@@ -176,22 +173,32 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                   return (
                     <div 
                       key={plan.priceId} 
-                      className={`border rounded-xl p-3 md:p-4 relative ${
+                      className={`border rounded-lg p-3 md:p-4 relative transition-all duration-300 hover:border-[#EC444B]/40 ${
                         plan.isPopular 
-                          ? 'bg-[#EC444B]/10 border-[#EC444B]/20' 
-                          : 'bg-gray-800/50 border-gray-700'
+                          ? 'bg-[#EC444B]/5 border-[#EC444B]/30' 
+                          : 'bg-gray-900/30 border-gray-700'
                       }`}
                     >
                       {plan.isPopular && (
-                        <div className="absolute -top-2 md:-top-3 right-3 md:right-4 bg-[#EC444B] text-white px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm">
-                          Best Value
+                        <div className="absolute -top-2 md:-top-3 right-3 md:right-4 bg-gradient-to-r from-[#EC444B] via-[#ff5a61] to-[#EC444B] text-white px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm shadow-lg border border-white/20">
+                          <span className="relative z-10 font-bold drop-shadow-sm">Best Value</span>
+                          <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-transparent rounded-full"></div>
+                        </div>
+                      )}
+                      {plan.recurringInterval === 'year' && (
+                        <div className="absolute -top-2 md:-top-3 left-3 md:left-4 bg-gradient-to-r from-[#EC444B] via-[#ff5a61] to-[#EC444B] text-white px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs md:text-sm shadow-lg border border-white/20">
+                          <span className="relative z-10 font-bold drop-shadow-sm flex items-center space-x-1">
+                            <Heart className="w-3 h-3 fill-current" />
+                            <span>Most Popular</span>
+                          </span>
+                          <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-transparent rounded-full"></div>
                         </div>
                       )}
                       <div className="flex justify-between items-center">
                         <div>
                           <h3 className="text-lg md:text-xl font-semibold text-white">{plan.productName}</h3>
                           {/* intervalDisplay shows the full duration e.g., "1 Year" or "3 Months" */}
-                          <p className="text-sm md:text-base text-gray-400">{plan.intervalDisplay}</p>
+                          <p className="text-sm md:text-base text-gray-400">{plan.recurringInterval === 'year' ? 'Pay Annually' : 'Pay Monthly'}</p>
                         </div>
                         <div className="text-right">
                           <div className="text-xl md:text-2xl font-bold text-white">
@@ -208,7 +215,7 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
             )}
 
             {/* Mobile layout with Benefits and Image side by side */}
-            <div className="block md:hidden flex flex-row mb-6">
+            <div className="block md:hidden flex flex-">
               {/* Premium Benefits (mobile) */}
               <div className="space-y-2 flex-1">
                 <h3 className="text-lg font-semibold text-white mb-2">Premium Benefits</h3>
@@ -230,16 +237,16 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-gray-300">
                   <span className="text-[#EC444B]">✓</span>
-                  <span>Cencel anytime</span>
+                  <span>Cancel anytime</span>
                 </div>
               </div>
               
               {/* Mobile image next to benefits */}
-              <div className="w-[120px] h-[160px] relative">
+              <div className="flex-1 max-h-[260px] relative ml-4 opacity-50">
                 <img
                   src="https://cdn.midjourney.com/31141df3-bd5d-46bf-a84c-74a6e161fe1f/0_3.png"
                   alt="Premium Experience"
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg border border-gray-700"
                 />
               </div>
             </div>
@@ -267,14 +274,14 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
           </div>
 
           {/* Right side - Image and CTA */}
-          <div className="relative w-full md:w-[400px] bg-gradient-to-br from-gray-900 to-black p-6 md:p-8 flex flex-col min-h-[200px] md:min-h-0">
+          <div className="relative w-full md:w-[400px] bg-black p-6 md:p-8 flex flex-col min-h-[200px] md:min-h-0">
             {/* Desktop only image */}
             <img
               src="https://cdn.midjourney.com/31141df3-bd5d-46bf-a84c-74a6e161fe1f/0_3.png"
               alt="Premium Experience"
-              className="absolute inset-0 w-full h-full object-cover opacity-40 md:opacity-50 hidden md:block"
+              className="absolute inset-0 w-full h-full object-cover opacity-20 md:opacity-70 hidden md:block rounded-r-xl"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30 hidden md:block"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20 hidden md:block rounded-r-xl"></div>
 
             <div className="relative z-10 flex flex-col justify-center md:justify-start h-full">
               <div className="md:mt-auto space-y-4 md:space-y-6">
@@ -284,16 +291,22 @@ const SubscriptionModal = ({ isOpen, onClose }: SubscriptionModalProps) => {
                     // The account page now reads the tab parameter correctly
                     router.push('/account?tab=subscription');
                   }}
-                  className="w-full bg-[#EC444B] hover:bg-[#d83a40] text-white py-3 md:py-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 text-base md:text-lg"
+                  className="w-full bg-[#EC444B] hover:bg-[#d83a40] text-white py-3 md:py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-base md:text-lg"
                 >
-                  Choose a Plan
+                  <span className="flex items-center justify-center space-x-2">
+                    <Gem className="w-5 h-5" />
+                    <span>Upgrade to Premium</span>
+                  </span>
                 </button>
 
                 <button
                   onClick={onClose}
-                  className="w-full bg-transparent border border-gray-600 text-gray-300 hover:text-white hover:border-gray-500 py-3 md:py-4 rounded-xl font-semibold transition-colors text-base md:text-lg"
+                  className="w-full bg-transparent border border-[#EC444B] text-gray-300 hover:text-white hover:border-[#EC444B] hover:bg-[#EC444B]/5 py-3 md:py-4 rounded-lg font-semibold transition-colors text-base md:text-lg"
                 >
-                  Maybe Later
+                  <span className="flex items-center justify-center space-x-2">
+                    <HeartCrack className="w-5 h-5" />
+                    <span>Maybe Later</span>
+                  </span>
                 </button>
               </div>
 
