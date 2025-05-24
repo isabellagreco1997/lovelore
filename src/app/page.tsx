@@ -240,21 +240,37 @@ export default function Home() {
 
     const checkSubscription = async () => {
       try {
-        const { data, error } = await supabase
-          .from('stripe_user_subscriptions')
-          .select('subscription_status')
-          .single();
-
-          console.log('subscription_status', data?.subscription_status);
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error checking subscription:', error);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.error('No session available for checking subscription');
+          setHasSubscription(false);
           return;
         }
-
-        setHasSubscription(!!data && data.subscription_status === 'active');
-      } catch (error) {
-        console.error('Error checking subscription:', error);
+        
+        const response = await fetch('/api/stripe-subscription', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to fetch subscription data');
+          setHasSubscription(false);
+          return;
+        }
+        
+        const { subscription } = await response.json();
+        
+        if (subscription && subscription.status === 'active') {
+          setHasSubscription(true);
+        } else {
+          setHasSubscription(false);
+        }
+      } catch (error: any) {
+        console.error('Error checking subscription status:', error.message);
+        setHasSubscription(false);
       }
     };
 
