@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import '../styles/globals.css';
 import ClientLayout from '@/components/ClientLayout';
 
@@ -75,6 +76,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ClientLayout>{children}</ClientLayout>
+        <Analytics />
       </body>
     </html>
   );
